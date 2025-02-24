@@ -1,7 +1,7 @@
 metadata:
   title: Divorce
   short title: Divorce
-  comment: This program helps you ask a judge to approve a process server without a license.
+  comment: This program helps you make the forms to end a marriage or civil union.
   authors:
     - Matt Newsted
 ---
@@ -55,16 +55,22 @@ code: |
     must_live_in_illinois
   case_county
 
+  set_progress(10)  
   nav.set_section('section_basic')
   users[0].name.first
   other_parties[0].name.first
   marriage_date
+  marriage_in_america
+  previous_divorce
+  if divorce_grounds != True:
+    must_have_irreconcilable_differences
   
   set_progress(20)
   nav.set_section('section_about_you')
   hide_address
   users[0].address.address
-
+  users[0].phone_number
+  
   set_progress(30)
   nav.set_section('section_about_spouse')
 
@@ -79,7 +85,6 @@ code: |
   
   set_progress(90)
   nav.set_section('section_filing')
-  users[0].phone_number
   e_signature
 
   set_progress(100)
@@ -156,12 +161,9 @@ subject: |
 content: |  
   This is an example of help. Click again to hide.
 ---
-
----
 id: live in IL
 question: |
   Do you live in Illinois?
-subquestion: |
 fields:
   - no label: users[0].is_resident
     datatype: yesnoradio  
@@ -251,34 +253,88 @@ fields:
 id: marriage location
 question: |
   Where were you married?
+subquestion: |
+  If you are ending a civil union, enter the location where the civil union occurred.
 fields:
-  - Were you born in the United States?: users[0].in_america
+  - Were you married or united in the United States?: marriage_in_america
     datatype: yesnoradio
-    default: True
-  - City: users[0].birthplace.city
-  - County: users[0].birthplace.county
+  - County: marriage_county
     show if: 
-      variable: users[0].in_america
+      variable: marriage_in_america
       is: True
-  - State: users[0].birthplace.state
+  - State: marriage_state
     show if: 
-      variable: users[0].in_america
+      variable: marriage_in_america
       is: True
     code: |
       states_list() 
-  - County and State or Province (separated by a comma): users[0].birthplace.intl_text
+  - County and State or Province (separated by a comma): marriage_intl_text
     help: |
       List the county and list the state or province if the country has them.
     required: False
     show if: 
-      variable: users[0].in_america
+      variable: marriage_in_america
       is: False
-  - Country (outside US): users[0].birthplace.country
+  - Country (outside US): marriage_country
     show if: 
-      variable: users[0].in_america
+      variable: marriage_in_america
       is: False   
+---
+id: previous divorce filed
+question: |
+  Have you or your spouse filed an earlier case to dissolve this marriage or civil union?
+fields:
+  - Filed an earlier divorce?: previous_divorce
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: I don't know.
+  - Was it filed in the United States?: previous_divorce_in_us
+    datatype: yesnoradio
+    show if: 
+      variable: previous_divorce
+      is: "Yes"
+  - County: previous_divorce_county
+    show if: 
+      variable: previous_divorce_in_us
+      is: True
+  - State: previous_divorce_state
+    show if: 
+      variable: previous_divorce_in_us
+      is: True
+    code: |
+      states_list() 
+  - Country (outside US): previous_divorce_country
+    show if: 
+      variable: previous_divorce_in_us
+      is: False   
+---
+id: divorce grounds
+question: |
+  Have irreconcilable differences caused the irretrievalble breakdown of the marriage or civil union?
+subquestion: |
+  Select **Yes** if:
+  
+  * You and your spouse have tried to fix the problems in your marriage or civil union, but could not, or
+  * The problems are so bad that trying to fix them is not best for your family.
+fields:
+  - no label: divorce_grounds
+    datatype: yesnoradio  
+---
+id: must be irreconcilable differences
+event: must_have_irreconcilable_differences
+question: |
+  Sorry
+subquestion: |
+  To use this program, you and your spouse or partner must have irreconcilable differences that led to the irretrievable breakdown of the marriage or civil union.
 
-
+  This means that you and your spouse have tried to fix the problems in your marriage or civil union, but could not. Or it could be that the problems are so bad that trying to fix them is not best for your family.
+  
+   Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart  
 
 
 
@@ -490,14 +546,47 @@ review:
     button: |
       **Marriage or civil union date:**
       ${ marriage_date }
+  - Edit:
+    - marriage_in_america
+    button: |
+      **Place of marriage or civil union:**
+      % if marriage_in_america:
+      ${ marriage_county }, ${ marriage_state }, US
+      % else:
+      % if marriage_intl_text != "":
+      ${ marriage_intl_text}, ${marriage_country}
+      % else:
+      ${marriage_country} 
+      % endif      
+      % endif
+  - Edit:
+    - previous_divorce
+    button: |
+      **Did you or your spouse file an earlier case to dissolve the marriage or civil union?**
+      ${ previous_divorce }
+  - Edit:
+    - previous_divorce
+    button: |
+      **Case filed in:**
+      % if previous_divorce_in_us:
+      ${ previous_divorce_county }, ${ previous_divorce_state }
+      % else:
+      ${previous_divorce_country}
+      % endif      
+    show if: previous_divorce == "Yes"
+  - Edit:
+    - divorce_grounds
+    button: |
+      **Reason to end marriage or civil union:**
+      Irreconcilable differences
 
+  
   - note: |
       <h4>About you</h4>
   - Edit: users[0].name.first
     button: |
       **Your name:**
       ${users[0].name.full(middle="full")}
-      
   - Edit: hide_address
     button: |
       **Do you want to keep your address hidden?**
@@ -510,6 +599,19 @@ review:
       **Your home address:**
       % endif    
       ${ users[0].address.on_one_line(bare=True) }
+  - Edit: users[0].phone_number
+    button: |
+      **Your phone number:**
+      ${ phone_number_formatted(users[0].phone_number) }
+  - Edit: users[0].has_email_address
+    button: |
+      **Do you have an email address?**
+      ${ word(yesno(users[0].has_email_address)) }
+  - Edit: users[0].email
+    button: |
+      **Your email:**
+      ${ users[0].email }
+    show if: users[0].has_email_address
 
 
   - note: |
@@ -528,19 +630,6 @@ review:
     button: |
       **County where you will file your case:**
       ${ case_county }
-  - Edit: users[0].phone_number
-    button: |
-      **Your phone number:**
-      ${ phone_number_formatted(users[0].phone_number) }
-  - Edit: users[0].has_email_address
-    button: |
-      **Do you have an email address?**
-      ${ word(yesno(users[0].has_email_address)) }
-  - Edit: users[0].email
-    button: |
-      **Your email:**
-      ${ users[0].email }
-    show if: users[0].has_email_address
   - Edit: e_signature
     button: |
       **Do you want to add your e-signature to your forms?**
