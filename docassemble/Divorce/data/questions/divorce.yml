@@ -13,8 +13,8 @@ include:
 objects:
   - users: ALPeopleList.using(there_are_any=True)
   - other_parties: ALPeopleList.using(there_are_any=True)
-  - employer: ALIndividual
-  - other_employer: ALIndividual
+  - other_parties[i].employer: ALIndividual
+  - other_parties[i].other_employer: ALIndividual
   - children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
@@ -69,11 +69,16 @@ code: |
   nav.set_section('section_about_you')
   hide_address
   users[0].address.address
+  users[0].residence_county
   users[0].phone_number
+  users[0].birthdate
+  users[0].emp_status
+  users[0].use_former_name
   
   set_progress(30)
   nav.set_section('section_about_spouse')
-
+  other_parties[0].birthdate
+  
   set_progress(40)
   nav.set_section('section_children')
 
@@ -205,7 +210,7 @@ id: case county
 question: |
   Where do you want to file your divorce?
 subquestion: |
-  You must file the divorce in the county where you or your spouse lives.
+  **Note:** You must file the divorce in the county where you or your spouse lives.
 
   ${ collapse_template(county_lookup_help) }
 fields:
@@ -337,7 +342,6 @@ buttons:
   - Restart: restart  
 
 
-
 ---
 id: hide address
 question: |
@@ -373,6 +377,19 @@ fields:
       states_list()
     default: IL      
   - ZIP code: users[0].address.zip
+---
+id: user residence county
+question: |
+  In which county do you live?
+subquestion: |
+  **Reminder:** You must file the divorce in the county where you or your spouse lives.
+
+  ${ collapse_template(county_lookup_help) }
+fields:
+  - County: users[0].residence_county
+    code:
+      court_list._load_courts()["address_county"].unique()
+
 ---
 id: your contact information
 question: |
@@ -419,6 +436,86 @@ content: |
   * [**Gmail**](https://accounts.google.com/SignUp)
   * [**Outlook**](https://outlook.live.com/owa/?nlp=1&signup=1)
   * [**Yahoo**](https://login.yahoo.com/account/create?.lang=en-US&.intl=us)
+---
+id: birthdate
+question: |
+  When were you born?
+fields:
+  - Date of birth: users[0].birthdate
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+---
+id: employment status
+question: |
+  Are you currently employed?
+subquestion: |
+  Check all that apply.
+fields:
+  - no label: users[0].emp_status
+    datatype: checkboxes
+    choices:
+      - Yes: Yes
+      - No: No
+      - I receive Social Security, unemployment or other types of benefits.: ss
+    none of the above: False
+validation code: |
+  if users[0].emp_status['Yes'] and users[0].emp_status['No']:
+    validation_error("You cannot select both 'Yes' and 'No.' Please adjust your answers.", field="users[0].emp_status")
+---
+
+
+
+---
+sets:
+  - users[0].aliases[0].first
+  - users[0].aliases[0].last
+  - users[0].aliases[0].middle
+  - users[0].aliases[0].suffix
+id: user former name
+question: |
+  Do you want to go back to a former or maiden name?
+fields:
+  - no label: users[0].use_former_name
+    datatype: yesnoradio
+  - note: |
+      Enter your former or maiden name.
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - First name: users[0].aliases[0].first
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Middle name: users[0].aliases[0].middle
+    required: False
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Last name: users[0].aliases[0].last
+    show if:
+      variable: users[0].use_former_name
+      is: True
+  - Suffix: users[0].aliases[0].suffix
+    code: |
+      name_suffix()
+    required: False
+    show if:
+      variable: users[0].use_former_name
+      is: True
+---
+id: spouse birthdate
+question: |
+  When was ${other_parties[0].name.full(middle="full")} born?
+fields:
+  - Date of birth: other_parties[0].birthdate
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+---
+
+
+
+
+
 ---
 id: e-signature
 question: |
@@ -599,6 +696,10 @@ review:
       **Your home address:**
       % endif    
       ${ users[0].address.on_one_line(bare=True) }
+  - Edit: users[0].residence_county
+    button: |
+      **County where you live:**
+      ${ users[0].residence_county }
   - Edit: users[0].phone_number
     button: |
       **Your phone number:**
@@ -612,15 +713,45 @@ review:
       **Your email:**
       ${ users[0].email }
     show if: users[0].has_email_address
+  - Edit: users[0].birthdate
+    button: |
+      **When were you born?**
+      ${ users[0].birthdate }
+  - Edit: users[0].emp_status
+    button: |
+      **Are you employed?**
 
+      % if users[0].emp_status['Yes']:
+      * Yes
+      % endif
+      % if users[0].emp_status['No']:
+      * No
+      % endif
+      % if users[0].emp_status['ss']:
+      * I receive Social Security, unemployment or other types of benefits.
+      % endif
 
+      
+  - Edit: users[0].use_former_name
+    button: |
+      **Do you want to go back to a former or maiden name?**
+      ${word(yesno(users[0].use_former_name))}
+  - Edit: users[0].use_former_name
+    button: |
+      **Former or maiden name:**
+      ${ users[0].aliases[0].full(middle="full")}
+    show if: users[0].use_former_name
+      
   - note: |
       <h4>About your spouse</h4>
   - Edit: other_parties[0].name.first
     button: |
       **Your spouse's name:**
       ${other_parties[0].name.full(middle="full")}
-
+  - Edit: other_parties[0].birthdate
+    button: |
+      **When was your spouse born?**
+      ${ other_parties[0].birthdate }
 
       
       
