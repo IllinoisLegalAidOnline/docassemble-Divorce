@@ -12,9 +12,9 @@ include:
 ---
 objects:
   - users: ALPeopleList.using(there_are_any=True)
+  - users[0].employers: ALPeopleList.using(there_are_any=True)
   - other_parties: ALPeopleList.using(there_are_any=True)
-  - other_parties[i].employer: ALIndividual
-  - other_parties[i].other_employer: ALIndividual
+  - other_parties[0].employers: ALPeopleList.using(there_are_any=True)
   - children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
@@ -62,6 +62,7 @@ code: |
   marriage_date
   marriage_in_america
   previous_divorce
+  separation_date
   if divorce_grounds != True:
     must_have_irreconcilable_differences
   
@@ -72,12 +73,25 @@ code: |
   users[0].residence_county
   users[0].phone_number
   users[0].birthdate
-  users[0].emp_status
+  if users[0].emp_status["Yes"]:
+    users[0].employers[0].job_title
+    if users[0].has_second_job:
+      users[0].employers[1].job_title
+  
   users[0].use_former_name
   
   set_progress(30)
   nav.set_section('section_about_spouse')
+  if other_parties[0].is_resident:
+    other_parties[0].meets_90_day_requirement
+  if knows_resp_address:
+    other_parties[0].address.address
   other_parties[0].birthdate
+  if other_parties[0].emp_status["Yes"]:
+    other_parties[0].employers[0].job_title
+    if other_parties[0].has_second_job:
+      other_parties[0].employers[1].job_title
+  other_parties[0].is_active_duty
   
   set_progress(40)
   nav.set_section('section_children')
@@ -315,6 +329,17 @@ fields:
       variable: previous_divorce_in_us
       is: False   
 ---
+id: separation date
+question: |
+  When did you separate or start living apart?
+subquestion: |
+  You do not need to live at separate addresses to be "separated."”
+fields:
+  - Separation date: separation_date
+    datatype: BirthDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    alMin: ${ marriage_date.format("yyyy-MM-dd")}    
+---
 id: divorce grounds
 question: |
   Have irreconcilable differences caused the irretrievalble breakdown of the marriage or civil union?
@@ -462,9 +487,40 @@ validation code: |
   if users[0].emp_status['Yes'] and users[0].emp_status['No']:
     validation_error("You cannot select both 'Yes' and 'No.' Please adjust your answers.", field="users[0].emp_status")
 ---
-
-
-
+id: employer info
+question: |
+  % if j == 0:
+  Tell us about your job
+  % else:
+  Tell us about your second job
+  % endif
+fields:
+  - Job title: users[i].employers[j].job_title
+    maxlength: 40    
+  - Employer's name: users[i].employers[j].name.text
+    maxlength: 40
+  - Street address: users[i].employers[j].address.address
+    address autocomplete: True
+  - Address line 2: users[i].employers[j].address.unit
+    required: False
+  - City: users[i].employers[j].address.city
+  - State: users[i].employers[j].address.state
+    code: |
+      states_list()
+    default: IL
+  - ZIP code: users[i].employers[j].address.zip
+  - Phone number: users[i].employers[j].phone_number
+    datatype: al_international_phone
+    required: False
+---
+id: second job question
+question: |
+  Do you have another job?
+subquestion: |
+  So far you told us about your job as ${ users[0].employers[0].job_title } for this employer: ${users[0].employers[0].name.text }.
+fields: 
+  no label: users[0].has_second_job
+  datatype: yesnoradio
 ---
 sets:
   - users[0].aliases[0].first
@@ -511,9 +567,107 @@ fields:
     datatype: BirthDate
     alMax: ${ today().format("yyyy-MM-dd") }
 ---
-
-
-
+id: spouse lives in IL
+question: |
+  Does ${other_parties[0].name.full(middle="full")} live in Illinois?
+fields:
+  - no label: other_parties[0].is_resident
+    datatype: yesnoradio  
+---
+id: spouse lives in IL for 90 days
+question: |
+  Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?
+fields:
+  - no label: other_parties[0].meets_90_day_requirement
+    datatype: yesnoradio
+---
+id: know spouse address
+question: |
+  Do you know ${other_parties[0].name.full(middle="full")}'s current address?
+fields:
+  - no label: knows_resp_address
+    datatype: yesnoradio
+---
+id: get spouse address
+question: |
+  What is ${other_parties[0].name.full(middle="full")}'s current address?
+fields:
+  - Street address: other_parties[0].address.address
+    address autocomplete: True
+  - Address line 2: other_parties[0].address.unit
+    required: False
+  - City: other_parties[0].address.city
+  - State: other_parties[0].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: other_parties[0].address.zip
+---
+id: spouse employment status
+question: |
+  Is ${other_parties[0].name.full(middle="full")} currently employed?
+subquestion: |
+  Check all that apply.
+fields:
+  - no label: other_parties[0].emp_status
+    datatype: checkboxes
+    choices:
+      - Yes: Yes
+      - No: No
+      - They receive Social Security, unemployment or other types of benefits.: ss
+      - I don't know.: idk
+    none of the above: False
+validation code: |
+  if other_parties[0].emp_status['Yes'] and other_parties[0].emp_status['No']:
+    validation_error("You cannot select both 'Yes' and 'No.' Please adjust your answers.", field="other_parties[0].emp_status")
+  elif (other_parties[0].emp_status['Yes'] or other_parties[0].emp_status['No']) and other_parties[0].emp_status['idk']:
+    validation_error("You cannot select both 'I don't know' and 'Yes' or 'No.' Please adjust your answers.", field="other_parties[0].emp_status")
+---
+id: spouse employer info
+question: |
+  % if j == 0:
+  Tell us about ${other_parties[0].name.full(middle="full")}'s job
+  % else:
+  Tell us about ${other_parties[0].name.full(middle="full")}'s second job
+  % endif
+fields:
+  - Job title: other_parties[i].employers[j].job_title
+    maxlength: 40
+  - Employer's name: other_parties[i].employers[j].name.text
+    maxlength: 40
+  - Street address: other_parties[i].employers[j].address.address
+    address autocomplete: True
+  - Address line 2: other_parties[i].employers[j].address.unit
+    required: False
+  - City: other_parties[i].employers[j].address.city
+  - State: other_parties[i].employers[j].address.state
+    code: |
+      states_list()
+    default: IL
+  - ZIP code: other_parties[i].employers[j].address.zip
+  - Phone number: other_parties[i].employers[j].phone_number
+    datatype: al_international_phone
+    required: False
+---
+id: spouse second job question
+question: |
+  Does ${other_parties[0].name.full(middle="full")} have another job?
+subquestion: |
+  So far you told us about ${other_parties[0].name.full(middle="full")}'s job as ${ other_parties[0].employers[0].job_title } for this employer: ${other_parties[0].employers[0].name.text }.
+fields: 
+  no label: other_parties[0].has_second_job
+  datatype: yesnoradio
+---
+id: spouse active duty
+question: |
+  Is ${other_parties[0].name.full(middle="full")} currently on active duty as a member of the Armed Forces of the United States of America?
+fields:
+  - no label: other_parties[0].is_active_duty
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: idk
 
 
 ---
@@ -609,7 +763,7 @@ content: |
 
 ---
 objects:
-  - instructions_kids: ALDocument.using(title="Instructions", filename="instructions_kids.pdf", has_addendum=False)
+  - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
 ---
 code: |
   instructions_kids.enabled = True
@@ -671,6 +825,10 @@ review:
       ${previous_divorce_country}
       % endif      
     show if: previous_divorce == "Yes"
+  - Edit: separation_date
+    button: |
+      **When did you separate?**
+      ${ separation_date }
   - Edit:
     - divorce_grounds
     button: |
@@ -730,8 +888,59 @@ review:
       % if users[0].emp_status['ss']:
       * I receive Social Security, unemployment or other types of benefits.
       % endif
-
-      
+  - Edit: users[0].employers[0].job_title
+    button: |
+     **Job title:**
+      ${ users[0].employers[0].job_title }
+    show if: users[0].emp_status["Yes"]
+  - Edit: users[0].employers[0].name.text
+    button: |
+      **Employer name:**
+      ${ users[0].employers[0].name.text }
+    show if: users[0].emp_status["Yes"]
+  - Edit: users[0].employers[0].address.address
+    button: |
+      **Employer address:**
+      ${ users[0].employers[0].address.on_one_line(bare=True) }
+    show if: users[0].emp_status["Yes"]
+  - Edit: users[0].employers[0].phone_number
+    button: |
+      **Employer phone:**
+      % if users[0].employers[0].phone_number != "":
+      ${ phone_number_formatted(users[0].employers[0].phone_number) }
+      % else:
+      None entered
+      % endif
+    show if: users[0].emp_status["Yes"]
+  - Edit: users[0].has_second_job
+    button: |
+      **Do you have a second job?**
+      ${word(yesno(users[0].has_second_job))}
+    show if: users[0].emp_status["Yes"] == True
+  - Edit: users[0].employers[1].job_title
+    button: |
+     **Second job title:**
+      ${ users[0].employers[1].job_title }
+    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
+  - Edit: users[0].employers[1].name.text
+    button: |
+      **Second employer name:**
+      ${ users[0].employers[1].name.text }
+    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
+  - Edit: users[0].employers[1].address.address
+    button: |
+      **Second employer address:**
+      ${ users[0].employers[1].address.on_one_line(bare=True) }
+    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
+  - Edit: users[0].employers[1].phone_number
+    button: |
+      **Second employer phone:**
+      % if users[0].employers[1].phone_number != "":
+      ${ phone_number_formatted(users[0].employers[1].phone_number) }
+      % else:
+      None entered
+      % endif
+    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
   - Edit: users[0].use_former_name
     button: |
       **Do you want to go back to a former or maiden name?**
@@ -750,9 +959,104 @@ review:
       ${other_parties[0].name.full(middle="full")}
   - Edit: other_parties[0].birthdate
     button: |
-      **When was your spouse born?**
+      **When was ${other_parties[0].name.full(middle="full")} spouse born?**
       ${ other_parties[0].birthdate }
+  - Edit: other_parties[0].is_resident
+    button: |
+      **Does ${other_parties[0].name.full(middle="full")} live in Illinois?**
+      ${ word(yesno(other_parties[0].is_resident)) }
+  - Edit: other_parties[0].meets_90_day_requirement
+    button: |
+      **Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?**
+      ${ word(yesno(other_parties[0].meets_90_day_requirement)) }
+  - Edit: knows_resp_address
+    button: |
+      **Do you know ${other_parties[0].name.full(middle="full")}'s current address?**
+      ${ word(yesno(knows_resp_address)) }
+  - Edit: other_parties[0].address.address
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s current address:**
+      ${ other_parties[0].address.on_one_line(bare=True) }
+    show if: knows_resp_address
+  - Edit: other_parties[0].emp_status
+    button: |
+      **Is ${other_parties[0].name.full(middle="full")} employed?**
 
+      % if other_parties[0].emp_status['Yes']:
+      * Yes
+      % endif
+      % if other_parties[0].emp_status['No']:
+      * No
+      % endif
+      % if other_parties[0].emp_status['ss']:
+      * They receive Social Security, unemployment or other types of benefits.
+      % endif
+      % if other_parties[0].emp_status['idk']:
+      * I don't know.
+      % endif
+  - Edit: other_parties[0].employers[0].job_title
+    button: |
+     **${other_parties[0].name.full(middle="full")}'s job title:**
+      ${ other_parties[0].employers[0].job_title }
+    show if: other_parties[0].emp_status["Yes"]
+  - Edit: other_parties[0].employers[0].name.text
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s employer name:**
+      ${ other_parties[0].employers[0].name.text }
+    show if: other_parties[0].emp_status["Yes"]
+  - Edit: other_parties[0].employers[0].address.address
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s employer address:**
+      ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
+    show if: other_parties[0].emp_status["Yes"]
+  - Edit: other_parties[0].employers[0].phone_number
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s employer phone:**
+      % if other_parties[0].employers[0].phone_number != "":
+      ${ phone_number_formatted(other_parties[0].employers[0].phone_number) }
+      % else:
+      None entered
+      % endif
+    show if: other_parties[0].emp_status["Yes"]
+  - Edit: other_parties[0].has_second_job
+    button: |
+      **Does ${other_parties[0].name.full(middle="full")} have a second job?**
+      ${word(yesno(other_parties[0].has_second_job))}
+    show if: other_parties[0].emp_status["Yes"] == True
+  - Edit: other_parties[0].employers[1].job_title
+    button: |
+     **${other_parties[0].name.full(middle="full")}'s second job title:**
+      ${ other_parties[0].employers[1].job_title }
+    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
+  - Edit: other_parties[0].employers[1].name.text
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s second employer name:**
+      ${ other_parties[0].employers[1].name.text }
+    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
+  - Edit: other_parties[0].employers[1].address.address
+    button: |
+      **Second employer address:**
+      ${ other_parties[0].employers[1].address.on_one_line(bare=True) }
+    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
+  - Edit: other_parties[0].employers[1].phone_number
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s second employer phone:**
+      % if other_parties[0].employers[1].phone_number != "":
+      ${ phone_number_formatted(other_parties[0].employers[1].phone_number) }
+      % else:
+      None entered
+      % endif
+    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
+  - Edit: other_parties[0].is_active_duty
+    button: |
+      **Is ${other_parties[0].name.full(middle="full")} currently on active duty?**
+      % if other_parties[0].is_active_duty == 'Yes':
+      Yes
+      % elif other_parties[0].is_active_duty == 'No':
+      No
+      % else:
+      I don't know.
+      % endif
       
       
   - note: |
