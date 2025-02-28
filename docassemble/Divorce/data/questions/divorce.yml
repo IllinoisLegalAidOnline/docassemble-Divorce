@@ -16,6 +16,7 @@ objects:
   - other_parties: ALPeopleList.using(there_are_any=True)
   - other_parties[0].employers: ALPeopleList.using(there_are_any=True)
   - children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - adult_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -95,7 +96,18 @@ code: |
   
   set_progress(40)
   nav.set_section('section_children')
-
+  children_intro
+  pet_is_pregnant
+  resp_is_pregnant
+  if any_children_together:
+    if children_status['adults'] == True and children_status['minors'] == False and children_status['support']:
+      adult_children.gather()
+    elif children_status['minors'] or children_status['support']: 
+      children.gather()
+  
+  #  if has_other_kids_during_marriage:
+  #    placeholder
+  
   set_progress(60)
   nav.set_section('section_debts')
 
@@ -668,6 +680,114 @@ fields:
       - Yes: Yes
       - No: No
       - I don't know.: idk
+---
+id: children intro
+continue button field: children_intro
+question: |
+  Questions about children
+subquestion: |
+  The next screens will ask you about pregnancy and children. Based on your answers, the program will make the correct forms.
+
+  **Note:** Even if you don't have any children together, the "Divorce with children" forms may be created. These will work better if you or your spouse are pregnant.
+---
+id: petitioner pregnant
+question: |
+  Pregnancy
+fields:
+  - Are you currently pregnant?: pet_is_pregnant
+    datatype: yesnoradio
+  - Is ${other_parties[0].name.full(middle="full")} the other parent of the unborn child?: pet_pregnant_resp_parent
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: I don't know
+    show if:
+      variable: pet_is_pregnant
+      is: True
+---
+id: respondent pregnant
+question: |
+  ${other_parties[0].name.full(middle="full")}'s pregnancy
+fields:
+  - Is ${other_parties[0].name.full(middle="full")} currently pregnant?: resp_is_pregnant
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: I don't know
+  - Are you the other parent of the unborn child?: resp_pregnant_pet_parent
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: I don't know
+    show if: 
+      variable: resp_is_pregnant
+      is: "Yes"
+---
+id: any children together
+question: |
+  Do you and ${other_parties[0].name.full(middle="full")} have any children together?
+subquestion: |
+  These can be children born to or adopted by you and ${other_parties[0].name.full(middle="full")}.
+
+  These can also be adult children.
+fields:
+  - no label: any_children_together
+    datatype: yesnoradio
+---
+id: children information
+question: |
+  Information about your children
+subquestion: |
+  The court needs information about children of the marriage.
+  
+  Check all that apply.
+fields:
+  - We gave birth to or adopted children who are: children_status
+    datatype: checkboxes
+    choices:
+      - Younger than 18.: minors
+      - 18 or older but are still in school or have a disability.: support
+      - Adults who do not need support to attend school or because of a disability.: adults
+    none of the above: False
+validation code: |
+  if children_status.all_false():
+    validation_error("You must select one option. If you made a mistake, click < Back.", field="children_status")
+---
+code: |
+  children[i].name.first
+  children[i].dob
+  children[i].complete = True
+---
+code: |
+  adult_children[i].name.first
+  adult_children[i].dob
+  adult_children[i].complete = True
+
+
+
+
+
+---
+reconsider: True
+code: |
+  file_with_kids = False
+  if pet_is_pregnant:
+    if pet_pregnant_resp_parent != "No":
+      file_with_kids = True
+  if resp_is_pregnant == "Yes":
+    if resp_pregnant_pet_parent != "No":
+      file_with_kids = True
+  # this will need work  
+  if any_children_together:
+    file_with_kids = True
+# this will need to be updated!
+# maybe just have this logic in the assembly.enabled block instead - fewer vars to worry about
+
+
+
 
 
 ---
@@ -701,9 +821,6 @@ fields:
 terms:
   - "e-signature": |
       An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
----
-code: |
-  file_with_kids = True
 ---
 id: forms assembling
 continue button field: forms_assembling
@@ -1058,7 +1175,46 @@ review:
       I don't know.
       % endif
       
-      
+  - note: |
+      <h4>Children (optional)</h4>
+  - Edit: pet_is_pregnant
+    button: |
+      **Are you pregnant?**
+      ${ word(yesno(pet_is_pregnant)) }      
+  - Edit: pet_pregnant_resp_parent
+    button: |
+      **Is ${other_parties[0].name.full(middle="full")} the other parent of the unborn child?**
+      ${ pet_pregnant_resp_parent }
+    show if: pet_is_pregnant
+  - Edit: resp_is_pregnant
+    button: |
+      **Is ${other_parties[0].name.full(middle="full")} pregnant?**
+      ${ resp_is_pregnant }
+  - Edit: resp_pregnant_pet_parent
+    button: |
+      **Are you the other parent of the unborn child?**
+      ${ resp_pregnant_pet_parent }
+    show if: resp_is_pregnant == "Yes"
+  - Edit: any_children_together
+    button: |
+      **Do you and ${other_parties[0].name.full(middle="full")} have any children together?**
+      ${ word(yesno(any_children_together)) }      
+  - Edit: children_status
+    button: |
+      **We have children who are:**
+
+      % if children_status['minors']:
+      * Younger than 18.
+      % endif
+      % if children_status['support']:
+      * 18 or older but are still in school or have a disability.
+      % endif
+      % if children_status['adults']:
+      * Adults who do not need support to attend school or because of a disability.
+      % endif
+
+
+  
   - note: |
       <h4>Filing details</h4>
   - Edit: case_county
