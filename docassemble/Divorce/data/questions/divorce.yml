@@ -16,6 +16,7 @@ objects:
   - other_parties: ALPeopleList.using(there_are_any=True)
   - other_parties[0].employers: ALPeopleList.using(there_are_any=True)
   - children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - children[i].former_addresses: DAList.using(there_are_any=True, object_type=ALAddress, complete_attribute=['complete'])   
   - adult_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
@@ -391,7 +392,7 @@ choices:
   - Yes: True
   - No: False
 ---
-id: get address
+id: get user address
 question: |
   % if hide_address:
   What is your mailing address?
@@ -761,12 +762,28 @@ validation code: |
 ---
 code: |
   children[i].name.first
-  children[i].dob
+  children[i].birthdate
+  children[i].is_of_marriage
+  children[i].has_a_disability
+  children[i].is_in_school
+  if children[i].age_in_years() < 18:
+    children[i].is_resident
+    children[i].address.address
+    if children[i].has_former_address:
+      children[i].former_addresses.gather()
   children[i].complete = True
 ---
 code: |
+  children[i].former_addresses[j].address
+  children[i].former_addresses[j].complete = True
+---
+code: |
+  if children[i].former_addresses.number_gathered() >= 4:
+    children[i].former_addresses.there_is_another = False
+---
+code: |
   adult_children[i].name.first
-  adult_children[i].dob
+  adult_children[i].birthdate
   adult_children[i].complete = True
 ---
 sets:
@@ -821,10 +838,106 @@ id: child age
 question: |
   When was ${children[i].name.full(middle="full")} born?
 fields:
-  - Birth date: children[i].dob
-    datatype: BirthDate
+  - Birth date: children[i].birthdate
+    datatype: ThreePartsDate
     alMax: ${ today().format("yyyy-MM-dd") }
+---
+id: is child of marriage
+question: |
+  Was ${children[i].name.full(middle="full")} born or adopted after the marriage?
+subquestion: |
+  If the child was born before the marriage, but adoped after the marriage, select **Yes**.
+fields:
+  - no label: children[i].is_of_marriage
+    datatype: yesnoradio
+---
+id: does child have a disability
+question: |
+  Does ${children[i].name.full(middle="full")} have a disability?
+fields:
+  - no label: children[i].has_a_disability
+    datatype: yesnoradio
+---
+id: is child in school
+question: |
+  Is ${children[i].name.full(middle="full")} in school?
+fields:
+  - no label: children[i].is_in_school
+    datatype: yesnoradio
+---
+id: child address
+question: |
+  Has ${children[i].name.full(middle="full")} lived in Illinois for the last 6 months or more?
+fields:
+  - Illinois resident for 6 months or more?: children[i].is_resident
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know.: I don't know
+---
+id: child address
+question: |
+  What is ${children[i].name.full(middle="full")}'s current address?
+subquestion: |
+  **This address will appear on your court papers.** 
+fields:
+  - Street address: children[i].address.address
+    address autocomplete: True
+  - Address line 2: children[i].address.unit
+    required: False
+  - City: children[i].address.city
+  - State: children[i].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: children[i].address.zip
+---
+id: does child have former address
+question: |
+  Has ${children[i].name.full(middle="full")} lived at any other addresses in the last five years?
+fields:
+  - no label: children[i].has_former_address
+    datatype: yesnoradio
+---
+id: child former address detail
+question: |
+  Tell us about ${children[i].name.full(middle="full")}'s ${ ordinal(i) } former address
+subquestion: |
+  You only need to include addresses where they lived in the past five years.
 
+    **This address will appear on your court papers.** 
+fields:
+  - Street address: children[i].former_addresses[j].address
+    address autocomplete: True
+  - Address line 2: children[i].former_addresses[j].unit
+    required: False
+  - City: children[i].former_addresses[j].city
+  - State: children[i].former_addresses[j].state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: children[i].former_addresses[j].zip
+---
+id: more former addresses
+question: |
+  Does ${children[i].name.full(middle="full")} have any other addresses from the past five years?
+subquestion: |
+  The court forms have space for up to four former addresses.
+  
+  So far you told us about:
+
+  % for former_address in children[i].former_addresses:
+    * ${ former_address.address.on_one_line(bare=True) }
+  % endfor
+fields:
+  - no label: children[i].former_addresses.there_is_another
+    datatype: yesnoradio
+---
+code: |
+  if children[i].former_addresses.number_gathered() >= 4:
+    children[i].former_addresses.there_is_another = False
+  
 ---
 sets:
   - adult_children[0].name.first
@@ -869,10 +982,9 @@ id: adult child age
 question: |
   When was ${adult_children[i].name.full(middle="full")} born?
 fields:
-  - Birth date: adult_children[i].dob
-    datatype: BirthDate
-    alMax: ${ (today() - date_interval(years=18)).format("yyyy-MM-dd") }
-
+  - Birth date: adult_children[i].birthdate
+    datatype: ThreePartsDate
+    alMax: ${ (current_datetime() - date_interval(years=18)).format("yyyy-MM-dd") }
 
 
 
@@ -1336,6 +1448,8 @@ review:
       % endfor
     show if: children_status['adults'] and children_status['minors'] == False and children_status['support'] == False
 
+
+
   
   - note: |
       <h4>Filing details</h4>
@@ -1363,7 +1477,7 @@ rows: children
 columns:
   - Name: |
       row_item.name.full(middle="full") if defined("row_item.name.first") else ""
-  - Details (including birthdate, school status, and residence history): |
+  - Details (including birth date, school status, and residence history): |
       action_button_html(url_action(row_item.attr_name("review_child_details")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
@@ -1379,10 +1493,110 @@ review:
     button: |
       **Name:**
       ${ x.name.full(middle="full")  }
-  - Edit: x.dob
+  - Edit: x.birthdate
     button: |
-      **Birthdate:**
-      ${ x.dob } 
+      **Birth date:**
+      ${ x.birthdate } 
+  - Edit: x.is_of_marriage
+    button: |
+      **Was born or adopted after the marriage:**
+      ${ word(yesno(x.is_of_marriage)) }
+  - Edit: x.has_a_disability
+    button: |
+      **Has a disability:**
+      ${ word(yesno(x.has_a_disability)) }
+  - Edit: x.is_in_school
+    button: |
+      **Is currently in school:**
+      ${ word(yesno(x.is_in_school)) }
+  - Edit: x.is_resident
+    button: |
+      **Has ${ x.name.full(middle="full") } lived in Illinois for the last 6 months or more?**
+      % if x.is_resident == 'Yes':
+      Yes
+      % elif x.is_resident == 'No':
+      No
+      % else:
+      I don't know.
+      % endif
+  - Edit: x.address.address
+    button: |
+      **Current address:**
+      ${ x.address.on_one_line(bare=True) }      
+  - Edit: x.has_former_address
+    button: |
+      **Has ${x.name.full(middle="full")} lived at any other addresses in the last five years?**
+      ${ word(yesno(x.has_former_address)) }
+      
+  - Edit: x.former_addresses.revisit
+    button: |
+      **Former addresses: (Edit to change details)**
+
+      % for former_address in x.former_addresses:
+        * ${ former_address.address.on_one_line(bare=True) }
+      % endfor
+    show if: x.has_former_address   
+      
+      
+continue button label: Next
+---
+id: former addresses revisit
+continue button field: children[i].former_addresses.revisit
+question: |
+  Edit ${children[i].name.full(middle="full")}'s former addresses
+subquestion: |
+  ${ children[i].former_addresses.table }
+
+  % if children[i].former_addresses.number_gathered() < 4:
+  ${ children[i].former_addresses.add_action() }
+  % endif
+---
+table: children[i].former_addresses.table
+rows: children[i].former_addresses
+columns:
+  - Former address: |
+      row_item.address.on_one_line(bare=True) if defined("row_item.address") else ""
+  - Edit: |
+      action_button_html(url_action(row_item.attr_name("row_item.address")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+
+---
+id: adult children revisit
+continue button field: adult_children.revisit
+question: |
+  Edit the adult children you have with ${other_parties[0].name.full(middle="full")}
+subquestion: |
+  ${ adult_children.table }
+
+  ${ adult_children.add_action() }
+---
+table: adult_children.table
+rows: adult_children
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Details (including name and birth date): |
+      action_button_html(url_action(row_item.attr_name("review_adult_child_details")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: adult child details
+continue button field: x.review_adult_child_details
+generic object: ALIndividual
+question: |
+  Edit ${ x.name.full(middle="full") }'s information
+review: 
+  - Edit: x.name.first
+    button: |
+      **Name:**
+      ${ x.name.full(middle="full")  }
+  - Edit: x.birthdate
+    button: |
+      **Birth date:**
+      ${ x.birthdate } 
 #  - Edit: x.protect
 #    button: |
 #      **Include as a protected person?**
