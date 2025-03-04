@@ -105,10 +105,8 @@ code: |
       children.gather()
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
-
-  
-  #  if has_other_kids_during_marriage:
-  #    placeholder
+   #if has_other_kids_during_marriage:
+   #  placeholder
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -989,6 +987,59 @@ fields:
   - Birth date: adult_children[i].birthdate
     datatype: ThreePartsDate
     alMax: ${ (current_datetime() - date_interval(years=18)).format("yyyy-MM-dd") }
+---
+id: has other kids during marriage
+question: |
+  Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?
+fields:
+  - no label: has_other_kids_during_marriage
+    datatype: yesnoradio
+
+
+
+
+---
+id: involvement in other court case about children
+question: |
+  Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+fields:
+  - no label: other_custody_case
+    datatype: yesnoradio
+
+
+
+---
+id: another court case that impacts children
+question: |
+  Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?
+fields:
+  - no label: other_case_involving_kids
+    datatype: yesnoradio
+
+
+---
+id: another custodian
+question: |
+  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  This person could have:
+
+  * Physical custody of one or more of your children, or
+  * Rights to legal custody, physical custody, or visitation with your children.
+fields:
+  - no label: other_custodian
+    datatype: yesnoradio
+
+
+
+---
+id: children lived with another adult in last 5 years
+question: |
+  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?
+fields:
+  - no label: kids_lived_with_other_adult
+    datatype: yesnoradio
+
 
 
 
