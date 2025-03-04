@@ -347,7 +347,7 @@ id: separation date
 question: |
   When did you separate or start living apart?
 subquestion: |
-  You do not need to live at separate addresses to be "separated."”
+  You do not need to live at separate addresses to be "separated."
 fields:
   - Separation date: separation_date
     datatype: BirthDate
@@ -778,6 +778,10 @@ code: |
   children[i].former_addresses[j].complete = True
 ---
 code: |
+  if children.number_gathered() >= 7:
+    children.there_is_another = False
+---
+code: |
   if children[i].former_addresses.number_gathered() >= 4:
     children[i].former_addresses.there_is_another = False
 ---
@@ -826,7 +830,7 @@ question: |
 subquestion: |
   So far you have told us about ${comma_and_list(children.complete_elements().full_names())}.
 
-  You only need to include children that you and your spouse gave birth to or adopted who are:
+  The divorce forms have room for up to seven children. You only need to include children that you and your spouse gave birth to or adopted who are:
   
   * Younger than 18, or
   * 18 or older but are still in school or have a disability.
@@ -928,7 +932,7 @@ subquestion: |
   So far you told us about:
 
   % for former_address in children[i].former_addresses:
-    * ${ former_address.address.on_one_line(bare=True) }
+    * ${ former_address.on_one_line(bare=True) }
   % endfor
 fields:
   - no label: children[i].former_addresses.there_is_another
@@ -1470,7 +1474,10 @@ question: |
 subquestion: |
   ${ children.table }
 
+  % if children.number_gathered() < 7:
   ${ children.add_action() }
+  % endif
+
 ---
 table: children.table
 rows: children
@@ -1533,7 +1540,7 @@ review:
       **Former addresses: (Edit to change details)**
 
       % for former_address in x.former_addresses:
-        * ${ former_address.address.on_one_line(bare=True) }
+        * ${ former_address.on_one_line(bare=True) }
       % endfor
     show if: x.has_former_address   
       
@@ -1555,9 +1562,9 @@ table: children[i].former_addresses.table
 rows: children[i].former_addresses
 columns:
   - Former address: |
-      row_item.address.on_one_line(bare=True) if defined("row_item.address") else ""
+      row_item.on_one_line(bare=True) if defined("row_item.address") else ""
   - Edit: |
-      action_button_html(url_action(row_item.attr_name("row_item.address")), label="Edit", icon="pencil-alt")
+      action_button_html(url_action(row_item.attr_name("address")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
 
