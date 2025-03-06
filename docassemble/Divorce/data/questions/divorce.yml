@@ -18,6 +18,7 @@ objects:
   - children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - children[i].former_addresses: DAList.using(there_are_any=True, object_type=ALAddress, complete_attribute=['complete'])   
   - adult_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - outside_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute=['complete'])  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -105,8 +106,16 @@ code: |
       children.gather()
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
-   #if has_other_kids_during_marriage:
-   #  placeholder
+  if has_other_kids_during_marriage:
+    outside_children.gather()
+
+  other_custody_case
+  
+  other_case_involving_kids
+  
+  other_custodian
+  
+  kids_lived_with_other_adult
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -184,11 +193,11 @@ subquestion: |
  
   ${ collapse_template(help_example) }  
 
-  Click on **{green words}** to learn what they mean. Some questions have a question mark in a circle ${ fa_icon("question-circle", color_css="#0dcaf0" ) } that also gives help.
+  Click on **{green words}** to learn what they mean. Some pages have a question mark in a circle ${ fa_icon("question-circle", color_css="#0dcaf0" ) } that helps explain things.
 ---
 template: help_example
 subject: |
-  **You can expand sections like this to show more information.**
+  **You can click sections like this to show more information.**
 content: |  
   This is an example of help. Click again to hide.
 ---
@@ -995,7 +1004,63 @@ fields:
   - no label: has_other_kids_during_marriage
     datatype: yesnoradio
 
+---
+code: |
+  outside_children[i].name
+  outside_children[i].complete = True
+---
+code: |
+  if outside_children.number_gathered() >= 4:
+    outside_children.there_is_another = False
+---
+sets:
+  - outside_children[0].name.first
+  - outside_children[0].name.middle
+  - outside_children[0].name.last
+  - outside_children[0].name.suffix
+id: info about first child born or adopted outside marriage
+question: |
+  Information about child born or adopted outside of marriage
+subquestion: |
+  You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+fields:
+  - code: |
+      outside_children[0].name_fields()
+  - Who's child is this?: outside_children[0].parent
+    datatype: radio    
+    choices:
+      - My child: "My child"
+      - ${other_parties[0].name.full(middle="full")}'s child: "My spouse's child"
+---
+id: info about other children born or adopted outside marriage
+sets:
+  - outside_children[i].name.first
+  - outside_children[i].name.middle
+  - outside_children[i].name.last
+  - outside_children[i].name.suffix
+question: |
+  Information about ${ ordinal(i) } child born or adopted outside of marriage
+subquestion: |
+  You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+fields:
+  - code: |
+      outside_children[i].name_fields()
+  - Who's child is this?: outside_children[i].parent
+    datatype: radio    
+    choices:
+      - My child: "My child"
+      - ${other_parties[0].name.full(middle="full")}'s child: "My spouse's child"
+---
+id: any other children outside marriage
+question: |
+  Did you or ${other_parties[0].name.full(middle="full")} have another child by birth or adoption with someone else since the date of marriage?
+subquestion: |
+  So far you have told us about ${comma_and_list(outside_children.complete_elements().full_names())}.
 
+  The divorce forms have room for up to four children. You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+fields:
+  - "Anyone else?": outside_children.there_is_another
+    datatype: yesnoradio
 
 
 ---
@@ -1502,8 +1567,50 @@ review:
         * ${ my_var.name.full(middle="full") }
       % endfor
     show if: children_status['adults'] and children_status['minors'] == False and children_status['support'] == False
+  - Edit: has_other_kids_during_marriage
+    button: |
+      **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
+      ${ word(yesno(has_other_kids_during_marriage)) }
+    show if: children_status['minors'] or children_status['support']
+  - Edit: outside_children.revisit
+    button: |
+      **Children born or adopted outside the marriage: (Edit to change names and details)**
+
+      % for my_var in outside_children:
+        * ${ my_var.name.full(middle="full") }
+      % endfor
+    show if: has_other_kids_during_marriage and (children_status['minors'] or children_status['support'])
+  
+
+  - Edit: other_custody_case
+    button: |
+      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_custody_case)) }
+    show if: children_status['minors'] or children_status['support']
+
+  - Edit: other_case_involving_kids
+    button: |
+      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_case_involving_kids)) }
+    show if: children_status['minors'] or children_status['support']
+
+      
+  - Edit: other_custodian
+    button: |
+      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_custodian)) }
+    show if: children_status['minors'] or children_status['support']
 
 
+      
+  - Edit: kids_lived_with_other_adult
+    button: |
+      **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
+      ${ word(yesno(kids_lived_with_other_adult)) }
+    show if: children_status['minors'] or children_status['support']
+      
+
+      
 
   
   - note: |
@@ -1585,7 +1692,6 @@ review:
     button: |
       **Has ${x.name.full(middle="full")} lived at any other addresses in the last five years?**
       ${ word(yesno(x.has_former_address)) }
-      
   - Edit: x.former_addresses.revisit
     button: |
       **Former addresses: (Edit to change details)**
@@ -1593,9 +1699,9 @@ review:
       % for former_address in x.former_addresses:
         * ${ former_address.on_one_line(bare=True) }
       % endfor
-    show if: x.has_former_address   
-      
-      
+    show if: x.has_former_address
+
+
 continue button label: Next
 ---
 id: former addresses revisit
@@ -1655,8 +1761,29 @@ review:
     button: |
       **Birth date:**
       ${ x.birthdate } 
-#  - Edit: x.protect
-#    button: |
-#      **Include as a protected person?**
-#      ${ word(yesno(x.protect)) }
 continue button label: Next
+
+---
+id: outside children revisit
+continue button field: outside_children.revisit
+question: |
+  Edit the children you or ${other_parties[0].name.full(middle="full")} had outside the marriage
+subquestion: |
+  ${ outside_children.table }
+
+  % if outside_children.number_gathered() < 4:
+  ${ outside_children.add_action() }
+  % endif
+
+---
+table: outside_children.table
+rows: outside_children
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Who's child: |
+      row_item.parent if defined("row_item.parent") else ""
+  - Edit: |
+      action_button_html(url_action(row_item.attr_name("parent")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
