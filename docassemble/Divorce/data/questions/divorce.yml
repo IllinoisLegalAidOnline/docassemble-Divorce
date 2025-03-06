@@ -19,6 +19,7 @@ objects:
   - children[i].former_addresses: DAList.using(there_are_any=True, object_type=ALAddress, complete_attribute=['complete'])   
   - adult_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - outside_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute=['complete'])  
+  - custody_cases: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -108,8 +109,8 @@ code: |
       adult_children.gather()
   if has_other_kids_during_marriage:
     outside_children.gather()
-
-  other_custody_case
+  if other_custody_case:
+    custody_cases.gather()
   
   other_case_involving_kids
   
@@ -1006,7 +1007,7 @@ fields:
 
 ---
 code: |
-  outside_children[i].name
+  outside_children[i].name.first
   outside_children[i].complete = True
 ---
 code: |
@@ -1039,7 +1040,7 @@ sets:
   - outside_children[i].name.last
   - outside_children[i].name.suffix
 question: |
-  Information about ${ ordinal(i) } child born or adopted outside of marriage
+  Information about a ${ ordinal(i) } child born or adopted outside of marriage
 subquestion: |
   You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
 fields:
@@ -1062,13 +1063,96 @@ fields:
   - "Anyone else?": outside_children.there_is_another
     datatype: yesnoradio
 
-
 ---
 id: involvement in other court case about children
 question: |
   Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
 fields:
   - no label: other_custody_case
+    datatype: yesnoradio
+
+---
+code: |
+  custody_cases[i].name.text
+  custody_cases[i].county
+  custody_cases[i].state
+  custody_cases[i].kids_involved
+  custody_cases[i].final_order
+  custody_cases[i].complete = True
+---
+code: |
+  if custody_cases.number_gathered() >= 3:
+    custody_cases.there_is_another = False
+---
+id: info about first custody case
+question: |
+  Information about another custody or visitation case
+subquestion: |
+  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+
+  This information should be found on the court papers from the other case.
+fields:
+  - Case number: custody_cases[0].name.text
+    maxlength: 25
+  - County where case filed: custody_cases[0].county
+    maxlength: 25
+  - State where case filed: custody_cases[0].state
+    code: |
+      states_list() 
+  - Names of children involved in the case: custody_cases[0].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - Has a final order been entered in the case?: custody_cases[0].final_order
+    datatype: yesnoradio
+  - Date of final order: custody_cases[0].final_order_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    show if:
+      variable: custody_cases[0].final_order
+      is: True
+---
+id: info about other custody cases
+question: |
+  Information about a ${ ordinal(i) } custody or visitation case
+subquestion: |
+  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+
+  This information should be found on the court papers from the other case.  
+fields:
+  - Case number: custody_cases[i].name.text
+    maxlength: 25
+  - County where case filed: custody_cases[i].county
+    maxlength: 25
+  - State where case filed: custody_cases[i].state
+    code: |
+      states_list() 
+  - Names of children involved in the case: custody_cases[i].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - Has a final order been entered in the case?: custody_cases[i].final_order
+    datatype: yesnoradio
+  - Date of final order: custody_cases[i].final_order_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    show if:
+      variable: custody_cases[i].final_order
+      is: True
+---
+id: any other custody cases
+question: |
+  Have you been involved in any other court cases about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  So far you have told us about:
+
+  % for case in custody_cases:
+  * Case number: ${case.name.text} in ${case.county}, ${case.state}
+  % endfor  
+
+  The divorce forms have room for up to three cases. You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+fields:
+  - "Any other cases?": custody_cases.there_is_another
     datatype: yesnoradio
 
 
@@ -1580,13 +1664,19 @@ review:
         * ${ my_var.name.full(middle="full") }
       % endfor
     show if: has_other_kids_during_marriage and (children_status['minors'] or children_status['support'])
-  
-
   - Edit: other_custody_case
     button: |
       **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_custody_case)) }
     show if: children_status['minors'] or children_status['support']
+  - Edit: custody_cases.revisit
+    button: |
+      **Other custody or visitation cases involving your children: (Edit to change details)**
+
+      % for my_var in custody_cases:
+      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
+      % endfor
+    show if: other_custody_case and (children_status['minors'] or children_status['support'])
 
   - Edit: other_case_involving_kids
     button: |
@@ -1774,7 +1864,6 @@ subquestion: |
   % if outside_children.number_gathered() < 4:
   ${ outside_children.add_action() }
   % endif
-
 ---
 table: outside_children.table
 rows: outside_children
@@ -1785,5 +1874,31 @@ columns:
       row_item.parent if defined("row_item.parent") else ""
   - Edit: |
       action_button_html(url_action(row_item.attr_name("parent")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: custody cases revisit
+continue button field: custody_cases.revisit
+question: |
+  Edit the other custody or visitation cases involving your children
+subquestion: |
+  ${ custody_cases.table }
+
+  % if custody_cases.number_gathered() < 3:
+  ${ custody_cases.add_action() }
+  % endif
+---
+table: custody_cases.table
+rows: custody_cases
+columns:
+  - Case number: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - County: |
+      row_item.county if defined("row_item.county") else ""
+  - State: |
+      row_item.state if defined("row_item.state") else ""
+  - Edit: |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
