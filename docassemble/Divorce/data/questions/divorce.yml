@@ -20,6 +20,9 @@ objects:
   - adult_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - outside_children: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute=['complete'])  
   - custody_cases: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)  
+  - other_cases: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)  
+  - custodians: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - other_adults: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -111,10 +114,10 @@ code: |
     outside_children.gather()
   if other_custody_case:
     custody_cases.gather()
-  
-  other_case_involving_kids
-  
-  other_custodian
+  if other_case_involving_kids:
+    other_cases.gather()
+  if other_custodian:
+    custodians.gather()
   
   kids_lived_with_other_adult
   
@@ -1064,7 +1067,7 @@ fields:
     datatype: yesnoradio
 
 ---
-id: involvement in other court case about children
+id: involvement in other custody case about children
 question: |
   Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
 fields:
@@ -1154,18 +1157,123 @@ subquestion: |
 fields:
   - "Any other cases?": custody_cases.there_is_another
     datatype: yesnoradio
-
-
-
 ---
 id: another court case that impacts children
 question: |
   Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  These include adoption, juvenile, or Order of Protection cases. There could be other cases, too. You can enter details about the cases that might affect your children on the next screens.
 fields:
   - no label: other_case_involving_kids
     datatype: yesnoradio
+---
+code: |
+  other_cases[i].name.text
+  other_cases[i].county
+  other_cases[i].state
+  other_cases[i].kids_involved
+  other_cases[i].final_order
+  other_cases[i].type
+  other_cases[i].complete = True
+---
+code: |
+  if other_cases.number_gathered() >= 3:
+    other_cases.there_is_another = False
+---
+id: info about first other case
+question: |
+  Information about another case
+subquestion: |
+  You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases. 
 
+  This information should be found on the court papers from the other case.
+fields:
+  - Case number: other_cases[0].name.text
+    maxlength: 25
+  - County where case filed: other_cases[0].county
+    maxlength: 25
+  - State where case filed: other_cases[0].state
+    code: |
+      states_list() 
+  - Names of children involved in the case: other_cases[0].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - Has a final order been entered in the case?: other_cases[0].final_order
+    datatype: yesnoradio
+  - Date of final order: other_cases[0].final_order_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    show if:
+      variable: other_cases[0].final_order
+      is: True
+  - Type of case: other_cases[0].type
+    datatype: radio
+    choices:
+      - Adoption: Adoption
+      - Juvenile: Juvenile
+      - Order of Protection: Order of Protection
+      - Other: Other
+  - Other type of case involving your children: other_cases[0].other_type
+    maxlength: 30
+    show if:
+      variable: other_cases[0].type
+      is: 'Other'
+---
+id: info about other cases
+question: |
+  Information about a ${ ordinal(i) } other case
+subquestion: |
+  You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases. 
 
+  This information should be found on the court papers from the other case.  
+fields:
+  - Case number: other_cases[i].name.text
+    maxlength: 25
+  - County where case filed: other_cases[i].county
+    maxlength: 25
+  - State where case filed: other_cases[i].state
+    code: |
+      states_list() 
+  - Names of children involved in the case: other_cases[i].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - Has a final order been entered in the case?: other_cases[i].final_order
+    datatype: yesnoradio
+  - Date of final order: other_cases[i].final_order_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    show if:
+      variable: other_cases[i].final_order
+      is: True
+  - Type of case: other_cases[i].type
+    datatype: radio
+    choices:
+      - Adoption: Adoption
+      - Juvenile: Juvenile
+      - Order of Protection: Order of Protection
+      - Other: Other
+  - Other type of case involving your children: other_cases[i].other_type
+    maxlength: 30
+    show if:
+      variable: other_cases[i].type
+      is: 'Other'
+---
+id: any other cases
+question: |
+  Have you been involved in any other court cases with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  So far you have told us about:
+
+  % for case in other_cases:
+  * Case number: ${case.name.text} in ${case.county}, ${case.state}
+  % endfor  
+
+  The divorce forms have room for up to three cases. You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases.
+fields:
+  - "Any other cases?": other_cases.there_is_another
+    datatype: yesnoradio
 ---
 id: another custodian
 question: |
@@ -1178,6 +1286,93 @@ subquestion: |
 fields:
   - no label: other_custodian
     datatype: yesnoradio
+
+---
+code: |
+  custodians[i].name.first
+  custodians[i].complete = True
+---
+code: |
+  if custodians.number_gathered() >= 3:
+    custodians.there_is_another = False
+---
+sets:
+  - custodians[0].name.first
+  - custodians[0].name.middle
+  - custodians[0].name.last
+  - custodians[0].name.suffix
+id: info about first custodian
+question: |
+  Information about other person with custody or rights to your children
+subquestion: |
+  You only need to include people who have:
+
+  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+fields:
+  - code: |
+      custodians[0].name_fields()
+  - Street address: custodians[0].address.address
+    address autocomplete: True
+  - Address line 2: custodians[0].address.unit
+    required: False
+  - City: custodians[0].address.city
+  - State: custodians[0].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: custodians[0].address.zip
+  - Names of children involved: custodians[0].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+---
+id: info about other custodians
+sets:
+  - custodians[i].name.first
+  - custodians[i].name.middle
+  - custodians[i].name.last
+  - custodians[i].name.suffix
+question: |
+  Information about a ${ ordinal(i) } other person with custody or rights to your children
+subquestion: |
+  You only need to include people who have:
+
+  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+fields:
+  - code: |
+      custodians[i].name_fields()
+  - Street address: custodians[i].address.address
+    address autocomplete: True
+  - Address line 2: custodians[i].address.unit
+    required: False
+  - City: custodians[i].address.city
+  - State: custodians[i].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: custodians[i].address.zip
+  - Names of children involved: custodians[i].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+---
+id: any other custodians
+question: |
+  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  So far you have told us about ${comma_and_list(custodians.complete_elements().full_names())}.
+
+  The divorce forms have room for up to three people. You only need to include people who have:
+
+  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+fields:
+  - "Anyone else?": custodians.there_is_another
+    datatype: yesnoradio
+
+
 
 
 
@@ -1683,16 +1878,27 @@ review:
       **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_case_involving_kids)) }
     show if: children_status['minors'] or children_status['support']
+  - Edit: other_cases.revisit
+    button: |
+      **Other cases involving your children: (Edit to change details)**
 
-      
+      % for my_var in other_cases:
+      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
+      % endfor
+    show if: other_case_involving_kids and (children_status['minors'] or children_status['support'])
   - Edit: other_custodian
     button: |
       **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_custodian)) }
     show if: children_status['minors'] or children_status['support']
+  - Edit: custodians.revisit
+    button: |
+      **Other people with custody or rights involving your children: (Edit to change details)**
 
-
-      
+      % for my_var in custodians:
+      * ${my_var.name.full(middle="full")}
+      % endfor
+    show if: other_custodian and (children_status['minors'] or children_status['support'])
   - Edit: kids_lived_with_other_adult
     button: |
       **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
@@ -1900,5 +2106,52 @@ columns:
       row_item.state if defined("row_item.state") else ""
   - Edit: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: other cases revisit
+continue button field: other_cases.revisit
+question: |
+  Edit the other cases involving your children
+subquestion: |
+  ${ other_cases.table }
+
+  % if other_cases.number_gathered() < 3:
+  ${ other_cases.add_action() }
+  % endif
+---
+table: other_cases.table
+rows: other_cases
+columns:
+  - Case number: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - County: |
+      row_item.county if defined("row_item.county") else ""
+  - State: |
+      row_item.state if defined("row_item.state") else ""
+  - Edit: |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+id: custodians revisit
+continue button field: custodians.revisit
+question: |
+  Edit the other people with custody or rights involving your children
+subquestion: |
+  ${ custodians.table }
+
+  % if custodians.number_gathered() < 3:
+  ${ custodians.add_action() }
+  % endif
+---
+table: custodians.table
+rows: custodians
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Details (including address and children involved): |
+      action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
