@@ -118,8 +118,8 @@ code: |
     other_cases.gather()
   if other_custodian:
     custodians.gather()
-  
-  kids_lived_with_other_adult
+  if kids_lived_with_other_adult:
+    other_adults.gather()
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -1286,7 +1286,6 @@ subquestion: |
 fields:
   - no label: other_custodian
     datatype: yesnoradio
-
 ---
 code: |
   custodians[i].name.first
@@ -1371,17 +1370,91 @@ subquestion: |
 fields:
   - "Anyone else?": custodians.there_is_another
     datatype: yesnoradio
-
-
-
-
-
 ---
 id: children lived with another adult in last 5 years
 question: |
-  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?
+  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years?
 fields:
   - no label: kids_lived_with_other_adult
+    datatype: yesnoradio
+---
+code: |
+  other_adults[i].name.first
+  other_adults[i].complete = True
+---
+code: |
+  if other_adults.number_gathered() >= 3:
+    other_adults.there_is_another = False
+---
+sets:
+  - other_adults[0].name.first
+  - other_adults[0].name.middle
+  - other_adults[0].name.last
+  - other_adults[0].name.suffix
+id: info about first custodian
+question: |
+  Information about other adult your children lived with in last five years
+subquestion: |
+  You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+fields:
+  - code: |
+      other_adults[0].name_fields()
+  - Street address: other_adults[0].address.address
+    address autocomplete: True
+  - Address line 2: other_adults[0].address.unit
+    required: False
+  - City: other_adults[0].address.city
+  - State: other_adults[0].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: other_adults[0].address.zip
+  - Names of children involved: other_adults[0].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - This person's relationship to your children: other_adults[0].relationship
+    maxlength: 35
+---
+id: info about other other_adults
+sets:
+  - other_adults[i].name.first
+  - other_adults[i].name.middle
+  - other_adults[i].name.last
+  - other_adults[i].name.suffix
+question: |
+    Information about a ${ ordinal(i) } other adult your children lived with in last five years
+subquestion: |
+  You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+fields:
+  - code: |
+      other_adults[i].name_fields()
+  - Street address: other_adults[i].address.address
+    address autocomplete: True
+  - Address line 2: other_adults[i].address.unit
+    required: False
+  - City: other_adults[i].address.city
+  - State: other_adults[i].address.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: other_adults[i].address.zip
+  - Names of children involved: other_adults[i].kids_involved
+    maxlength: 45
+    help: |
+      If more than one child, separate names by commas.
+  - This person's relationship to your children: other_adults[i].relationship
+    maxlength: 35
+---
+id: any other other_adults
+question: |
+  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years?
+subquestion: |
+  So far you have told us about ${comma_and_list(other_adults.complete_elements().full_names())}.
+
+  The divorce forms have room for up to three people. You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+fields:
+  - "Anyone else?": other_adults.there_is_another
     datatype: yesnoradio
 
 
@@ -1904,6 +1977,14 @@ review:
       **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
       ${ word(yesno(kids_lived_with_other_adult)) }
     show if: children_status['minors'] or children_status['support']
+  - Edit: other_adults.revisit
+    button: |
+      **Other adults your children lived with in the last five years: (Edit to change details)**
+
+      % for my_var in other_adults:
+      * ${my_var.name.full(middle="full")}
+      % endfor
+    show if: kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
       
 
       
@@ -2152,6 +2233,27 @@ columns:
   - Name: |
       row_item.name.full(middle="full") if defined("row_item.name.first") else ""
   - Details (including address and children involved): |
+      action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+id: other adults revisit
+continue button field: other_adults.revisit
+question: |
+  Edit the other adults your children lived with in the last five years
+subquestion: |
+  ${ other_adults.table }
+
+  % if other_adults.number_gathered() < 3:
+  ${ other_adults.add_action() }
+  % endif
+---
+table: other_adults.table
+rows: other_adults
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Details (including address, children involved and relationship): |
       action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
