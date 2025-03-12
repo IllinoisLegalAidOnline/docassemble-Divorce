@@ -40,7 +40,7 @@ sections:
   - section_basic: Basic info
   - section_about_you: About you
   - section_about_spouse: About your spouse
-  - section_children: Children (optional)
+  - section_children: Children and support
   - section_debts: Debts
   - section_property: Property
   - section_filing: Filing details
@@ -120,6 +120,12 @@ code: |
     custodians.gather()
   if kids_lived_with_other_adult:
     other_adults.gather()
+  
+  child_support_paid
+  want_child_support
+  current_pt_schedule
+  taxes_choice
+
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -1456,11 +1462,88 @@ subquestion: |
 fields:
   - "Anyone else?": other_adults.there_is_another
     datatype: yesnoradio
-
-
-
-
-
+---
+id: child support currently being paid
+question: |
+  Is child support being paid for the children of the marriage?
+fields:
+  - no label: child_support_paid
+    datatype: yesnoradio
+---
+id: want child support
+question: |
+  Do you want the court to order child support for for the children of the marriage?
+subquestion: |
+  You can select **Yes** if you want ${other_parties[0].name.full(middle="full")} to pay or if you think you will pay child support.
+  
+  Selecting **Yes** will give you the forms to help set up a child support order.
+fields:
+  - no label: want_child_support
+    datatype: yesnoradio
+---
+id: current parenting time schedule
+question: |
+  Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?
+fields:
+  - no label: current_pt_schedule
+    datatype: yesnoradio
+---
+id: children and taxes
+question: |
+  How will the children be claimed as dependents on state and federal tax returns?
+subquestion: |
+  Select the different options below to see what each means.
+fields:
+  - no label: taxes_choice
+    datatype: radio
+    choices:
+      - One parent will claim all children: all
+      - Parents will take turns on even and odd tax years: turns
+      - Parents will split how many children they claim on their taxes: split
+      - I don't know what I want right now. I will decide later.: idk
+  - Who will claim the children as dependents for all tax years?: tax_all
+    datatype: radio
+    choices:
+      - Me: Me
+      - ${other_parties[0].name.full(middle="full")}: Them
+    show if:
+      variable: taxes_choice
+      is: "all"
+  - Which tax years do you want to claim the children as dependents?: tax_turns
+    datatype: radio
+    choices:
+      - Even: even
+      - Odd: odd
+    help: |
+      ${other_parties[0].name.full(middle="full")} will get to claim them on the other tax years.
+    show if:
+      variable: taxes_choice
+      is: "turns"
+  - note: |
+      Both you and ${other_parties[0].name.full(middle="full")} will get to claim one-half of the children each tax year.
+    show if:
+      variable: taxes_choice
+      is: "split"   
+  - If odd number of children, who will claim the children in **odd** tax years?: tax_split_odd
+    datatype: radio
+    choices:
+      - Me: Me
+      - ${other_parties[0].name.full(middle="full")}: Them
+    help: |
+      As the children get older, there may be a time when an odd number of them are dependents.
+    show if:
+      variable: taxes_choice
+      is: "split"      
+  - If odd number of children, who will claim the children in **even** tax years?: tax_split_even
+    datatype: radio
+    choices:
+      - Me: Me
+      - ${other_parties[0].name.full(middle="full")}: Them
+    help: |
+      As the children get older, there may be a time when an odd number of them are dependents.
+    show if:
+      variable: taxes_choice
+      is: "split"      
 ---
 reconsider: True
 code: |
@@ -1867,7 +1950,7 @@ review:
       % endif
       
   - note: |
-      <h4>Children (optional)</h4>
+      <h4>Children and support</h4>
   - Edit: pet_is_pregnant
     button: |
       **Are you pregnant?**
@@ -1985,10 +2068,35 @@ review:
       * ${my_var.name.full(middle="full")}
       % endfor
     show if: kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
-      
+  - Edit: child_support_paid
+    button: |
+      **Is child support being paid for the children of the marriage?**
+      ${ word(yesno(child_support_paid)) }        
+    show if: children_status['minors'] or children_status['support']
+  - Edit: want_child_support
+    button: |
+      **Do you want the court to order child support for for the children of the marriage?**
+      ${ word(yesno(want_child_support)) }        
+    show if: children_status['minors'] or children_status['support']
+  - Edit: current_pt_schedule
+    button: |
+      **Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(current_pt_schedule)) }        
+    show if: children_status['minors'] or children_status['support']
+  - Edit: taxes_choice
+    button: |
+      **How will the children be claimed as dependents on tax returns?**
 
-      
-
+      % if taxes_choice == 'all':
+      * One parent will claim all children
+      % elif taxes_choice == 'turns':
+      * Parents will take turns on even and odd tax years
+      % elif taxes_choice == 'split':
+      * Parents will split how many children they claim on their taxes
+      % else:
+      * I don't know.
+      % endif
+    show if: children_status['minors'] or children_status['support']
   
   - note: |
       <h4>Filing details</h4>
