@@ -55,12 +55,12 @@ code: |
   how_to_use
   set_progress(5)
   accept_terms
+  divorce_info
   if users[0].is_resident:
     if users[0].meets_90_day_requirement == False:
       must_meet_90_day_requirement
   else:
     must_live_in_illinois
-  case_county
 
   set_progress(10)  
   nav.set_section('section_basic')
@@ -105,6 +105,11 @@ code: |
   children_intro
   pet_is_pregnant
   resp_is_pregnant
+
+  # TODO
+  # may consider moving questions, may consider nesting questions if children_status['minors'] or children_status['support']
+
+  
   if any_children_together:
     if children_status['minors'] or children_status['support']: 
       children.gather()
@@ -124,8 +129,11 @@ code: |
   child_support_paid
   want_child_support
   current_pt_schedule
+  parenting_plan_info
   taxes_choice
 
+  current_maintenance
+  want_maintenance
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -135,6 +143,7 @@ code: |
   
   set_progress(90)
   nav.set_section('section_filing')
+  case_county
   e_signature
 
   set_progress(100)
@@ -210,6 +219,19 @@ subject: |
   **You can click sections like this to show more information.**
 content: |  
   This is an example of help. Click again to hide.
+---
+id: divorce info
+continue button field: divorce_info
+question: |
+  Divorce information
+subquestion: |
+  UPDATE THIS 
+
+  divorce may take months or even years depending on how quickly people can agree to terms.
+
+  This Easy Form will make many forms. Some will be used when you file the case, some during the case, and some when the judgment is final. Some of the forms are ready while others are partially complete.
+  
+  Be sure to review your forms and read instructions you can download at the end of the program.
 ---
 id: live in IL
 question: |
@@ -1488,6 +1510,19 @@ fields:
   - no label: current_pt_schedule
     datatype: yesnoradio
 ---
+id: parenting plan info
+continue button field: parenting_plan_info
+question: |
+  About parenting plans
+subquestion: |
+  UPDATE THIS
+
+  A Parenting Plan explains rights and responsibilities of each parent. They must be filed within 120 days after the divorce is filed.
+  
+  You and ${other_parties[0].name.full(middle="full")} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
+
+  Use ILAO's Parenting Plan Easy Form to create the forms you need.  
+---
 id: children and taxes
 question: |
   How will the children be claimed as dependents on state and federal tax returns?
@@ -1559,6 +1594,29 @@ code: |
     file_with_kids = True
 # this will need to be updated!
 # maybe just have this logic in the assembly.enabled block instead - fewer vars to worry about
+---
+id: current maintenance
+question: |
+  Is maintenance (alimony) currently being paid from one spouse to the other?
+fields:
+  - no label: current_maintenance
+    datatype: yesnoradio
+---
+id: want maintenance
+question: |
+  Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?
+fields:
+  - no label: want_maintenance
+    datatype: yesnoradio
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2097,7 +2155,18 @@ review:
       * I don't know.
       % endif
     show if: children_status['minors'] or children_status['support']
-  
+  - Edit: current_maintenance
+    button: |
+      **Is maintenance (alimony) currently being paid from one spouse to the other?**
+      ${ word(yesno(current_maintenance)) }
+  - Edit: want_maintenance
+    button: |
+      **Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?**
+      ${ word(yesno(want_maintenance)) }
+
+
+
+      
   - note: |
       <h4>Filing details</h4>
   - Edit: case_county
@@ -2108,6 +2177,8 @@ review:
     button: |
       **Do you want to add your e-signature to your forms?**
       ${ word(yesno(e_signature)) }
+
+
 
 ---
 id: children revisit
@@ -2185,8 +2256,6 @@ review:
         * ${ former_address.on_one_line(bare=True) }
       % endfor
     show if: x.has_former_address
-
-
 continue button label: Next
 ---
 id: former addresses revisit
