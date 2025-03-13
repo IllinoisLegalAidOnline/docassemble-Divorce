@@ -23,6 +23,8 @@ objects:
   - other_cases: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)  
   - custodians: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - other_adults: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - debts: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 code: |
@@ -137,6 +139,10 @@ code: |
   
   set_progress(60)
   nav.set_section('section_debts')
+  debts_intro
+  if include_debts:
+    debts.gather()
+    unlisted_debts
 
   set_progress(70)
   nav.set_section('section_property')
@@ -1610,10 +1616,96 @@ fields:
     datatype: yesnoradio
 
 
+---
+id: debts intro
+continue button field: debts_intro
+question: |
+  Debts and liabilities
+subquestion: |
+  EXPLAIN what debts and liabilities include, how they can be divided
 
+  What will appear in petition. Judge will decide if can't reach agreement.
+---
+id: include debts
+question: |
+  Do you want to add information about debts?
+subquestion: |
+  These will appear on the draft form of the divorce judgment. Forms have room for up to 14 debts. You can specify who you want to pay any debts not listed on your forms.
+fields:
+  - no label: include_debts
+    datatype: yesnoradio
+---
+id: more debts
+question: |
+  Do you want to list any other debts?
+subquestion: |
+  So far you have told us about:
 
+  % for debt in debts:
+    * $${ thousands( debt.amount, show_decimals=True) } owed to ${ debt.name.text}
+  % endfor
 
+  You can list up to 14 debts.
+fields:
+  - Add another?: debts.there_is_another
+    datatype: yesnoradio
+---
+id: debt information
+question: |
+  Details for the ${ordinal(i)} debt 
+fields:
+  - Name of creditor: debts[i].name.text
+    maxlength: 40
+    help: |
+      The creditor is the company, institution, or person you owe money to.
+  - Total amount owed: debts[i].amount
+    datatype: currency
+    min: 0
+    required: False
+  - How will this be divided?: debts[i].payment_division
+    datatype: radio
+    choices:
+      - I will pay for all of it (100%).: Me
+      - ${other_parties[0].name.full(middle="full")} will pay for all of it (100%).: them
+      - Each of us will pay some of it. (Enter % below): split
+      - I don't know. I will decide later.: idk
+  - What percent of the debt will you pay?: debts[i].pet_percent
+    help: |
+      Enter the percent you want to pay from 1-100%. ${other_parties[0].name.full(middle="full")} will pay the other %.
+      
+      For example, if you want to pay half, enter 50%. ${other_parties[0].name.full(middle="full")} will pay the other half.
+    datatype: number
+    min: 1
+    max: 100
+    show if:
+      variable: debts[i].payment_division
+      is: "split"
+---
+code: |
+  debts[i].name.text
+  debts[i].complete = True 
+---
+code: |
+  if debts.number_gathered() == 14:
+    debts.there_is_another = False
+---
+id: unlisted debts
+question: |
+  How do you want other debts to be divided?
+subquestion: |
+  If there are other debts you did not list, they can be divided.
 
+  You can select more than one option.
+fields:
+  - no label: unlisted_debts
+    datatype: checkboxes
+    choices:
+      - Each of us will be responsible for 50% of each joint debt.: joint
+        help: |
+          Joint debts are debts that are in both your and ${other_parties[0].name.full(middle="full")}'s name.
+      - Each of us will pay all of the debts in their own name.: name
+    none of the above: |
+      I don't know. I will decide later.
 
 
 
@@ -2165,6 +2257,34 @@ review:
       ${ word(yesno(want_maintenance)) }
 
 
+  - note: |
+      <h4>Debts</h4>
+  - Edit: include_debts
+    button: |
+      **Do you want to add information about debts?**
+      ${ word(yesno(include_debts)) }
+  - Edit: debts.revisit
+    button: |
+      **Debts: (Edit to change details)**
+
+      % for my_var in debts:
+      * $${ thousands( my_var.amount, show_decimals=True) } owed to ${ my_var.name.text}
+      % endfor
+    show if: include_debts    
+  - Edit: unlisted_debts
+    button: |
+      **How do you want other debts to be divided?**
+
+      % if unlisted_debts['joint']:
+      * Each of us will be responsible for 50% of each joint debt.
+      % endif
+      % if unlisted_debts['name']:
+      * Each of us will pay all of the debts in their own name.
+      % endif
+      % if unlisted_debts.all_false():
+      * I don't know. I will decide later.
+      % endif
+    show if: include_debts    
 
       
   - note: |
@@ -2432,5 +2552,29 @@ columns:
       row_item.name.full(middle="full") if defined("row_item.name.first") else ""
   - Details (including address, children involved and relationship): |
       action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: debts revisit
+continue button field: debts.revisit
+question: |
+  Edit debt information
+subquestion: |
+  ${ debts.table }
+
+  % if debts.number_gathered() < 14:
+  ${ debts.add_action() }
+  % endif
+---
+table: debts.table
+rows: debts
+columns:
+  - Creditor: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - Amount owed: |
+      currency( row_item.amount) if defined("row_item.amount") else ""       
+  - Details (including how debt will be divided): |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
