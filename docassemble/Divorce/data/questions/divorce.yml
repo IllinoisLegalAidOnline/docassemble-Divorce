@@ -23,7 +23,8 @@ objects:
   - other_cases: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)  
   - custodians: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - other_adults: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
-  - debts: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
+  - debts: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+  - property_list: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
 
   - service_address: ALAddress
   - second_service_address: ALAddress  
@@ -118,6 +119,11 @@ code: |
   if any_children_together:
     if children_status['minors'] or children_status['support']: 
       children.gather()
+      child_support_paid
+      want_child_support
+      current_pt_schedule
+      parenting_plan_info
+      taxes_choice
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
   if has_other_kids_during_marriage:
@@ -131,11 +137,6 @@ code: |
   if kids_lived_with_other_adult:
     other_adults.gather()
   
-  child_support_paid
-  want_child_support
-  current_pt_schedule
-  parenting_plan_info
-  taxes_choice
 
   current_maintenance
   want_maintenance
@@ -149,6 +150,12 @@ code: |
 
   set_progress(70)
   nav.set_section('section_property')
+  property_intro
+  if include_property:
+    property_keep
+    property_list.gather()
+    property_exchange
+    property_other
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -1643,6 +1650,10 @@ question: |
 subquestion: |
   EXPLAIN what debts and liabilities include, how they can be divided
 
+  EXPLAIN marital debt and non-marital debt
+
+  EXPLAIN that you do not have to enter this now. It will go in judgment.
+
   What will appear in petition. Judge will decide if can't reach agreement.
 ---
 id: include debts
@@ -1726,6 +1737,119 @@ fields:
     none of the above: |
       I don't know. I will decide later.
 
+---
+id: property intro
+continue button field: property_intro
+question: |
+  Property and accounts
+subquestion: |
+  EXPLAIN what property and accounts include, how they can be divided
+
+  EXPLAIN difference between marital and non-marital property
+  
+  EXPLAIN that you do not have to enter this now. It will go in judgment.
+
+  What will appear in petition. Judge will decide if can't reach agreement.
+
+
+
+---
+id: include personal property and bank accounts
+question: |
+  Do you want to add information about personal property and bank accounts?
+subquestion: |
+  Personal property is things like cars, furniture, electronics, household items, or keepsakes.
+  
+  These will appear on the draft form of the divorce judgment. You can say which property goes to which person. This is not final. The judge may decide differently.
+  
+  The forms have room for up to 14 items of property or bank accounts.
+
+  ADD INFO about prop in own name, exchange, anything else PETS
+
+  **Note:** This does not include retirement accounts. Those will be asked about on another screen.
+fields:
+  - no label: include_property
+    datatype: yesnoradio
+---
+id: keep property in own name
+question: |
+  Do you want each person to keep the property and bank accounts in their own name or possession?
+subquestion: |
+  You can also explain how property and accounts will be divided on the next screens.
+
+  If you aren't sure, select **No**.
+fields:
+  - no label: property_keep
+    datatype: yesnoradio
+
+---
+id: more property
+question: |
+  Do you want to list any other property or accounts?
+subquestion: |
+  So far you have told us about:
+
+  % for item in property_list:
+    * ${ item.name.text}
+  % endfor
+
+  You can list up to 14 items of property or bank accounts.
+fields:
+  - Add another?: property_list.there_is_another
+    datatype: yesnoradio
+---
+id: property information
+question: |
+  Details for the ${ordinal(i)} property or account
+subquestion: |
+  **Note:** Do not list any account numbers.
+fields:
+  - Description of the property or account: property_list[i].name.text
+    maxlength: 40
+    help: |
+      You can list a group of items like "bedroom furniture" or "kitchen items."
+  - Who do you want to get this property or account?: property_list[i].party
+    datatype: radio
+    choices:
+      - Me: pet
+      - ${other_parties[0].name.full(middle="full")}: res
+---
+code: |
+  property_list[i].name.text
+  property_list[i].complete = True 
+---
+code: |
+  if property_list.number_gathered() == 14:
+    property_list.there_is_another = False
+---
+id: property exchange in 30 days from judgment
+question: |
+  Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?
+subquestion: |
+  Adding this requirement can help motivate ${other_parties[0].name.full(middle="full")} to turn over your personal property or accounts after the divorce.
+
+  If you aren't sure, select **No**.
+fields:
+  - no label: property_exchange
+    datatype: yesnoradio
+---
+id: other property orders 
+question: |
+  Do you want the final divorce judgment to say anything else about property?
+subquestion: |
+  **Note:** This includes **pets**.
+fields:
+  - Anything else about property or pets?: property_other
+    datatype: yesnoradio
+  - Describe the things and who you want to get them. Use each person's name to be clear.: property_other_text
+    input type: area
+    rows: 5
+    maxlength: 300    
+    label above field: True
+    show if:
+      variable: property_other
+      is: True
+
 
 
 ---
@@ -1741,7 +1865,6 @@ fields:
     datatype: integer
     code: |
       court_county_lookup()
-
 ---
 depends on:
   - trial_court_index
@@ -1971,16 +2094,6 @@ fields:
       - Special process server: sps
       - Licensed private detective: detective
       - I don't know. I will decide and complete the Summons later.: idk
-
-
-
-
-
-
-
-
-
-
 
 ---
 id: e-signature
@@ -2571,6 +2684,42 @@ review:
       % endif
     show if: include_debts    
 
+
+
+  - note: |
+      <h4>Property</h4>
+  - Edit: include_property
+    button: |
+      **Do you want to add information about personal property or bank accounts?**
+      ${ word(yesno(include_property)) }
+  - Edit: property_keep
+    button: |
+      **Do you want each person to keep the property and bank accounts in their own name or possession?**
+      ${ word(yesno(property_keep)) }      
+    show if: include_property    
+  - Edit: property_list.revisit
+    button: |
+      **Personal property or bank accounts: (Edit to change details)**
+
+      % for my_var in property_list:
+      * ${ my_var.name.text}
+      % endfor
+    show if: include_property    
+  - Edit: property_exchange
+    button: |
+      **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
+      ${ word(yesno(property_exchange)) }      
+    show if: include_property    
+  - Edit: property_other
+    button: |
+      **Do you want the final divorce judgment to say anything else about property?**
+      ${ word(yesno(property_other)) }      
+    show if: include_property    
+  - Edit: property_other_text
+    button: |
+      **Other information about property to include in the divorce judgment:**
+      ${ property_other_text }      
+    show if: include_property and property_other
       
   - note: |
       <h4>Filing details</h4>
@@ -2947,6 +3096,30 @@ columns:
   - Amount owed: |
       currency( row_item.amount) if defined("row_item.amount") else ""       
   - Details (including how debt will be divided): |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: property revisit
+continue button field: property_list.revisit
+question: |
+  Edit personal property or bank account information
+subquestion: |
+  ${ property_list.table }
+
+  % if property_list.number_gathered() < 14:
+  ${ property_list.add_action() }
+  % endif
+---
+table: property_list.table
+rows: property_list
+columns:
+  - Description: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - Will go to: |
+      "Me" if row_item.party == "pet" else other_parties[0].name.full(middle="full")       
+  - Edit: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
