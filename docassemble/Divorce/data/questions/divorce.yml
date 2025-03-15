@@ -240,7 +240,7 @@ subquestion: |
 
   You can find most of this information on other court papers you have about this case. 
 
-  Set aside 10 to 15 minutes to finish this program. You can log in and save your work to continue later. 
+  Set aside 20 to 45 minutes to finish this program. You can log in and save your work to continue later. 
  
   ${ collapse_template(help_example) }  
 
@@ -349,16 +349,21 @@ subquestion: |
 fields:
   - Were you married or united in the United States?: marriage_in_america
     datatype: yesnoradio
-  - County: marriage_county
-    show if: 
-      variable: marriage_in_america
-      is: True
   - State: marriage_state
     show if: 
       variable: marriage_in_america
       is: True
     code: |
-      states_list() 
+      states_list()
+  - County: marriage_county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('marriage_state') === "IL" && val('marriage_in_america')
+  - County: marriage_county
+    maxlength: 25
+    js show if: |
+      val('marriage_state') != "IL" && val('marriage_in_america')
   - County and State or Province (separated by a comma): marriage_intl_text
     help: |
       List the county and list the state or province if the country has them.
@@ -386,16 +391,21 @@ fields:
     show if: 
       variable: previous_divorce
       is: "Yes"
-  - County: previous_divorce_county
-    show if: 
-      variable: previous_divorce_in_us
-      is: True
   - State: previous_divorce_state
     show if: 
       variable: previous_divorce_in_us
       is: True
     code: |
-      states_list() 
+      states_list()
+  - County: previous_divorce_county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('previous_divorce_state') === "IL" && val('previous_divorce_in_us')
+  - County: previous_divorce_county
+    maxlength: 25
+    js show if: |
+      val('previous_divorce_state') != "IL" && val('previous_divorce_in_us')
   - Country (outside US): previous_divorce_country
     show if: 
       variable: previous_divorce_in_us
@@ -1157,11 +1167,18 @@ subquestion: |
 fields:
   - Case number: custody_cases[0].name.text
     maxlength: 25
-  - County where case filed: custody_cases[0].county
-    maxlength: 25
   - State where case filed: custody_cases[0].state
     code: |
       states_list() 
+  - County where case filed: custody_cases[0].county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('custody_cases[0].state') === "IL"
+  - County where case filed: custody_cases[0].county
+    maxlength: 25
+    js show if: |
+      val('custody_cases[0].state') != "IL"
   - Names of children involved in the case: custody_cases[0].kids_involved
     maxlength: 45
     help: |
@@ -1185,11 +1202,18 @@ subquestion: |
 fields:
   - Case number: custody_cases[i].name.text
     maxlength: 25
-  - County where case filed: custody_cases[i].county
-    maxlength: 25
   - State where case filed: custody_cases[i].state
     code: |
       states_list() 
+  - County where case filed: custody_cases[i].county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('custody_cases[i].state') === "IL"
+  - County where case filed: custody_cases[i].county
+    maxlength: 25
+    js show if: |
+      val('custody_cases[i].state') != "IL"
   - Names of children involved in the case: custody_cases[i].kids_involved
     maxlength: 45
     help: |
@@ -1250,11 +1274,18 @@ subquestion: |
 fields:
   - Case number: other_cases[0].name.text
     maxlength: 25
-  - County where case filed: other_cases[0].county
-    maxlength: 25
   - State where case filed: other_cases[0].state
     code: |
       states_list() 
+  - County where case filed: other_cases[0].county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('other_cases[0].state') === "IL"
+  - County where case filed: other_cases[0].county
+    maxlength: 25
+    js show if: |
+      val('other_cases[0].state') != "IL"
   - Names of children involved in the case: other_cases[0].kids_involved
     maxlength: 45
     help: |
@@ -1290,11 +1321,18 @@ subquestion: |
 fields:
   - Case number: other_cases[i].name.text
     maxlength: 25
-  - County where case filed: other_cases[i].county
-    maxlength: 25
   - State where case filed: other_cases[i].state
     code: |
       states_list() 
+  - County where case filed: other_cases[i].county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('other_cases[i].state') === "IL"
+  - County where case filed: other_cases[i].county
+    maxlength: 25
+    js show if: |
+      val('other_cases[i].state') != "IL"
   - Names of children involved in the case: other_cases[i].kids_involved
     maxlength: 45
     help: |
@@ -1538,6 +1576,8 @@ fields:
 id: current parenting time schedule
 question: |
   Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  This is often called a Parenting Time schedule. It is sometimes part of a Parenting Plan.
 fields:
   - no label: current_pt_schedule
     datatype: yesnoradio
@@ -2240,7 +2280,7 @@ review:
   - Edit:
     - previous_divorce
     button: |
-      **Case filed in:**
+      **Earlier case filed in:**
       % if previous_divorce_in_us:
       ${ previous_divorce_county }, ${ previous_divorce_state }
       % else:
