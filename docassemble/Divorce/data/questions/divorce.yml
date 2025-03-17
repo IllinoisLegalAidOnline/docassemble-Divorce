@@ -167,8 +167,11 @@ code: |
   if retirement_options == "split":
     if enter_resp_pensions:
       pensions_resp.gather()
+      resp_pensions_qdro
     if enter_pet_pensions:
       pensions_pet.gather()
+      pet_pensions_qdro
+    pensions_other
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -1946,16 +1949,69 @@ subquestion: |
 fields:
   - Enter info about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: enter_resp_pensions
     datatype: yesnoradio
+
 ---
+id: more respondent pensions
+question: |
+  Do you want to list any other of ${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions?
+subquestion: |
+  So far you have told us about:
 
+  % for pension in pensions_resp:
+    * ${ pension.name.text}
+  % endfor
 
-
-
-
-
-
-
-
+  You can list up to 3 retirement accounts or pensions.
+fields:
+  - Add another?: pensions_resp.there_is_another
+    datatype: yesnoradio
+---
+id: respondent pension information
+question: |
+  Details for ${other_parties[0].name.full(middle="full")}'s ${ordinal(i)} retirement account or pension 
+fields:
+  - Account name: pensions_resp[i].name.text
+    maxlength: 40
+  - Do you want a portion of this account?: pensions_resp[i].payment_division
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know. I will decide later.: idk
+  - What percent of the account do you want?: pensions_resp[i].pet_percent
+    help: |
+      Enter the percent you want to receive from 1-100%. ${other_parties[0].name.full(middle="full")} will receive the other %.
+      
+      For example, if you want three quarters, enter 75%. ${other_parties[0].name.full(middle="full")} will receive 25%.
+    datatype: number
+    min: 1
+    max: 100
+    show if:
+      variable: pensions_resp[i].payment_division
+      is: "Yes"
+---
+code: |
+  pensions_resp[i].name.text
+  pensions_resp[i].complete = True 
+---
+code: |
+  if pensions_resp.number_gathered() == 3:
+    pensions_resp.there_is_another = False
+---
+id: qdro for resp pensions
+question: |
+  Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?
+subquestion: |
+  The person you select will have to prepare a Qualified Domestic Relations Order (QDRO) or Qualified Illinois Domestic Relations Order (QILDRO) after the divorce is final to make sure you receive your share.
+  
+  You can usually contact the retirement account or pension plan administrator to get the forms you need.
+fields:
+  - Who will prepare the QDROs to divide ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: resp_pensions_qdro
+    datatype: radio
+    choices:
+      - I will prepare the paperwork.: Me
+      - ${other_parties[0].name.full(middle="full")} will prepare the paperwork.: Them
+      - I don't know. I will decide later.: idk
 
 ---
 id: enter user pensions
@@ -1966,6 +2022,85 @@ subquestion: |
 fields:
   - Enter info about your retirement accounts and pensions?: enter_pet_pensions
     datatype: yesnoradio
+---
+id: more user pensions
+question: |
+  Do you want to list any other of your retirement accounts or pensions?
+subquestion: |
+  So far you have told us about:
+
+  % for pension in pensions_pet:
+    * ${ pension.name.text}
+  % endfor
+
+  You can list up to 3 retirement accounts or pensions.
+fields:
+  - Add another?: pensions_pet.there_is_another
+    datatype: yesnoradio
+---
+id: user pension information
+question: |
+  Details for your ${ordinal(i)} retirement account or pension 
+fields:
+  - Account name: pensions_pet[i].name.text
+    maxlength: 40
+  - Do you want ${other_parties[0].name.full(middle="full")} to receive part of this account?: pensions_pet[i].payment_division
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know. I will decide later.: idk
+  - What percent of the account do you want ${other_parties[0].name.full(middle="full")} to receive?: pensions_pet[i].pet_percent
+    help: |
+      Enter the percent you want ${other_parties[0].name.full(middle="full")} to receive from 1-100%. You will receive the other %.
+      
+      For example, if you want ${other_parties[0].name.full(middle="full")} to get a quarter, enter 25%. You will receive the other 75%.
+    datatype: number
+    min: 1
+    max: 100
+    show if:
+      variable: pensions_pet[i].payment_division
+      is: "Yes"
+---
+code: |
+  pensions_pet[i].name.text
+  pensions_pet[i].complete = True 
+---
+code: |
+  if pensions_pet.number_gathered() == 3:
+    pensions_pet.there_is_another = False
+---
+id: qdro for pet pensions
+question: |
+  Who do you want to prepare the papwerwork for your retirement accounts and pensions?
+subquestion: |
+  The person you select will have to prepare a Qualified Domestic Relations Order (QDRO) or Qualified Illinois Domestic Relations Order (QILDRO) after the divorce is final to make sure you receive your share.
+  
+  You can usually contact the retirement account or pension plan administrator to get the forms you need.
+fields:
+  - Who will prepare the QDROs to divide your retirement accounts and pensions?: pet_pensions_qdro
+    datatype: radio
+    choices:
+      - I will prepare the paperwork.: Me
+      - ${other_parties[0].name.full(middle="full")} will prepare the paperwork.: Them
+      - I don't know. I will decide later.: idk
+---
+id: other pension orders 
+question: |
+  Do you want the final divorce judgment to say anything else about retirement accounts or pensions?
+fields:
+  - Anything else about retirement accounts or pensions?: pensions_other
+    datatype: yesnoradio
+  - Describe the accounts and who you want to get them. Use each person's name to be clear.: pensions_other_text
+    input type: area
+    rows: 6
+    maxlength: 400    
+    label above field: True
+    show if:
+      variable: pensions_other
+      is: True
+
+
 
 ---
 id: user non-marital property
@@ -2932,7 +3067,86 @@ review:
       **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
       ${ word(yesno(property_exchange)) }      
     show if: include_property
-    
+
+  - Edit: retirement_options
+    button: |
+      **Do you want to add information about retirement accounts and pensions?**
+      
+      % if retirement_options == "own":
+      * Yes, each person should get the retirement accounts and pensions in their own name.
+      % elif retirement_options == "split":
+      * Yes, the retirement accounts and pensions should be split.
+      % else:
+      * No, I will add this later.
+      % endif
+  - Edit: enter_resp_pensions
+    button: |
+      **Do you want to include information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions now?**
+      ${ word(yesno(enter_resp_pensions)) }      
+    show if: retirement_options == "split"    
+  - Edit: pensions_resp.revisit
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions: (Edit to change details)**
+
+      % for my_var in pensions_resp:
+      * ${ my_var.name.text}
+      % endfor
+    show if: retirement_options == "split" and enter_resp_pensions
+  - Edit: resp_pensions_qdro
+    button: |
+      **Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      
+      % if resp_pensions_qdro == "Me":
+      * I will prepare the paperwork.
+      % elif resp_pensions_qdro == "Them":
+      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      % else:
+      * I don't know. I will decide later.
+      % endif
+    show if: retirement_options == "split" and enter_resp_pensions
+  - Edit: enter_pet_pensions
+    button: |
+      **Do you want to include information about your retirement accounts and pensions now?**
+      ${ word(yesno(enter_pet_pensions)) }      
+    show if: retirement_options == "split"    
+  - Edit: pensions_pet.revisit
+    button: |
+      **Your retirement accounts or pensions: (Edit to change details)**
+
+      % for my_var in pensions_pet:
+      * ${ my_var.name.text}
+      % endfor
+    show if: retirement_options == "split" and enter_pet_pensions
+  - Edit: pet_pensions_qdro
+    button: |
+      **Who do you want to prepare the papwerwork for your retirement accounts and pensions?**
+      
+      % if resp_pensions_qdro == "Me":
+      * I will prepare the paperwork.
+      % elif resp_pensions_qdro == "Them":
+      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      % else:
+      * I don't know. I will decide later.
+      % endif
+    show if: retirement_options == "split" and enter_pet_pensions
+  - Edit: pensions_other
+    button: |
+      **Do you want the final divorce judgment to say anything else about retirement accounts or pensions?**
+      ${ word(yesno(pensions_other)) }      
+    show if: retirement_options == "own" or retirement_options == "split"
+  - Edit: pensions_other_text
+    button: |
+      **Other information about retirement accounts or pensions to include in the divorce judgment:**
+      ${ pensions_other_text }      
+    show if: (retirement_options == "own" or retirement_options == "split") and pensions_other
+
+
+
+
+
+
+
+  
   - Edit: pet_has_nonmarital_property
     button: |
       **Do you want to specify your non-marital property?**
@@ -2954,6 +3168,7 @@ review:
       ${resp_nonmarital_property}
     show if: include_property and resp_has_nonmarital_property    
 
+  
   - Edit: property_other
     button: |
       **Do you want the final divorce judgment to say anything else about property?**
@@ -3364,6 +3579,49 @@ columns:
   - Will go to: |
       "Me" if row_item.party == "pet" else other_parties[0].name.full(middle="full")       
   - Edit: |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+
+---
+id: resp pensions revisit
+continue button field: pensions_resp.revisit
+question: |
+  Edit information about ${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions
+subquestion: |
+  ${ pensions_resp.table }
+
+  % if pensions_resp.number_gathered() < 3:
+  ${ pensions_resp.add_action() }
+  % endif
+---
+table: pensions_resp.table
+rows: pensions_resp
+columns:
+  - Account name: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - Details (including how you want it to be divided): |
+      action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+id: user pensions revisit
+continue button field: pensions_pet.revisit
+question: |
+  Edit information about your retirement accounts or pensions
+subquestion: |
+  ${ pensions_pet.table }
+
+  % if pensions_pet.number_gathered() < 3:
+  ${ pensions_pet.add_action() }
+  % endif
+---
+table: pensions_pet.table
+rows: pensions_pet
+columns:
+  - Account name: |
+      row_item.name.text if defined("row_item.name.text") else ""
+  - Details (including how you want it to be divided): |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
