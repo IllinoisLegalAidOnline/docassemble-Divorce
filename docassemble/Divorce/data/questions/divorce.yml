@@ -24,6 +24,9 @@ objects:
   - custodians: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - other_adults: ALPeopleList.using(object_type=ALIndividual, there_are_any=True, complete_attribute='complete')
   - debts: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+  - pensions_resp: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+  - pensions_pet: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
+    
   - property_list: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
 
   - service_address: ALAddress
@@ -147,6 +150,8 @@ code: |
   if include_debts:
     debts.gather()
     unlisted_debts
+    pet_has_nonmarital_debts
+    resp_has_nonmarital_debts
 
   set_progress(70)
   nav.set_section('section_property')
@@ -156,6 +161,14 @@ code: |
     property_list.gather()
     property_exchange
     property_other
+    pet_has_nonmarital_property
+    resp_has_nonmarital_property
+  retirement_intro
+  if retirement_options == "split":
+    if enter_resp_pensions:
+      pensions_resp.gather()
+    if enter_pet_pensions:
+      pensions_pet.gather()
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -1776,6 +1789,41 @@ fields:
       - Each of us will pay all of the debts in their own name.: name
     none of the above: |
       I don't know. I will decide later.
+---
+id: user non-marital debts
+question: |
+  Do you want to specify your non-marital debts?
+subquestion: |
+  EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+fields:
+  - Include your non-marital debts?: pet_has_nonmarital_debts
+    datatype: yesnoradio
+  - List your non-marital debts: pet_nonmarital_debts
+    input type: area
+    rows: 2
+    maxlength: 100
+    show if:
+      variable: pet_has_nonmarital_debts
+      is: True
+---
+id: respondent non-marital debts
+question: |
+  Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital debts?
+subquestion: |
+  EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+fields:
+  - Include ${other_parties[0].name.full(middle="full")}'s non-marital debts?: resp_has_nonmarital_debts
+    datatype: yesnoradio
+  - List ${other_parties[0].name.full(middle="full")}'s non-marital debts: resp_nonmarital_debts
+    input type: area
+    rows: 2
+    maxlength: 100
+    show if:
+      variable: resp_has_nonmarital_debts
+      is: True
+    
+
+
 
 ---
 id: property intro
@@ -1861,6 +1909,121 @@ code: |
 code: |
   if property_list.number_gathered() == 14:
     property_list.there_is_another = False
+
+
+---
+id: retirement intro
+continue button field: retirement_intro
+question: |
+  Retirement accounts and pensions
+subquestion: |
+  EXPLAIN retirement accounts and pensions can be divided. If split, you will have to enter a QDRO (content?)
+
+  EXPLAIN marital v. non-marital retirement accounts and pensions
+
+  EXPLAIN that you do not have to enter this now. It will go in judgment.
+
+  What will appear in petition. Judge will decide if can't reach agreement.
+---
+id: include retirement
+question: |
+  Do you want to add information about retirement accounts and pensions?
+subquestion: |
+  These will appear on the draft form of the divorce judgment.
+fields:
+  - no label: retirement_options
+    datatype: radio
+    choices:
+      - Yes, I want each person to get the retirement accounts and pensions in their own name.: own
+      - Yes, I want the retirement accounts and pensions to be split.: split
+      - No, I don't want to enter information about this now. It can be decided later.: later
+---
+id: enter resp pensions
+question: |
+  Do you want to enter information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions now?
+subquestion: |
+  If you select **No**, you can add this to your divorce judgment later.
+fields:
+  - Enter info about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: enter_resp_pensions
+    datatype: yesnoradio
+---
+
+
+
+
+
+
+
+
+
+
+---
+id: enter user pensions
+question: |
+  Do you want to enter information about your retirement accounts and pensions now?
+subquestion: |
+  If you select **No**, you can add this to your divorce judgment later.
+fields:
+  - Enter info about your retirement accounts and pensions?: enter_pet_pensions
+    datatype: yesnoradio
+
+---
+id: user non-marital property
+question: |
+  Do you want to specify your non-marital property?
+subquestion: |
+  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
+  
+  Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+
+  **Note:** Do not list account numbers.
+
+  If ${other_parties[0].name.full(middle="full")} has any of this non-marital property, they will need to deliver it to you within 30 days after the divorce judgment is entered.
+fields:
+  - Include your non-marital property?: pet_has_nonmarital_property
+    datatype: yesnoradio
+  - List your non-marital property: pet_nonmarital_property
+    input type: area
+    rows: 4
+    maxlength: 200
+    show if:
+      variable: pet_has_nonmarital_property
+      is: True
+---
+id: respondent non-marital property
+question: |
+  Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital property?
+subquestion: |
+  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
+  
+  Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+
+  **Note:** Do not list account numbers.
+
+  If you have any of this non-marital property, you will need to deliver it to ${other_parties[0].name.full(middle="full")} within 30 days after the divorce judgment is entered.
+fields:
+  - Include ${other_parties[0].name.full(middle="full")}'s non-marital property?: resp_has_nonmarital_property
+    datatype: yesnoradio
+  - List ${other_parties[0].name.full(middle="full")}'s non-marital property: resp_nonmarital_property
+    input type: area
+    rows: 4
+    maxlength: 200
+    show if:
+      variable: resp_has_nonmarital_property
+      is: True
+
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 id: property exchange in 30 days from judgment
 question: |
@@ -2723,7 +2886,26 @@ review:
       * I don't know. I will decide later.
       % endif
     show if: include_debts    
-
+  - Edit: pet_has_nonmarital_debts
+    button: |
+      **Do you want to specify your non-marital debts?**
+      ${ word(yesno(pet_has_nonmarital_debts)) }
+    show if: include_debts    
+  - Edit: pet_nonmarital_debts
+    button: |
+      **Your non-marital debts:**
+      ${pet_nonmarital_debts}
+    show if: include_debts and pet_has_nonmarital_debts    
+  - Edit: resp_has_nonmarital_debts
+    button: |
+      **Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital debts?**
+      ${ word(yesno(resp_has_nonmarital_debts)) }
+    show if: include_debts    
+  - Edit: resp_nonmarital_debts
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s non-marital debts:**
+      ${resp_nonmarital_debts}
+    show if: include_debts and resp_has_nonmarital_debts    
 
 
   - note: |
@@ -2749,7 +2931,29 @@ review:
     button: |
       **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
       ${ word(yesno(property_exchange)) }      
+    show if: include_property
+    
+  - Edit: pet_has_nonmarital_property
+    button: |
+      **Do you want to specify your non-marital property?**
+      ${ word(yesno(pet_has_nonmarital_property)) }
     show if: include_property    
+  - Edit: pet_nonmarital_property
+    button: |
+      **Your non-marital property:**
+      ${pet_nonmarital_property}
+    show if: include_property and pet_has_nonmarital_property    
+  - Edit: resp_has_nonmarital_property
+    button: |
+      **Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital property?**
+      ${ word(yesno(resp_has_nonmarital_property)) }
+    show if: include_property    
+  - Edit: resp_nonmarital_property
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s non-marital property:**
+      ${resp_nonmarital_property}
+    show if: include_property and resp_has_nonmarital_property    
+
   - Edit: property_other
     button: |
       **Do you want the final divorce judgment to say anything else about property?**
