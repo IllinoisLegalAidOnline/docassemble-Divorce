@@ -28,7 +28,7 @@ objects:
   - pensions_pet: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
     
   - property_list: DAList.using(object_type=Thing, complete_attribute='complete', there_are_any=True)
-
+  - real_estate: ALAddress
   - service_address: ALAddress
   - second_service_address: ALAddress  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
@@ -64,6 +64,7 @@ code: |
   set_progress(5)
   accept_terms
   divorce_info
+  divorce_relief
   if users[0].is_resident:
     if users[0].meets_90_day_requirement == False:
       must_meet_90_day_requirement
@@ -172,6 +173,10 @@ code: |
       pensions_pet.gather()
       pet_pensions_qdro
     pensions_other
+  real_estate_intro
+  if has_real_estate:
+    real_estate.address
+    attach_legal_desc
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -280,6 +285,31 @@ subquestion: |
   This Easy Form will make many forms. Some will be used when you file the case, some during the case, and some when the judgment is final. Some of the forms are ready while others are partially complete.
   
   Be sure to review your forms and read instructions you can download at the end of the program.
+---
+id: divorce relief
+continue button field: divorce_relief
+question: |
+  What you can ask for in a divorce
+subquestion: |
+  A divorce case is started by filing a *Petition for Divorce*. The petition tells the court what you want the court to order. If some of these words are new or confusing, we will try to explain them.
+
+  The divorce petition asks the judge to order:
+
+    * A Judgment of Dissolution of Marriage/Civil Union for you and your spouse.
+    * That each party gets to keep all of their non-marital/non-civil union property.
+    * A fair division of the marital/civil union property.
+    * A fair division of the debts obtained during the marriage/civil union.
+    * Each party be assigned their non-marital/non-civil union debt.
+    * That maintenance be awarded, if appropriate. 
+    * That you be allowed to return to using your former name if you want.
+    * For any other relief that is appropriate.
+  
+  If you have **children of the marriage**, the divorce petition also asks the judge to order:
+  
+    * That the Parenting Plan for the minor children that you file be approved.
+    * Child support for the care or education of the minor children, if appropriate.
+    * Support for the care or education of the adult children, if appropriate.
+
 ---
 id: live in IL
 question: |
@@ -1716,7 +1746,7 @@ id: include debts
 question: |
   Do you want to add information about debts?
 subquestion: |
-  These will appear on the draft form of the divorce judgment. Forms have room for up to 14 debts. You can specify who you want to pay any debts not listed on your forms.
+  These will appear on the draft form of the divorce judgment. Forms have room for up to 14 debts. You can explain who you want to pay any debts not listed on your forms.
 fields:
   - no label: include_debts
     datatype: yesnoradio
@@ -1795,7 +1825,7 @@ fields:
 ---
 id: user non-marital debts
 question: |
-  Do you want to specify your non-marital debts?
+  Do you want to list your non-marital debts?
 subquestion: |
   EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
 fields:
@@ -1811,7 +1841,7 @@ fields:
 ---
 id: respondent non-marital debts
 question: |
-  Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital debts?
+  Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?
 subquestion: |
   EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
 fields:
@@ -2099,13 +2129,66 @@ fields:
     show if:
       variable: pensions_other
       is: True
+---
 
 
+---
+id: real estate intro
+continue button field: real_estate_intro
+question: |
+  Real estate
+subquestion: |
+  EXPLAIN real estate can be kept by one party or sold.
+
+  EXPLAIN marital v. non-marital real estate
+
+  We will ask a few questions about the marital real estate.
+  
+  EXPLAIN options - sell or keep/buy out. If one person keeps it, they will have to "buy out" the other person's share. There are details about this that will go into the final divorce judgment later. Be sure to review it.
+---
+id: have real estate
+question: |
+  Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?
+subquestion: |
+  EXPLAIN real estate
+fields:
+  - no label: has_real_estate
+    datatype: yesnoradio
+---
+id: real estate address
+question: |
+  What is the address of the marital real estate?
+fields:
+  - Street address: real_estate.address
+    address autocomplete: True
+  - Address line 2: real_estate.unit
+    required: False
+  - City: real_estate.city
+  - State: real_estate.state
+    code: |
+      states_list()
+    default: IL      
+  - ZIP code: real_estate.zip
+---
+id: attach legal description
+question: |
+  Will you attach a legal description of the real estate to the final divorce judgment?
+subquestion: |
+  Explain legal description
+
+  **Note:** You do not need to attach the legal description to the Petition.
+fields:
+  - no label: attach_legal_desc
+    datatype: radio
+    choices:
+      - Yes: Yes
+      - No: No
+      - I don't know. I will decide later.: I don't know.
 
 ---
 id: user non-marital property
 question: |
-  Do you want to specify your non-marital property?
+  Do you want to list your non-marital property?
 subquestion: |
   Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
   
@@ -2127,7 +2210,7 @@ fields:
 ---
 id: respondent non-marital property
 question: |
-  Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital property?
+  Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?
 subquestion: |
   Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
   
@@ -3023,7 +3106,7 @@ review:
     show if: include_debts    
   - Edit: pet_has_nonmarital_debts
     button: |
-      **Do you want to specify your non-marital debts?**
+      **Do you want to list your non-marital debts?**
       ${ word(yesno(pet_has_nonmarital_debts)) }
     show if: include_debts    
   - Edit: pet_nonmarital_debts
@@ -3033,7 +3116,7 @@ review:
     show if: include_debts and pet_has_nonmarital_debts    
   - Edit: resp_has_nonmarital_debts
     button: |
-      **Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital debts?**
+      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?**
       ${ word(yesno(resp_has_nonmarital_debts)) }
     show if: include_debts    
   - Edit: resp_nonmarital_debts
@@ -3139,9 +3222,20 @@ review:
       **Other information about retirement accounts or pensions to include in the divorce judgment:**
       ${ pensions_other_text }      
     show if: (retirement_options == "own" or retirement_options == "split") and pensions_other
-
-
-
+  - Edit: has_real_estate
+    button: |
+      **Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?**
+      ${ word(yesno(has_real_estate)) }
+  - Edit: real_estate.address
+    button: |
+      **Marital real estate address:**
+      ${ real_estate.on_one_line(bare=True) }
+    show if: has_real_estate
+  - Edit: attach_legal_desc
+    button: |
+      **Will you attach a legal description of the real estate to the final divorce judgment?**
+      ${ attach_legal_desc }
+    show if: has_real_estate
 
 
 
@@ -3149,7 +3243,7 @@ review:
   
   - Edit: pet_has_nonmarital_property
     button: |
-      **Do you want to specify your non-marital property?**
+      **Do you want to list your non-marital property?**
       ${ word(yesno(pet_has_nonmarital_property)) }
     show if: include_property    
   - Edit: pet_nonmarital_property
@@ -3159,7 +3253,7 @@ review:
     show if: include_property and pet_has_nonmarital_property    
   - Edit: resp_has_nonmarital_property
     button: |
-      **Do you want to specify ${other_parties[0].name.full(middle="full")}'s non-marital property?**
+      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?**
       ${ word(yesno(resp_has_nonmarital_property)) }
     show if: include_property    
   - Edit: resp_nonmarital_property
