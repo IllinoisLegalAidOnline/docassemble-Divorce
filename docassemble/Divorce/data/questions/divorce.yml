@@ -183,6 +183,7 @@ code: |
 
   if trial_court_index == -1:
     cook_district
+    previous_cook_case_type
   courthouse_info
   
   service_method
@@ -2348,6 +2349,35 @@ subject: |
   **What if I am not sure?**
 content: |  
   Visit **[Illinois Court Help](https://www.ilcourthelp.gov/)**, or you can call or text (833) 411-1121 for assistance.
+---
+id: any previous cook cases
+question: |
+  Have you filed any divorce or parentage cases with ${other_parties[0].name.full(middle="full")} in Cook County before?
+subquestion: |
+  This will help the court clerk in Cook County assign your case to the correct location. If you were involved in more than one, choose the most recent.
+fields:
+  - no label: previous_cook_case_type
+    datatype: radio
+    choices:
+      - I was in an earlier **divorce** case with ${other_parties[0].name.full(middle="full")}.: divorce
+      - I was in an earlier **parentage** case with ${other_parties[0].name.full(middle="full")} involving children we had together.: parentage
+      - No earlier divorce or parentage cases were filed in Cook County.: none
+  - Date case was filed: previous_cook_case_date
+    datatype: ThreePartsDate
+    alMax: ${ today().format("yyyy-MM-dd") }
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
+  - Case number: previous_cook_case_number
+    maxlength: 24
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
+  - Name of judge: previous_cook_case_judge
+    maxlength: 45
+    required: False
+    js show if: |
+      val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
 
 
 
@@ -3300,7 +3330,32 @@ review:
       % else:
       * ${ "Sixth Municipal District, 16501 South Kedzie Parkway, Markham" }
       % endif      
-    show if: trial_court_index == -1      
+    show if: trial_court_index == -1
+  - Edit: previous_cook_case_type
+    button: |
+      **Previous Cook County case involving ${other_parties[0].name.full(middle="full")}:**
+      ${ previous_cook_case_type.capitalize() }
+    show if: trial_court_index == -1
+  - Edit: previous_cook_case_date
+    button: |
+      **Previous Cook County ${ previous_cook_case_type } case info:**
+      
+      % if previous_cook_case_date == "" or previous_cook_case_date is None:
+      * Date filed: None entered
+      % else:
+      * Date filed: ${ previous_cook_case_date }
+      % endif
+      % if previous_cook_case_number != "":
+      * Case number: ${ previous_cook_case_number }
+      % else:
+      * Case number: None entered
+      % endif
+      % if previous_cook_case_judge != "":
+      * Judge: ${ previous_cook_case_judge }
+      % else:
+      * Judge: None entered
+      % endif
+    show if: trial_court_index == -1 and previous_cook_case_type != "none"	
   - Edit: service_method
     button: |
       **How do you want ${other_parties[0].name.full(middle="full")} to be served?**
