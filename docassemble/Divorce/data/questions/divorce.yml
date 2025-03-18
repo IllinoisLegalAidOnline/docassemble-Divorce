@@ -140,7 +140,6 @@ code: |
     custodians.gather()
   if kids_lived_with_other_adult:
     other_adults.gather()
-  
 
   current_maintenance
   want_maintenance
@@ -185,18 +184,17 @@ code: |
     cook_district
     previous_cook_case_type
   courthouse_info
-  
-  service_method
-  if service_method == "sheriff_outside_il":
+
+  if know_resp_location:
+    if service_address_choice == "other":
+      service_address.address
+    if has_second_service_address:  
+      if second_service_address_choice == "other":
+        second_service_address.address
+        other_parties[0].phone_number_alt
+    service_method
+    service_state
     service_county
-
-  if service_address_choice == "other":
-    service_address.address
-  if has_second_service_address:  
-    if second_service_address_choice == "other":
-      second_service_address.address
-      other_parties[0].phone_number_alt
-
   
   e_signature
 
@@ -2380,8 +2378,19 @@ fields:
       val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
 
 
+---
+id: know respondent location
+question: |
+  Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?
+subquestion: |
+  The law requires that ${other_parties[0].name.full(middle="full")} be notified of your divorce case. This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name.full(middle="full")} by hand-delivering the court papers. This can done at ${other_parties[0].name.full(middle="full")}'s home, work, or another location.
 
+  If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name.full(middle="full")} is properly notified of the court case. You can ask the court to let you notify them by another method.
 
+  To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
+fields:
+  - Have an address for ${other_parties[0].name.full(middle="full")}?: know_resp_location
+    datatype: yesnoradio
 ---
 id: service address choice
 question: |
@@ -2448,7 +2457,24 @@ code: |
   
   alt_service_list.append({ "other": "An address I will enter" })
 ---
-id: out of state county
+sets: service_state
+depends on:
+  - service_address_choice
+  - service_address.state
+  - other_parties[0].address.state
+  - other_parties[0].employers[0].address.state
+  - other_parties[0].employers[1].address.state
+code: |  
+  if service_address_choice == "other":
+    service_state = service_address.state
+  elif service_address_choice == "home":
+    service_state = other_parties[0].address.state        
+  elif service_address_choice == "work":
+    service_state = other_parties[0].employers[0].address.state
+  else:
+    service_state = other_parties[0].employers[1].address.state
+---
+id: service county
 question: |
   In which county can the sheriff find ${other_parties[0].name.full(middle="full")}?
 subquestion: |
@@ -2464,12 +2490,21 @@ subquestion: |
   * ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
   % endif
   
-  Enter the county below so the sheriff can find ${other_parties[0].name.full(middle="full")}.
+  Enter the county below. If this is a different county from where you are filing your case, we will make a letter that you can send to the sheriff to help serve ${other_parties[0].name.full(middle="full")}.
   
   ${ collapse_template(county_lookup_help) }
 fields:
   - County where ${other_parties[0].name.full(middle="full")} can be served: service_county
     maxlength: 40
+    show if:
+      code: |
+        service_state != "IL"
+  - County where ${other_parties[0].name.full(middle="full")} can be served: service_county
+    code: |
+      court_list._load_courts()["address_county"].unique()
+    show if:
+      code: |
+        service_state == "IL"
 ---
 template: county_lookup_help
 subject: |
@@ -2518,17 +2553,6 @@ fields:
     datatype: email
     required: False
 ---
-reconsider: True
-code: |
-  if service_address_choice == "home":
-    service_state = other_parties[0].address.state
-  if service_address_choice == "work":
-    service_state = other_parties[0].employers[0].address.state
-  if service_address_choice == "their other work":
-    service_state = other_parties[0].employers[1].address.state
-  if service_address_choice == "other":
-    service_state = service_address.state
----
 id: service method
 question: |
   Who do you want to deliver court papers to ${other_parties[0].name.full(middle="full")}?
@@ -2541,11 +2565,9 @@ fields:
     datatype: radio
     choices:
       - Sheriff (most common): sheriff
-      - Sheriff outside Illinois: sheriff_outside_il
       - Special process server: sps
       - Licensed private detective: detective
       - I don't know. I will decide and complete the Summons later.: idk
-
 ---
 id: e-signature
 question: |
@@ -3355,43 +3377,45 @@ review:
       % else:
       * Judge: None entered
       % endif
-    show if: trial_court_index == -1 and previous_cook_case_type != "none"	
-  - Edit: service_method
+    show if: trial_court_index == -1 and previous_cook_case_type != "none"
+
+  - Edit: know_resp_location
     button: |
-      **How do you want ${other_parties[0].name.full(middle="full")} to be served?**
-      % if service_method == "sheriff":
-      By the sheriff
-      % elif service_method == "sheriff_outside_il":
-      By the sheriff outside Illinois
-      % elif service_method == "sps":
-      By a special process server
-      % elif service_method == "detective":
-      By a licensed private detective
-      % else:
-      I don't know. I will decide later.
-      % endif
-  - Edit: service_county
-    button: |
-      **County outside Illinois where ${other_parties[0].name.full(middle="full")} can be served:**
-      ${ service_county }
-    show if: service_method == "sheriff_outside_il"
+      **Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?**
+      ${ word(yesno(know_resp_location))}
+  
   - Edit: service_address_choice
     button: |
       **Where can ${other_parties[0].name.full(middle="full")} be found for service?**
+      
       % if service_address_choice == "other":
-      At another address
+      * At an address I will enter
+      % elif service_address_choice == "home":
+      * At home: ${ other_parties[0].address.on_one_line(bare=True) }        
+      % elif service_address_choice == "work":
+      * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % else:
-      At ${ service_address_choice }
+      * At work: ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
       % endif
+    show if: know_resp_location
   - Edit: service_address.address
     button: |
       **Service address:**
       ${ service_address.on_one_line(bare=True) }
-    show if: service_address_choice == "other"
+
+    show if: service_address_choice == "other" and know_resp_location
+  - Edit: service_county
+    button: |
+      **County where ${other_parties[0].name.full(middle="full")} can be served:**
+      ${ service_county }
+      
+      **Note:** Be sure this county is correct if you change the address where ${other_parties[0].name.full(middle="full")} can be served.
+    show if: know_resp_location
   - Edit: has_second_service_address
     button: |
       **Do you know another location where ${other_parties[0].name.full(middle="full")} can be found for service?**
       ${ word(yesno(has_second_service_address)) }
+    show if: know_resp_location
   - Edit: second_service_address_choice
     button: |
       **Where else can ${other_parties[0].name.full(middle="full")} be found for service?**
@@ -3400,12 +3424,12 @@ review:
       % else:
       At ${ second_service_address_choice }
       % endif
-    show if: has_second_service_address
+    show if: has_second_service_address and know_resp_location
   - Edit: second_service_address.address
     button: |
       **Second service address:**
       ${ second_service_address.on_one_line(bare=True) }
-    show if: has_second_service_address and second_service_address_choice == "other"
+    show if: has_second_service_address and second_service_address_choice == "other" and know_resp_location
   - Edit: other_parties[0].phone_number_alt
     button: |
       **${other_parties[0].name.full(middle="full")}'s other contact info:**
@@ -3420,7 +3444,21 @@ review:
       % else:
       * ${other_parties[0].name.full(middle="full")}'s alternate email: None entered
       % endif
-    show if: has_second_service_address
+    show if: has_second_service_address and know_resp_location
+  - Edit: service_method
+    button: |
+      **How do you want ${other_parties[0].name.full(middle="full")} to be served?**
+      % if service_method == "sheriff":
+      By the sheriff
+      % elif service_method == "sps":
+      By a special process server
+      % elif service_method == "detective":
+      By a licensed private detective
+      % else:
+      I don't know. I will decide later.
+      % endif
+    show if: know_resp_location
+
       
   - Edit: e_signature
     button: |
