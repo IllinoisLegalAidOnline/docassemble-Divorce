@@ -61,6 +61,7 @@ code: |
   sees_nav_bar
   snapshot_start
   how_to_use
+  divorce_filing_reqs
   set_progress(5)
   accept_terms
   divorce_info
@@ -77,7 +78,9 @@ code: |
   other_parties[0].name.first
   marriage_date
   marriage_in_america
-  previous_divorce
+  if previous_divorce == "Yes":
+    if not previous_divorce_dismissed:
+      earlier_divorce_not_pending
   separation_date
   if divorce_grounds != True:
     must_have_irreconcilable_differences
@@ -123,26 +126,27 @@ code: |
   if any_children_together:
     if children_status['minors'] or children_status['support']: 
       children.gather()
-      child_support_paid
       want_child_support
-      current_pt_schedule
+      child_support_paid
       parenting_plan_info
+      current_pt_schedule
       taxes_choice
+      if has_other_kids_during_marriage:
+        outside_children.gather()
+      if other_custody_case:
+        custody_cases.gather()
+      if other_case_involving_kids:
+        other_cases.gather()
+      if other_custodian:
+        custodians.gather()
+      if kids_lived_with_other_adult:
+        other_adults.gather()
+      parenting_class_info
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
-  if has_other_kids_during_marriage:
-    outside_children.gather()
-  if other_custody_case:
-    custody_cases.gather()
-  if other_case_involving_kids:
-    other_cases.gather()
-  if other_custodian:
-    custodians.gather()
-  if kids_lived_with_other_adult:
-    other_adults.gather()
 
-  current_maintenance
   want_maintenance
+  current_maintenance
   
   set_progress(60)
   nav.set_section('section_debts')
@@ -240,9 +244,11 @@ question: |
 subquestion: |
   Welcome to Illinois Legal Aid Online's **Divorce** Easy Form.
 
-  UPDATE THIS This program helps you ask the court for permission to use an unlicensed process server in your case. It will make a *Motion to Approve Process Server Who is Not Licensed*.
+  This program helps you make divorce forms to ask the court to end a marriage or civil union.
 
-  When you start a lawsuit, the complaint or petition, and a **{summons}**, must be properly delivered to whoever you are suing. To learn more, read ILAO's article about [**serving a summons**](https://www.illinoislegalaid.org/node/147221).
+  The process can be complicated. We will give you basic information about divorce on the next screens and on instructions you can download at the end of the program.
+
+  To learn more, read ILAO's guide about [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
 field: sees_nav_bar
 ---
 id: instructions
@@ -250,15 +256,19 @@ continue button field: how_to_use
 question: |
   Instructions
 subquestion: |
-  UPDATE THIS To use this program you will need to know: 
+  To use this program you will need to know: 
 
-  * Your court case information, 
-  * Name and address of the person you want to be a process server,
-  * Why you want to use an unlicensed process server,
-  * Names and addresses of the other parties, and 
-  * Names and addresses of the other parties’ lawyers, if any. 
+  * Date and place of your marriage or civil union, 
+  * Date you and your spouse separated,
+  * Addresses for you and your spouse,
+  * Place of employment and income for you and your spouse,
+  * Whether you or your spouse receive Social Security,
+  * Information about any real estate, personal property, and retirement and bank accounts that you or your spouse own or debts you and your spouse owe.
 
-  You can find most of this information on other court papers you have about this case. 
+  If you and your spouse have children, you also need to know:
+
+  * Names and birth dates of all of the children you and your spouse have together or separately, and
+  * Information about other court cases that involve the children you and your spouse have together.
 
   Set aside 20 to 45 minutes to finish this program. You can log in and save your work to continue later. 
  
@@ -272,16 +282,26 @@ subject: |
 content: |  
   This is an example of help. Click again to hide.
 ---
+id: divorce filing requirements
+continue button field: divorce_filing_reqs
+question: |
+  Divorce filing requirements
+subquestion: |
+  You can file a divorce in Illinois if:
+
+  * You and your spouse have lived in Illinois for at least 90 days, and
+  * There is no other divorce case already filed and still pending anywhere else (not dismissed).
+
+  **Note:** If your spouse is on active duty with any branch of the US military service, they must sign an *Entry of Appearance* form. This and other blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
+---
 id: divorce info
 continue button field: divorce_info
 question: |
   Divorce information
 subquestion: |
-  UPDATE THIS 
+  A divorce can take months or even years. It can depend on how quickly the people can agree to how things will be divided and how children will be taken care of. If the parties do not agree on all terms, the judge will need to decide.
 
-  divorce may take months or even years depending on how quickly people can agree to terms.
-
-  This Easy Form will make many forms. Some will be used when you file the case, some during the case, and some when the judgment is final. Some of the forms are ready while others are partially complete.
+  **Note:** This Easy Form will make many forms. Some will be used when you file the case, some during the case, and some when the judgment is final. Some of the forms are ready while others are partially complete.
   
   Be sure to review your forms and read instructions you can download at the end of the program.
 ---
@@ -454,7 +474,26 @@ fields:
   - Country (outside US): previous_divorce_country
     show if: 
       variable: previous_divorce_in_us
-      is: False   
+      is: False
+  - Was the earlier divorce case dismissed?: previous_divorce_dismissed
+    datatype: yesnoradio
+    help: |
+      This means that the earlier case is not pending (ongoing). It could have been dismissed by the person who filed it or by the judge if the person who filed the case did not follow through.
+    show if: 
+      variable: previous_divorce
+      is: "Yes"
+---
+id: earlier divorce not pending
+event: earlier_divorce_not_pending
+question: |
+  Sorry
+subquestion: |
+  To use this program, your earlier divorce must not be pending (ongoing). The other divorce case must be dismissed before filing a new one.
+
+   Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
+buttons:
+  - Exit: exit
+  - Restart: restart        
 ---
 id: separation date
 question: |
@@ -475,9 +514,24 @@ subquestion: |
   
   * You and your spouse have tried to fix the problems in your marriage or civil union, but could not, or
   * The problems are so bad that trying to fix them is not best for your family.
+
+  ${ collapse_template(grounds_help) }  
 fields:
   - no label: divorce_grounds
-    datatype: yesnoradio  
+    datatype: yesnoradio
+---
+template: grounds_help
+subject: |
+  **Learn more about irreconcilable differences**
+content: |  
+  **Irreconcilable differences** is the only reason required in Illinois for getting a divorce.
+
+  If you have been separated for 6 months or more, no other proof is needed to qualify for a divorce.
+
+  If you have been separated less than 6 months at the time of your divorce hearing you will have to show the judge that you and your spouse:
+
+  * Separated because you cannot get along anymore, and
+  * Tried to fix the problems in your marriage, but could not, or the problems are so bad that trying to fix them is not best for your family.
 ---
 id: must be irreconcilable differences
 event: must_have_irreconcilable_differences
@@ -488,7 +542,7 @@ subquestion: |
 
   This means that you and your spouse have tried to fix the problems in your marriage or civil union, but could not. Or it could be that the problems are so bad that trying to fix them is not best for your family.
   
-   Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use **[Get Legal Help](https://www.illinoislegalaid.org/get-legal-help)** to find free or low-cost legal services in your area.
+   Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
 buttons:
   - Exit: exit
   - Restart: restart  
@@ -801,6 +855,8 @@ fields:
 id: spouse active duty
 question: |
   Is ${other_parties[0].name.full(middle="full")} currently on active duty as a member of the Armed Forces of the United States of America?
+subquestion: |
+  If your spouse is on active duty with any branch of the US military service, they must sign an *Entry of Appearance* form. This and other blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 fields:
   - no label: other_parties[0].is_active_duty
     datatype: radio
@@ -1602,7 +1658,7 @@ fields:
 ---
 id: child support currently being paid
 question: |
-  Is child support being paid for the children of the marriage?
+  Is any child support currently being paid for the children of the marriage?
 fields:
   - no label: child_support_paid
     datatype: yesnoradio
@@ -1630,15 +1686,35 @@ fields:
 id: parenting plan info
 continue button field: parenting_plan_info
 question: |
-  About parenting plans
+  About Parenting Plans
 subquestion: |
-  UPDATE THIS
+  A Parenting Plan lists who is responsible for decision-making for the children and includes a schedule for when the children are with you and when they are with ${other_parties[0].name.full(middle="full")}.
 
-  A Parenting Plan explains rights and responsibilities of each parent. They must be filed within 120 days after the divorce is filed.
+  The law requires that you file a suggested Parenting Plan **within 120 days** of the date your petition is filed or the date your spouse was notified. You and ${other_parties[0].name.full(middle="full")} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
+
+  A judge may not require a Parenting Plan to be filed, so ask the judge during your first court date whether they want you to file one.
   
-  You and ${other_parties[0].name.full(middle="full")} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
-
-  Use ILAO's Parenting Plan Easy Form to create the forms you need.  
+  Use ILAO's [**Parenting Plan Easy Form**](https://www.illinoislegalaid.org/node/30906) to create the forms you need.
+---
+id: parenting class info
+continue button field: parenting_class_info
+question: |
+  Parenting class required
+subquestion: |
+  The law requires that parents complete a class about parenting and divorce when they have minor children.
+  
+  Ask the { **Circuit Clerk** } for the name and contact information for the court approved class you must attend.
+  
+  There is normally a fee for the class. If you have an Order for Waiver of Court Fees you do not have to pay the fee. You can register for this class as soon as you file your divorce or wait until the judge orders you to go.
+terms:
+  - "Circuit Clerk": |
+      The **Circuit Clerk** is the clerk’s office is where you will file your divorce forms. The Circuit Clerk will:
+      
+      * Accept your divorce forms,
+      * Collect fees for filing your divorce case, and
+      * Help schedule court dates.
+      
+      The Circuit Clerk cannot give you legal advice. 
 ---
 id: children and taxes
 question: |
@@ -2346,7 +2422,7 @@ template: cook_district_help
 subject: |
   **What if I am not sure?**
 content: |  
-  Visit **[Illinois Court Help](https://www.ilcourthelp.gov/)**, or you can call or text (833) 411-1121 for assistance.
+  Visit [**Illinois Court Help**](https://www.ilcourthelp.gov/), or you can call or text (833) 411-1121 for assistance.
 ---
 id: any previous cook cases
 question: |
@@ -2510,7 +2586,7 @@ template: county_lookup_help
 subject: |
   **How do I look up the county?**
 content: |  
-  You can use this **[City-to-County Finder](https://www.statsamerica.org/CityCountyFinder/)** to find the county.
+  You can use this [**City-to-County Finder**](https://www.statsamerica.org/CityCountyFinder/) to find the county.
 ---
 id: second other service address
 question: |
