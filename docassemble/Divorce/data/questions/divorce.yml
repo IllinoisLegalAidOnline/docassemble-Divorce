@@ -189,6 +189,7 @@ code: |
   if trial_court_index == -1:
     cook_district
     previous_cook_case_type
+    case_type_marriage
   courthouse_info
 
   if know_resp_location:
@@ -2266,19 +2267,30 @@ continue button field: real_estate_intro
 question: |
   Real estate
 subquestion: |
-  EXPLAIN real estate can be kept by one party or sold.
+  "Marital real estate" is any real property that either spouse got during the marriage.
 
-  EXPLAIN marital v. non-marital real estate
-
-  We will ask a few questions about the marital real estate.
+  * Marital real estate will be divided in the divorce. It can be sold, with each spouse receiving part of the proceeds, or kept by one of the people in the divorce. If one person keeps it, they will have to "buy out" the other person's share.
+  * If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * Your divorce Petition will ask for a fair division of the marital/civil union property.
   
-  EXPLAIN options - sell or keep/buy out. If one person keeps it, they will have to "buy out" the other person's share. There are details about this that will go into the final divorce judgment later. Be sure to review it.
+  "Non-marital real estate" is real property that you or ${other_parties[0].name.full(middle="full")} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital real estate includes:
+  
+  * Real property owned or acquired before marriage,
+  * Real property received as a gift, or an inheritance, or left to the person in a will,
+  * Real property received by the spouse after a legal separation,
+  * Real property specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement),
+  * Real property received by a court judgment awarded to a spouse from the other spouse, or
+  * Real property received in exchange for any of the above.
+
+  **Note:** You do not have to enter the details of the marital real estate now. The information will be listed on the divorce judgment, which is used at the end of the case.
+
+  To learn more, read ILAO's article about the [**factors that go into dividing the family home in a divorce**](https://www.illinoislegalaid.org/node/30321).  
 ---
 id: have real estate
 question: |
   Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?
 subquestion: |
-  EXPLAIN real estate
+  Real estate is property consisting of land or buildings like a house or an apartment.
 fields:
   - no label: has_real_estate
     datatype: yesnoradio
@@ -2302,7 +2314,7 @@ id: attach legal description
 question: |
   Will you attach a legal description of the real estate to the final divorce judgment?
 subquestion: |
-  Explain legal description
+  You can find the legal description on the deed or other property documents. These can be found at the office of the Recorder of Deeds in the county where the property is located.
 
   **Note:** You do not need to attach the legal description to the Petition.
 fields:
@@ -2372,21 +2384,6 @@ fields:
       variable: resp_has_nonmarital_property
       is: True
 ---
-
-      
-
-
-
-
-
-
-
-
-
-
-
-
----
 id: property exchange in 30 days from judgment
 question: |
   Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?
@@ -2414,8 +2411,6 @@ fields:
     show if:
       variable: property_other
       is: True
-
-
 
 ---
 id: case county
@@ -2521,8 +2516,18 @@ fields:
     required: False
     js show if: |
       val("previous_cook_case_type") === "divorce" || val("previous_cook_case_type") === "parentage" 
-
-
+---
+id: cook case type
+question: |
+  What kind of case are you filing?
+subquestion: |
+  This information is used by the Cook County Circuit Clerk.
+fields:
+  - I am filing a petition to end a: case_type_marriage
+    datatype: radio
+    choices:
+      - "Marriage": True
+      - "Civil union": False
 ---
 id: know respondent location
 question: |
@@ -2804,13 +2809,21 @@ content: |
 ---
 objects:
   - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
+  - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
+
 ---
 code: |
   instructions_kids.enabled = True
+
+  cook_cover_sheet.enabled = False
+
+  
+  if trial_court_index == -1:
+    cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids], filename="divorce_forms.pdf", title="All forms")
-  - al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
+  #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -2821,6 +2834,41 @@ attachment:
   pdf template file: instructions_kids.pdf  
   fields:
       - "fake": ${ "" }
+---
+attachment:
+  variable name: cook_cover_sheet[i]
+  name: cook_cover_sheet
+  filename: cook_cover_sheet
+  skip undefined: True
+  editable: False
+  pdf template file: cook_cover_sheet.pdf
+  fields:
+    - "petitioner__1": |
+        ${ users[0].name.full(middle="full") }
+    - "respondent": |
+        ${ other_parties[0].name.full(middle="full") }
+    - "marriage_checkbox": ${ case_type_marriage }
+    - "civil_union_checkbox": ${ not case_type_marriage }
+    - "div_checkbox": ${ True }
+
+    - "involves_minors_yes": ${ True if file_with_kids else '' }
+    - "involves_minors_no": ${ True if not file_with_kids else '' }
+    - "previous_divorce_yes": ${ True if previous_cook_case_type == "divorce" else '' }
+    - "previous_divorce_no": ${ True if not previous_cook_case_type == "divorce" or previous_cook_case_type == "none" else '' }
+    - "previous_parentage_yes": ${ True if previous_cook_case_type == "parentage" else '' }
+    - "previous_parentage_no": ${ True if not previous_cook_case_type == "parentage" or previous_cook_case_type == "none" else '' }
+    - "previous_cook_case_date": ${ format_date(previous_cook_case_date, format='MMM d, yyyy') if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+    - "previous_cook_case_number": ${ previous_cook_case_number if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+    - "previous_cook_case_judge": ${ previous_cook_case_judge if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
+
+    - "pro_se_cb": ${ True }
+    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "preparer_address_line_1": ${ users[0].address.line_one(bare=True) }
+    - "preparer_address_line_2": ${ users[0].address.line_two() }
+    - "preparer_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "preparer_email": ${ users[0].email if users[0].has_email_address else ""}
+    #- "cook_e_notice_cb": ${ cook_e_notice }
+    #- "cook_e_notice_email": ${ users[0].email if cook_e_notice else ""}
 ---
 ############### Review page
 id: review screen
@@ -3521,7 +3569,15 @@ review:
       * Judge: None entered
       % endif
     show if: trial_court_index == -1 and previous_cook_case_type != "none"
-
+  - Edit: case_type_marriage
+    button: |
+      **What kind of case are you filing?**
+      % if case_type_marriage:
+      Ending a marriage
+      % else:
+      Ending a civil union
+      % endif
+    show if: trial_court_index == -1
   - Edit: know_resp_location
     button: |
       **Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?**
