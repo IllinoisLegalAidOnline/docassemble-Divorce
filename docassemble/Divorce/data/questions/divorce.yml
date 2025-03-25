@@ -2805,18 +2805,34 @@ content: |
   Thanks for using ILAO Easy Forms!
   
   [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
+---
+
+
+
+
+
 
 ---
 objects:
   - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
+  - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
 
 ---
 code: |
-  instructions_kids.enabled = True
+  instructions_kids.enabled = False
+  petition_kids.enabled = False
 
   cook_cover_sheet.enabled = False
 
+  if file_with_kids:
+    instructions_kids.enabled = True
+    petition_kids.enabled = True
+  else:
+    # update as divorce without children forms are published
+    instructions_kids.enabled = True
+    petition_kids.enabled = False
+    # update end-------------------------------------------------------
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
@@ -2825,10 +2841,13 @@ objects:
   - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
+objects:
+  - petition_kids_bundle: ALDocumentBundle.using(elements=[petition_kids], filename="petition.pdf", title="Petition for Dissolution")
+---
 attachment:
   variable name: instructions_kids[i]
   name: instructions_kids
-  filename: instructions-kids
+  filename: instructions_kids
   editable: False
   skip undefined: True
   pdf template file: instructions_kids.pdf  
@@ -2869,6 +2888,59 @@ attachment:
     - "preparer_email": ${ users[0].email if users[0].has_email_address else ""}
     #- "cook_e_notice_cb": ${ cook_e_notice }
     #- "cook_e_notice_email": ${ users[0].email if cook_e_notice else ""}
+---
+attachment:
+  variable name: petition_kids[i]
+  name: petition_kids
+  filename: petition_kids
+  skip undefined: True
+  editable: False
+  pdf template file: petition_kids.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": |
+        ${ users[0].name.full(middle="full") }
+    - "respondent": |
+        ${ other_parties[0].name.full(middle="full") }
+    - "user_is_resident": ${ True }
+    - "user_resident_90": ${ True }
+    - "user_residence_county": ${ users[0].residence_county }
+    - "user_age": ${ users[0].birthdate.age_in_years() }
+    - "user_emp_yes": ${ True if users[0].emp_status == "Yes" else "" }
+    - "user_emp_no": ${ True if users[0].emp_status == "No" else "" }
+    - "user_emp_ss": ${ True if users[0].emp_status == "ss" else "" }
+    - "user_job_title": ${ users[0].employers[0].job_title if users[0].emp_status == "Yes" else "" }
+    - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status == "Yes" else "" }
+    - "user_former_name_yes": ${ users[0].use_former_name }
+    - "user_former_name_no": ${ not users[0].use_former_name }
+    - "user_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else "" }
+      
+    - "resp_is_resident": ${ other_parties[0].is_resident }
+    - "resp_is_not_resident": ${ other_parties[0].is_resident }
+    - "resp_resident_90": ${ other_parties[0].meets_90_day_requirement }
+    - "resp_not_resident_90": ${ other_parties[0].meets_90_day_requirement }
+    - "resp_age": ${ other_parties[0].birthdate.age_in_years() }
+    - "resp_know_address_yes": ${ knows_resp_address }
+    - "resp_know_address_no": ${ knows_resp_address }
+    - "resp_emp_yes": ${ True if other_parties[0].emp_status == "Yes" else "" }
+    - "resp_address": ${ other_parties[0].address.on_one_line(show="full") if True else "" }
+    - "resp_emp_no": ${ True if other_parties[0].emp_status == "No" else "" }
+    - "resp_emp_idk": ${ True if other_parties[0].emp_status == "idk" else "" }
+    - "resp_emp_ss": ${ True if other_parties[0].emp_status == "ss" else "" }
+    - "resp_job_title": ${ other_parties[0].employers[0].job_title if other_parties[0].emp_status == "Yes" else "" }
+    - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status == "Yes" else "" }
+    - "resp_active_duty_yes": ${ True if other_parties[0].is_active_duty == "Yes" else "" }
+    - "resp_active_duty_no": ${ True if other_parties[0].is_active_duty == "No" else "" }
+    - "resp_active_duty_idk": ${ True if other_parties[0].is_active_duty == "idk" else "" }
+
+
+
+
+
+
+
+
+  
 ---
 ############### Review page
 id: review screen
