@@ -118,10 +118,6 @@ code: |
   children_intro
   pet_is_pregnant
   resp_is_pregnant
-
-  # TODO
-  # may consider moving questions, may consider nesting questions if children_status['minors'] or children_status['support']
-
   
   if any_children_together:
     if children_status['minors'] or children_status['support']: 
@@ -131,8 +127,14 @@ code: |
       parenting_plan_info
       current_pt_schedule
       taxes_choice
-      if has_other_kids_during_marriage:
-        outside_children.gather()
+      parenting_class_info
+    elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
+      adult_children.gather()
+
+  children_debug   ### DEBUG
+  
+  if file_with_kids:
+    if any_children_together:
       if other_custody_case:
         custody_cases.gather()
       if other_case_involving_kids:
@@ -141,10 +143,9 @@ code: |
         custodians.gather()
       if kids_lived_with_other_adult:
         other_adults.gather()
-      parenting_class_info
-    elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
-      adult_children.gather()
-
+    if has_other_kids_during_marriage:
+      outside_children.gather()
+ 
   want_maintenance
   current_maintenance
   
@@ -163,10 +164,6 @@ code: |
   if include_property:
     property_keep
     property_list.gather()
-    property_exchange
-    property_other
-    pet_has_nonmarital_property
-    resp_has_nonmarital_property
   retirement_intro
   if retirement_options == "split":
     if enter_resp_pensions:
@@ -180,6 +177,11 @@ code: |
   if has_real_estate:
     real_estate.address
     attach_legal_desc
+  if include_property:
+    pet_has_nonmarital_property
+    resp_has_nonmarital_property
+    property_exchange
+    property_other
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -378,6 +380,8 @@ sets:
     - users[0].name.suffix
 question:  |
   What is your name?
+subquestion: |
+  The person who starts the divorce case is the Petitioner.
 fields:
   - code: |
       users[0].name_fields()
@@ -392,6 +396,8 @@ question: |
   What is the name of your spouse?
 subquestion: |
   The word "spouse" refers to your husband, wife, or domestic partner.
+
+  The person who the divorce case is filed against is the Respondent.
 fields:
   - code: |
       other_parties[0].name_fields()
@@ -872,7 +878,21 @@ question: |
 subquestion: |
   The next screens will ask you about pregnancy and children. Based on your answers, the program will make the correct forms.
 
-  **Note:** Even if you don't have any children together, the "Divorce with children" forms may be created. These will work better if you or your spouse are pregnant.
+  **Note:** Even if you don't have any children together, the "Divorce with children" forms may be required. These forms are required if either you or your spouse is pregnant, and the unborn child is or could be a child of the marriage.
+---
+id: children debug
+continue button field: children_debug
+question: |
+  DEBUG - Which forms - DEBUG
+subquestion: |
+  Based on your answers, the program will make:
+
+  % if file_with_kids:
+  *Petition for Divorce with Children* forms
+  % else:
+  *Petition for Divorce without Children* forms
+  % endif
+
 ---
 id: petitioner pregnant
 question: |
@@ -925,10 +945,8 @@ id: children information
 question: |
   Information about your children
 subquestion: |
-  The court needs information about children of the marriage.
-
-  **Note:** If you have both minor children and adult children, you do not need to include information about your adult children unless they are still in school or have a disability.
-  
+  The court needs information about your children with ${other_parties[0].name.full(middle="full")} to make sure they will be supported.
+ 
   Check all that apply.
 fields:
   - We gave birth to or adopted children who are: children_status
@@ -1784,9 +1802,8 @@ code: |
       file_with_kids = True
   # this will need work  
   if any_children_together:
-    file_with_kids = True
-# this will need to be updated!
-# maybe just have this logic in the assembly.enabled block instead - fewer vars to worry about
+    if children_status['minors'] or children_status['support']: 
+      file_with_kids = True
 ---
 id: current maintenance
 question: |
@@ -1798,6 +1815,10 @@ fields:
 id: want maintenance
 question: |
   Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?
+subquestion: |
+  A judge can make one spouse pay the other spouse money on an ongoing basis after a divorce. This is called "maintenance." It used to be called "spousal support" or "alimony."
+  
+  To learn more, read ILAO's article, [**What are maintenance payments after a divorce?**](https://www.illinoislegalaid.org/node/30356)
 fields:
   - no label: want_maintenance
     datatype: yesnoradio
@@ -1807,28 +1828,33 @@ fields:
 id: debts intro
 continue button field: debts_intro
 question: |
-  Debts and liabilities
+  Debts
 subquestion: |
-  EXPLAIN what debts and liabilities include, how they can be divided
+  "Marital debt" means debts that a couple takes on during their marriage. Spouses are responsible for each other's expenses for the family during their marriage.
 
-  EXPLAIN marital debt and non-marital debt
+  * Marital debt will be divided in the divorce. If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * Your divorce Petition will ask for a fair division of the marital debts obtained during the marriage/civil union.
+  
+  "Non-marital debts" are debts that you or ${other_parties[0].name.full(middle="full")} acquired outside the marriage. Each party will be assigned their own non-marital debt.
 
-  EXPLAIN that you do not have to enter this now. It will go in judgment.
+  * Your divorce Petition will ask that each party be assigned their non-marital/non-civil union debt.
+  
+  **Note:** You do not have to enter the details of the debts now. The information will be listed on the divorce judgment, which is used at the end of the case.
 
-  What will appear in petition. Judge will decide if can't reach agreement.
+  To learn more, read ILAO's article about [**dividing property and debt in a divorce**](https://www.illinoislegalaid.org/node/30326).
 ---
 id: include debts
 question: |
   Do you want to add information about debts?
 subquestion: |
-  These will appear on the draft form of the divorce judgment. Forms have room for up to 14 debts. You can explain who you want to pay any debts not listed on your forms.
+  If you enter details about the debts now, they will be listed on the draft form of the final divorce judgment.
 fields:
   - no label: include_debts
     datatype: yesnoradio
 ---
 id: more debts
 question: |
-  Do you want to list any other debts?
+  Do you want to list any other marital debts?
 subquestion: |
   So far you have told us about:
 
@@ -1836,14 +1862,14 @@ subquestion: |
     * $${ thousands( debt.amount, show_decimals=True) } owed to ${ debt.name.text}
   % endfor
 
-  You can list up to 14 debts.
+  You can list up to 14 marital debts.
 fields:
   - Add another?: debts.there_is_another
     datatype: yesnoradio
 ---
 id: debt information
 question: |
-  Details for the ${ordinal(i)} debt 
+  Details for the ${ordinal(i)} marital debt 
 fields:
   - Name of creditor: debts[i].name.text
     maxlength: 40
@@ -1882,9 +1908,9 @@ code: |
 ---
 id: unlisted debts
 question: |
-  How do you want other debts to be divided?
+  How do you want other marital debts to be divided?
 subquestion: |
-  If there are other debts you did not list, they can be divided.
+  If there are other marital debts you did not list, they can be divided.
 
   You can select more than one option.
 fields:
@@ -1902,7 +1928,17 @@ id: user non-marital debts
 question: |
   Do you want to list your non-marital debts?
 subquestion: |
-  EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+  "Non-marital debts" are debts that you acquired outside the marriage. These can include:
+
+  * Debts you owned or acquired before marriage,
+  * Debts that you got after a legal separation, or
+  * Debts specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement).
+
+  Your divorce Petition will ask that each party be assigned their non-marital/non-civil union debt.
+  
+  **Note:** You do not have to enter the details of your non-marital debts now. The information will be listed on the divorce judgment, which is used at the end of the case.
+
+  To learn more, read ILAO's article about [**dividing property and debt in a divorce**](https://www.illinoislegalaid.org/node/30326).
 fields:
   - Include your non-marital debts?: pet_has_nonmarital_debts
     datatype: yesnoradio
@@ -1918,7 +1954,17 @@ id: respondent non-marital debts
 question: |
   Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?
 subquestion: |
-  EXPLAIN non-marital debts. Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
+  "Non-marital debts" are debts that ${other_parties[0].name.full(middle="full")} acquired outside the marriage. These can include:
+
+  * Debts ${other_parties[0].name.full(middle="full")} owned or acquired before marriage,
+  * Debts that ${other_parties[0].name.full(middle="full")} got after a legal separation, or
+  * Debts specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement).
+
+    Your divorce Petition will ask that each party be assigned their non-marital/non-civil union debt.
+  
+  **Note:** You do not have to enter the details of ${other_parties[0].name.full(middle="full")}'s non-marital debts now. The information will be listed on the divorce judgment, which is used at the end of the case.
+
+  To learn more, read ILAO's article about [**dividing property and debt in a divorce**](https://www.illinoislegalaid.org/node/30326).
 fields:
   - Include ${other_parties[0].name.full(middle="full")}'s non-marital debts?: resp_has_nonmarital_debts
     datatype: yesnoradio
@@ -1929,9 +1975,6 @@ fields:
     show if:
       variable: resp_has_nonmarital_debts
       is: True
-    
-
-
 
 ---
 id: property intro
@@ -1939,16 +1982,23 @@ continue button field: property_intro
 question: |
   Property and accounts
 subquestion: |
-  EXPLAIN what property and accounts include, how they can be divided
+  "Marital property" is any property or money that either spouse got during the marriage. It includes real estate, personal property, bank accounts, and pets.
 
-  EXPLAIN difference between marital and non-marital property
+  * Marital property will be divided in the divorce. If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * Your divorce Petition will ask for a fair division of the marital/civil union property.
   
-  EXPLAIN that you do not have to enter this now. It will go in judgment.
+  "Non-marital property" is property that you or ${other_parties[0].name.full(middle="full")} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital property includes:
+  
+  * Property owned or acquired before marriage,
+  * Property received as a gift, or an inheritance, or left to the person in a will,
+  * Property received by the spouse after a legal separation,
+  * Property specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement),
+  * Property received by a court judgment awarded to a spouse from the other spouse, or
+  * Property received in exchange for any of the above.
 
-  What will appear in petition. Judge will decide if can't reach agreement.
+  **Note:** You do not have to enter the details of the property now. The information will be listed on the divorce judgment, which is used at the end of the case.
 
-
-
+  To learn more, read ILAO's article about [**dividing property and debt in a divorce**](https://www.illinoislegalaid.org/node/30326).
 ---
 id: include personal property and bank accounts
 question: |
@@ -1956,13 +2006,11 @@ question: |
 subquestion: |
   Personal property is things like cars, furniture, electronics, household items, or keepsakes.
   
-  These will appear on the draft form of the divorce judgment. You can say which property goes to which person. This is not final. The judge may decide differently.
+  These will be listed on the draft form of the final divorce judgment. You can say what property goes to each person. This is not final. The judge may decide differently, or you may reach an different agreement on how to divide the property.
   
-  The forms have room for up to 14 items of property or bank accounts.
+  Select **Yes** if you want to add information about property in your own name, pets, how property exchanges will be handled, or anything else.
 
-  ADD INFO about prop in own name, exchange, anything else PETS
-
-  **Note:** This does not include retirement accounts. Those will be asked about on another screen.
+  **Note:** This section does not include retirement accounts. Those will be asked about later.
 fields:
   - no label: include_property
     datatype: yesnoradio
@@ -1998,12 +2046,12 @@ id: property information
 question: |
   Details for the ${ordinal(i)} property or account
 subquestion: |
-  **Note:** Do not list any account numbers.
+  **Note:** Do not list any account numbers. Also, you can list pets on another screen.
 fields:
   - Description of the property or account: property_list[i].name.text
     maxlength: 40
     help: |
-      You can list a group of items like "bedroom furniture" or "kitchen items."
+      You can list a group of items like "bedroom furniture" or "kitchen items." If you are listing a car, describe things like make and model. For example: Chevy Malibu.
   - Who do you want to get this property or account?: property_list[i].party
     datatype: radio
     choices:
@@ -2025,19 +2073,20 @@ continue button field: retirement_intro
 question: |
   Retirement accounts and pensions
 subquestion: |
-  EXPLAIN retirement accounts and pensions can be divided. If split, you will have to enter a QDRO (content?)
+  Retirement accounts and pensions can be divided in a divorce. However, the court cannot divide all retirement accounts between spouses. They may only divide the parts that are considered "marital property." If a spouse pays into a retirement account or pension during the marriage, at least part of that account or pension is marital property. It does not matter that only one spouse's income was paid into the account.
 
-  EXPLAIN marital v. non-marital retirement accounts and pensions
+  A retirement account divided by the court at the time of the divorce does not mean that the money can be used right away.
+ 
+  To learn more, read ILAO's article about [**dividing retirement accounts in a divorce**](https://www.illinoislegalaid.org/node/30331).
 
-  EXPLAIN that you do not have to enter this now. It will go in judgment.
-
-  What will appear in petition. Judge will decide if can't reach agreement.
+  **Note:** You do not have to enter the details of the retirement accounts and pensions now. The information will be listed on the divorce judgment, which is used at the end of the case.
+  
 ---
 id: include retirement
 question: |
   Do you want to add information about retirement accounts and pensions?
 subquestion: |
-  These will appear on the draft form of the divorce judgment.
+  These will appear on the draft form of the final divorce judgment.
 fields:
   - no label: retirement_options
     datatype: radio
@@ -2050,6 +2099,8 @@ id: enter resp pensions
 question: |
   Do you want to enter information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions now?
 subquestion: |
+  **Note:** These are retirement accounts and pensions that are in ${other_parties[0].name.full(middle="full")}'s name.
+  
   If you select **No**, you can add this to your divorce judgment later.
 fields:
   - Enter info about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: enter_resp_pensions
@@ -2123,6 +2174,8 @@ id: enter user pensions
 question: |
   Do you want to enter information about your retirement accounts and pensions now?
 subquestion: |
+  **Note:** These are retirement accounts and pensions that are in your name.
+
   If you select **No**, you can add this to your divorce judgment later.
 fields:
   - Enter info about your retirement accounts and pensions?: enter_pet_pensions
@@ -2265,13 +2318,20 @@ id: user non-marital property
 question: |
   Do you want to list your non-marital property?
 subquestion: |
-  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
+  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Non-marital property includes:
   
-  Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
-
-  **Note:** Do not list account numbers.
+  * Property owned or acquired before marriage,
+  * Property received as a gift, or an inheritance, or left to the person in a will,
+  * Property received by the spouse after a legal separation,
+  * Property specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement),
+  * Property received by a court judgment awarded to a spouse from the other spouse, or
+  * Property received in exchange for any of the above. 
+  
+  This will be listed on the draft form of the final divorce judgment. The judge may decide differently, or you may reach an different agreement on how to divide the property.
 
   If ${other_parties[0].name.full(middle="full")} has any of this non-marital property, they will need to deliver it to you within 30 days after the divorce judgment is entered.
+  
+  **Note:** Do not list account numbers.
 fields:
   - Include your non-marital property?: pet_has_nonmarital_property
     datatype: yesnoradio
@@ -2287,13 +2347,20 @@ id: respondent non-marital property
 question: |
   Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?
 subquestion: |
-  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Why user may want to include. 
+  Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Non-marital property includes:
   
-  Why user may want to include. Reminder this only goes on final judgment and can be changed before the final judgment is entered by agreement of parties or trial.
-
-  **Note:** Do not list account numbers.
+  * Property owned or acquired before marriage,
+  * Property received as a gift, or an inheritance, or left to the person in a will,
+  * Property received by the spouse after a legal separation,
+  * Property specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement),
+  * Property received by a court judgment awarded to a spouse from the other spouse, or
+  * Property received in exchange for any of the above. 
+  
+  This will be listed on the draft form of the final divorce judgment. The judge may decide differently, or you may reach an different agreement on how to divide the property.
 
   If you have any of this non-marital property, you will need to deliver it to ${other_parties[0].name.full(middle="full")} within 30 days after the divorce judgment is entered.
+
+  **Note:** Do not list account numbers.
 fields:
   - Include ${other_parties[0].name.full(middle="full")}'s non-marital property?: resp_has_nonmarital_property
     datatype: yesnoradio
@@ -2304,7 +2371,9 @@ fields:
     show if:
       variable: resp_has_nonmarital_property
       is: True
+---
 
+      
 
 
 
@@ -3099,81 +3168,16 @@ review:
         * ${ my_var.name.full(middle="full") }
       % endfor
     show if: children_status['adults'] and children_status['minors'] == False and children_status['support'] == False
-  - Edit: has_other_kids_during_marriage
-    button: |
-      **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
-      ${ word(yesno(has_other_kids_during_marriage)) }
-    show if: children_status['minors'] or children_status['support']
-  - Edit: outside_children.revisit
-    button: |
-      **Children born or adopted outside the marriage: (Edit to change names and details)**
 
-      % for my_var in outside_children:
-        * ${ my_var.name.full(middle="full") }
-      % endfor
-    show if: has_other_kids_during_marriage and (children_status['minors'] or children_status['support'])
-  - Edit: other_custody_case
-    button: |
-      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
-      ${ word(yesno(other_custody_case)) }
-    show if: children_status['minors'] or children_status['support']
-  - Edit: custody_cases.revisit
-    button: |
-      **Other custody or visitation cases involving your children: (Edit to change details)**
-
-      % for my_var in custody_cases:
-      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
-      % endfor
-    show if: other_custody_case and (children_status['minors'] or children_status['support'])
-
-  - Edit: other_case_involving_kids
-    button: |
-      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
-      ${ word(yesno(other_case_involving_kids)) }
-    show if: children_status['minors'] or children_status['support']
-  - Edit: other_cases.revisit
-    button: |
-      **Other cases involving your children: (Edit to change details)**
-
-      % for my_var in other_cases:
-      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
-      % endfor
-    show if: other_case_involving_kids and (children_status['minors'] or children_status['support'])
-  - Edit: other_custodian
-    button: |
-      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
-      ${ word(yesno(other_custodian)) }
-    show if: children_status['minors'] or children_status['support']
-  - Edit: custodians.revisit
-    button: |
-      **Other people with custody or rights involving your children: (Edit to change details)**
-
-      % for my_var in custodians:
-      * ${my_var.name.full(middle="full")}
-      % endfor
-    show if: other_custodian and (children_status['minors'] or children_status['support'])
-  - Edit: kids_lived_with_other_adult
-    button: |
-      **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
-      ${ word(yesno(kids_lived_with_other_adult)) }
-    show if: children_status['minors'] or children_status['support']
-  - Edit: other_adults.revisit
-    button: |
-      **Other adults your children lived with in the last five years: (Edit to change details)**
-
-      % for my_var in other_adults:
-      * ${my_var.name.full(middle="full")}
-      % endfor
-    show if: kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
-  - Edit: child_support_paid
-    button: |
-      **Is child support being paid for the children of the marriage?**
-      ${ word(yesno(child_support_paid)) }        
-    show if: children_status['minors'] or children_status['support']
   - Edit: want_child_support
     button: |
       **Do you want the court to order child support for for the children of the marriage?**
       ${ word(yesno(want_child_support)) }        
+    show if: children_status['minors'] or children_status['support']
+  - Edit: child_support_paid
+    button: |
+      **Is child support being paid for the children of the marriage?**
+      ${ word(yesno(child_support_paid)) }        
     show if: children_status['minors'] or children_status['support']
   - Edit: current_pt_schedule
     button: |
@@ -3194,6 +3198,75 @@ review:
       * I don't know.
       % endif
     show if: children_status['minors'] or children_status['support']
+
+  
+  - Edit: other_custody_case
+    button: |
+      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_custody_case)) }
+    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+  - Edit: custody_cases.revisit
+    button: |
+      **Other custody or visitation cases involving your children: (Edit to change details)**
+
+      % for my_var in custody_cases:
+      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
+      % endfor
+    show if: file_with_kids and other_custody_case and (children_status['minors'] or children_status['support'])
+
+  - Edit: other_case_involving_kids
+    button: |
+      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_case_involving_kids)) }
+    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+  - Edit: other_cases.revisit
+    button: |
+      **Other cases involving your children: (Edit to change details)**
+
+      % for my_var in other_cases:
+      * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
+      % endfor
+    show if: file_with_kids and other_case_involving_kids and (children_status['minors'] or children_status['support'])
+  - Edit: other_custodian
+    button: |
+      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(other_custodian)) }
+    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+  - Edit: custodians.revisit
+    button: |
+      **Other people with custody or rights involving your children: (Edit to change details)**
+
+      % for my_var in custodians:
+      * ${my_var.name.full(middle="full")}
+      % endfor
+    show if: file_with_kids and other_custodian and (children_status['minors'] or children_status['support'])
+  - Edit: kids_lived_with_other_adult
+    button: |
+      **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
+      ${ word(yesno(kids_lived_with_other_adult)) }
+    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+  - Edit: other_adults.revisit
+    button: |
+      **Other adults your children lived with in the last five years: (Edit to change details)**
+
+      % for my_var in other_adults:
+      * ${my_var.name.full(middle="full")}
+      % endfor
+    show if: file_with_kids and kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
+  - Edit: has_other_kids_during_marriage
+    button: |
+      **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
+      ${ word(yesno(has_other_kids_during_marriage)) }
+    show if: file_with_kids
+  - Edit: outside_children.revisit
+    button: |
+      **Children born or adopted outside the marriage: (Edit to change names and details)**
+
+      % for my_var in outside_children:
+        * ${ my_var.name.full(middle="full") }
+      % endfor
+    show if: has_other_kids_during_marriage and file_with_kids
+
   - Edit: current_maintenance
     button: |
       **Is maintenance (alimony) currently being paid from one spouse to the other?**
@@ -3273,11 +3346,6 @@ review:
       * ${ my_var.name.text}
       % endfor
     show if: include_property    
-  - Edit: property_exchange
-    button: |
-      **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
-      ${ word(yesno(property_exchange)) }      
-    show if: include_property
 
   - Edit: retirement_options
     button: |
@@ -3365,10 +3433,6 @@ review:
       ${ attach_legal_desc }
     show if: has_real_estate
 
-
-
-
-  
   - Edit: pet_has_nonmarital_property
     button: |
       **Do you want to list your non-marital property?**
@@ -3389,8 +3453,11 @@ review:
       **${other_parties[0].name.full(middle="full")}'s non-marital property:**
       ${resp_nonmarital_property}
     show if: include_property and resp_has_nonmarital_property    
-
-  
+  - Edit: property_exchange
+    button: |
+      **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
+      ${ word(yesno(property_exchange)) }      
+    show if: include_property
   - Edit: property_other
     button: |
       **Do you want the final divorce judgment to say anything else about property?**
