@@ -478,6 +478,13 @@ fields:
     maxlength: 25
     js show if: |
       val('previous_divorce_state') != "IL" && val('previous_divorce_in_us')
+  - County and State or Province (separated by a comma): previous_divorce_intl_text
+    help: |
+      List the county and list the state or province if the country has them.
+    required: False
+    show if: 
+      variable: previous_divorce_in_us
+      is: False
   - Country (outside US): previous_divorce_country
     show if: 
       variable: previous_divorce_in_us
@@ -489,6 +496,7 @@ fields:
     show if: 
       variable: previous_divorce
       is: "Yes"
+
 ---
 id: earlier divorce not pending
 event: earlier_divorce_not_pending
@@ -906,7 +914,7 @@ fields:
     choices:
       - Yes: Yes
       - No: No
-      - I don't know.: I don't know
+      - I don't know.: I don't know.
     show if:
       variable: pet_is_pregnant
       is: True
@@ -920,13 +928,13 @@ fields:
     choices:
       - Yes: Yes
       - No: No
-      - I don't know.: I don't know
+      - I don't know.: I don't know.
   - Are you the other parent of the unborn child?: resp_pregnant_pet_parent
     datatype: radio
     choices:
       - Yes: Yes
       - No: No
-      - I don't know.: I don't know
+      - I don't know.: I don't know.
     show if: 
       variable: resp_is_pregnant
       is: "Yes"
@@ -1722,11 +1730,11 @@ question: |
 subquestion: |
   The law requires that parents complete a class about parenting and divorce when they have minor children.
   
-  Ask the { **Circuit Clerk** } for the name and contact information for the court approved class you must attend.
+  Ask the **{Circuit Clerk}** for the name and contact information for the court approved class you must attend.
   
   There is normally a fee for the class. If you have an Order for Waiver of Court Fees you do not have to pay the fee. You can register for this class as soon as you file your divorce or wait until the judge orders you to go.
 terms:
-  - "Circuit Clerk": |
+  Circuit Clerk: |
       The **Circuit Clerk** is the clerk’s office is where you will file your divorce forms. The Circuit Clerk will:
       
       * Accept your divorce forms,
@@ -2821,6 +2829,7 @@ objects:
 ---
 code: |
   instructions_kids.enabled = False
+  petition_bundle.enabled = True
   petition_kids.enabled = False
 
   cook_cover_sheet.enabled = False
@@ -2838,11 +2847,11 @@ code: |
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet, petition_bundle, ], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
-  - petition_kids_bundle: ALDocumentBundle.using(elements=[petition_kids], filename="petition.pdf", title="Petition for Dissolution")
+  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids], filename="petition.pdf", title="Petition for Dissolution")
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -2862,16 +2871,14 @@ attachment:
   editable: False
   pdf template file: cook_cover_sheet.pdf
   fields:
-    - "petitioner__1": |
-        ${ users[0].name.full(middle="full") }
-    - "respondent": |
-        ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent": ${ other_parties[0].name.full(middle="full") }
     - "marriage_checkbox": ${ case_type_marriage }
     - "civil_union_checkbox": ${ not case_type_marriage }
     - "div_checkbox": ${ True }
 
-    - "involves_minors_yes": ${ True if file_with_kids else '' }
-    - "involves_minors_no": ${ True if not file_with_kids else '' }
+    - "involves_minors_yes": ${ file_with_kids }
+    - "involves_minors_no": ${ not file_with_kids }
     - "previous_divorce_yes": ${ True if previous_cook_case_type == "divorce" else '' }
     - "previous_divorce_no": ${ True if not previous_cook_case_type == "divorce" or previous_cook_case_type == "none" else '' }
     - "previous_parentage_yes": ${ True if previous_cook_case_type == "parentage" else '' }
@@ -2898,46 +2905,74 @@ attachment:
   pdf template file: petition_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": |
-        ${ users[0].name.full(middle="full") }
-    - "respondent": |
-        ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
     - "user_is_resident": ${ True }
     - "user_resident_90": ${ True }
     - "user_residence_county": ${ users[0].residence_county }
-    - "user_age": ${ users[0].birthdate.age_in_years() }
-    - "user_emp_yes": ${ True if users[0].emp_status == "Yes" else "" }
-    - "user_emp_no": ${ True if users[0].emp_status == "No" else "" }
-    - "user_emp_ss": ${ True if users[0].emp_status == "ss" else "" }
-    - "user_job_title": ${ users[0].employers[0].job_title if users[0].emp_status == "Yes" else "" }
-    - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status == "Yes" else "" }
+    - "user_age": ${ users[0].age_in_years() }
+    - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
+    - "user_emp_no": ${ True if users[0].emp_status["No"] else "" }
+    - "user_emp_ss": ${ True if users[0].emp_status["ss"] else "" }
+    - "user_job_title": ${ users[0].employers[0].job_title if users[0].emp_status["Yes"] else "" }
+    - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status["Yes"] else "" }
     - "user_former_name_yes": ${ users[0].use_former_name }
     - "user_former_name_no": ${ not users[0].use_former_name }
     - "user_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else "" }
       
     - "resp_is_resident": ${ other_parties[0].is_resident }
-    - "resp_is_not_resident": ${ other_parties[0].is_resident }
-    - "resp_resident_90": ${ other_parties[0].meets_90_day_requirement }
-    - "resp_not_resident_90": ${ other_parties[0].meets_90_day_requirement }
-    - "resp_age": ${ other_parties[0].birthdate.age_in_years() }
+    - "resp_is_not_resident": ${ not other_parties[0].is_resident }
+    - "resp_resident_90": ${ True if other_parties[0].is_resident and other_parties[0].meets_90_day_requirement else "" }
+    - "resp_not_resident_90": ${ True if other_parties[0].is_resident == False or not other_parties[0].meets_90_day_requirement else "" }
+    - "resp_age": ${ other_parties[0].age_in_years() }
     - "resp_know_address_yes": ${ knows_resp_address }
-    - "resp_know_address_no": ${ knows_resp_address }
-    - "resp_emp_yes": ${ True if other_parties[0].emp_status == "Yes" else "" }
-    - "resp_address": ${ other_parties[0].address.on_one_line(show="full") if True else "" }
-    - "resp_emp_no": ${ True if other_parties[0].emp_status == "No" else "" }
-    - "resp_emp_idk": ${ True if other_parties[0].emp_status == "idk" else "" }
-    - "resp_emp_ss": ${ True if other_parties[0].emp_status == "ss" else "" }
-    - "resp_job_title": ${ other_parties[0].employers[0].job_title if other_parties[0].emp_status == "Yes" else "" }
-    - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status == "Yes" else "" }
+    - "resp_know_address_no": ${ not knows_resp_address }
+    - "resp_address": ${ other_parties[0].address.on_one_line(bare=True) if knows_resp_address else "" }
+    - "resp_emp_yes": ${ True if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_emp_no": ${ True if other_parties[0].emp_status["No"] else "" }
+    - "resp_emp_idk": ${ True if other_parties[0].emp_status["idk"] else "" }
+    - "resp_emp_ss": ${ True if other_parties[0].emp_status["ss"] else "" }
+    - "resp_job_title": ${ other_parties[0].employers[0].job_title if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status["Yes"] else "" }
     - "resp_active_duty_yes": ${ True if other_parties[0].is_active_duty == "Yes" else "" }
     - "resp_active_duty_no": ${ True if other_parties[0].is_active_duty == "No" else "" }
     - "resp_active_duty_idk": ${ True if other_parties[0].is_active_duty == "idk" else "" }
 
+    - "marriage_date": ${ marriage_date }
+    - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
+    - "prior_divorce_no": ${ previous_divorce == "No"}
+    - "prior_divorce_idk": ${ previous_divorce == "I don't know."}
+    - "prior_divorce_yes": ${ previous_divorce == "Yes" } 
+    - "prior_divorce_location": ${ previous_divorce_county + ", " + previous_divorce_state if previous_divorce == "Yes" and previous_divorce_in_us else previous_divorce_intl_text + ", " + previous_divorce_country }
+    - "separation_date": ${ separation_date }
+    - "pet_preg_yes": ${ pet_is_pregnant } 
+    - "pet_preg_no": ${ not pet_is_pregnant}
+    - "pet_preg_resp_parent_yes": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "Yes" else "" } 
+    - "pet_preg_resp_parent_no": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "No" else ""}
+    - "pet_preg_resp_parent_idk": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "I don't know." else "" }
+    - "resp_preg_yes": ${ True if resp_is_pregnant == "Yes" else "" } 
+    - "resp_preg_no": ${ True if resp_is_pregnant == "No" else "" }
+    - "resp_preg_idk": ${ True if resp_is_pregnant == "I don't know." else "" }
+    - "resp_preg_pet_parent_yes": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "Yes" else "" } 
+    - "resp_preg_pet_parent_no": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "No" else "" }
+    - "resp_preg_pet_parent_idk": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "I don't know." else "" }
 
 
 
 
 
+
+
+    
+
+
+    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address": ${ users[0].address.on_one_line(bare=True) }
+    - "user_hide_address_cb": ${ True if hide_address else '' }
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_atty_number": ${ '' }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
 
 
   
