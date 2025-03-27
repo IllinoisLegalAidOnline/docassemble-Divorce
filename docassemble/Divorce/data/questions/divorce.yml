@@ -2830,18 +2830,23 @@ objects:
   - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
   - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
+  - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
 
 ---
 code: |
   instructions_kids.enabled = False
   petition_bundle.enabled = True
   petition_kids.enabled = False
+  additional_kids_petition.enabled = False
 
   cook_cover_sheet.enabled = False
 
   if file_with_kids:
     instructions_kids.enabled = True
     petition_kids.enabled = True
+    if children.number() > 3:
+      additional_kids_petition.enabled = True
+  
   else:
     # update as divorce without children forms are published
     instructions_kids.enabled = True
@@ -2856,7 +2861,7 @@ objects:
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
-  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids], filename="petition.pdf", title="Petition for Dissolution")
+  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids, additional_kids_petition], filename="petition.pdf", title="Petition for Dissolution")
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -3065,6 +3070,126 @@ attachment:
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "user_atty_number": ${ '' }
     - "user_email": ${ users[0].email if users[0].has_email_address else "" }
+
+---
+attachment:
+  variable name: additional_kids_petition[i]
+  name: additional_kids_petition
+  filename: additional_kids_petition
+  skip undefined: True
+  editable: False
+  pdf template file: additional_kids_petition.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+
+    - "child_name_3": ${ children[3].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_3": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[3].age_in_years() > 1:
+        ${ children[3].age_in_years() }
+        % else:
+        ${ str(children[3].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_3": ${ not children[3].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_3": ${ children[3].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_3": ${ children[3].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_3": ${ not children[3].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_3": ${ children[3].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_3": ${ not children[3].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_3": ${ True if children[3].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_3": ${ True if children[3].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_3": ${ True if children[3].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_3": ${ children[3].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_3": ${ children[3].former_addresses[0].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_3": ${ children[3].former_addresses[1].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_3": ${ children[3].former_addresses[2].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_3": ${ children[3].former_addresses[3].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
+
+    - "child_name_4": ${ children[4].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_4": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[4].age_in_years() > 1:
+        ${ children[4].age_in_years() }
+        % else:
+        ${ str(children[4].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_4": ${ not children[4].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_4": ${ children[4].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_4": ${ children[4].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_4": ${ not children[4].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_4": ${ children[4].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_4": ${ not children[4].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_4": ${ True if children[4].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_4": ${ True if children[4].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_4": ${ True if children[4].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_4": ${ children[4].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_4": ${ children[4].former_addresses[0].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_4": ${ children[4].former_addresses[1].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_4": ${ children[4].former_addresses[2].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_4": ${ children[4].former_addresses[3].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
+
+    - "child_name_5": ${ children[5].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_5": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[5].age_in_years() > 1:
+        ${ children[5].age_in_years() }
+        % else:
+        ${ str(children[5].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_5": ${ not children[5].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_5": ${ children[5].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_5": ${ children[5].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_5": ${ not children[5].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_5": ${ children[5].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_5": ${ not children[5].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_5": ${ True if children[5].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_5": ${ True if children[5].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_5": ${ True if children[5].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_5": ${ children[5].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_5": ${ children[5].former_addresses[0].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_5": ${ children[5].former_addresses[1].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_5": ${ children[5].former_addresses[2].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_5": ${ children[5].former_addresses[3].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
+
+    - "child_name_6": ${ children[6].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_6": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[6].age_in_years() > 1:
+        ${ children[6].age_in_years() }
+        % else:
+        ${ str(children[6].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_6": ${ not children[6].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_6": ${ children[6].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_6": ${ children[6].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_6": ${ not children[6].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_6": ${ children[6].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_6": ${ not children[6].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_6": ${ True if children[6].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_6": ${ True if children[6].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_6": ${ True if children[6].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_6": ${ children[6].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_6": ${ children[6].former_addresses[0].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_6": ${ children[6].former_addresses[1].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_6": ${ children[6].former_addresses[2].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_6": ${ children[6].former_addresses[3].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
+
+
+
 
 
   
