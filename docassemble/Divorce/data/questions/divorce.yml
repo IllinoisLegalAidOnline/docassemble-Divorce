@@ -2831,6 +2831,7 @@ objects:
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
   - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
+  - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
 
 ---
 code: |
@@ -2838,6 +2839,7 @@ code: |
   petition_bundle.enabled = True
   petition_kids.enabled = False
   additional_kids_petition.enabled = False
+  other_children_info.enabled = False
 
   cook_cover_sheet.enabled = False
 
@@ -2846,6 +2848,9 @@ code: |
     petition_kids.enabled = True
     if children.number() > 3:
       additional_kids_petition.enabled = True
+    if has_other_kids_during_marriage or other_custody_case or other_case_involving_kids or other_custodian or kids_lived_with_other_adult:
+      other_children_info.enabled = True
+
   
   else:
     # update as divorce without children forms are published
@@ -2861,7 +2866,7 @@ objects:
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
-  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids, additional_kids_petition], filename="petition.pdf", title="Petition for Dissolution")
+  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -3188,8 +3193,101 @@ attachment:
     - "child_past_address_2_6": ${ children[6].former_addresses[2].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
     - "child_past_address_3_6": ${ children[6].former_addresses[3].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
 
+---
+attachment:
+  variable name: other_children_info[i]
+  name: other_children_info
+  filename: other_children_info
+  skip undefined: True
+  editable: False
+  pdf template file: other_children_info.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+
+    - "has_other_kids_during_marriage_no": ${ not has_other_kids_during_marriage }
+    - "has_other_kids_during_marriage_yes": ${ has_other_kids_during_marriage }
+    - "outside_child_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_pet_0": ${ True if outside_children[0].parent == "My child" and has_other_kids_during_marriage else "" }
+    - "outside_child_resp_0": ${ True if outside_children[0].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
+    - "outside_child_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_pet_1": ${ True if outside_children[1].parent == "My child" and has_other_kids_during_marriage else "" }
+    - "outside_child_resp_1": ${ True if outside_children[1].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
+    - "outside_child_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_pet_2": ${ True if outside_children[2].parent == "My child" and has_other_kids_during_marriage else "" }
+    - "outside_child_resp_2": ${ True if outside_children[2].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
+    - "outside_child_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_pet_3": ${ True if outside_children[3].parent == "My child" and has_other_kids_during_marriage else "" }
+    - "outside_child_resp_3": ${ True if outside_children[3].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
+    
+    - "other_custody_case_no": ${ not other_custody_case if children_status['minors'] or children_status['support'] else "" }
+    - "other_custody_case_yes": ${ other_custody_case if children_status['minors'] or children_status['support'] else "" }
+    - "custody_case_number_0": ${ custody_cases[0].name.text if other_custody_case else "" }
+    - "custody_case_location_0": ${ custody_cases[0].county + ", " + custody_cases[0].state if other_custody_case else "" }
+    - "custody_case_kids_0": ${ custody_cases[0].kids_involved if other_custody_case else "" }
+    - "custody_case_final_yes_0": ${ True if custody_cases[0].final_order and other_custody_case else "" }
+    - "custody_case_final_no_0": ${ True if not custody_cases[0].final_order and other_custody_case else "" }
+    - "custody_case_final_date_0": ${ custody_cases[0].final_order_date if custody_cases[0].final_order and other_custody_case else ""  }
+    - "custody_case_number_1": ${ custody_cases[1].name.text if other_custody_case else "" }
+    - "custody_case_location_1": ${ custody_cases[1].county + ", " + custody_cases[1].state if other_custody_case else "" }
+    - "custody_case_kids_1": ${ custody_cases[1].kids_involved if other_custody_case else "" }
+    - "custody_case_final_yes_1": ${ True if custody_cases[1].final_order and other_custody_case else "" }
+    - "custody_case_final_no_1": ${ True if not custody_cases[1].final_order and other_custody_case else "" }
+    - "custody_case_final_date_1": ${ custody_cases[1].final_order_date if custody_cases[1].final_order and other_custody_case else ""  }
+    - "custody_case_number_2": ${ custody_cases[2].name.text if other_custody_case else "" }
+    - "custody_case_location_2": ${ custody_cases[2].county + ", " + custody_cases[2].state if other_custody_case else "" }
+    - "custody_case_kids_2": ${ custody_cases[2].kids_involved if other_custody_case else "" }
+    - "custody_case_final_yes_2": ${ True if custody_cases[2].final_order and other_custody_case else "" }
+    - "custody_case_final_no_2": ${ True if not custody_cases[2].final_order and other_custody_case else "" }
+    - "custody_case_final_date_2": ${ custody_cases[2].final_order_date and other_custody_case if custody_cases[2].final_order else ""  }
+    
+    - "other_case_involving_kids_no": ${ not other_case_involving_kids if children_status['minors'] or children_status['support'] else "" }
+    - "other_case_involving_kids_yes": ${ other_case_involving_kids if children_status['minors'] or children_status['support'] else "" }
+    - "other_case_number_0": ${ other_cases[0].name.text if other_case_involving_kids else "" }
+    - "other_case_location_0": ${ other_cases[0].county + ", " + other_cases[0].state if other_case_involving_kids else "" }
+    - "other_case_kids_0": ${ other_cases[0].kids_involved if other_case_involving_kids else "" }
+    - "other_case_final_yes_0": ${ True if other_cases[0].final_order and other_case_involving_kids else "" }
+    - "other_case_final_no_0": ${ True if not other_cases[0].final_order and other_case_involving_kids else "" }
+    - "other_case_final_date_0": ${ other_cases[0].final_order_date if other_cases[0].final_order and other_case_involving_kids else "" }
+    - "other_case_adoption_0": ${ True if other_cases[0].type == "Adoption" and other_case_involving_kids else "" }
+    - "other_case_juvenile_0": ${ True if other_cases[0].type == "Juvenile" and other_case_involving_kids else "" }
+    - "other_case_op_0": ${ True if other_cases[0].type == "Order of Protection" and other_case_involving_kids else "" }
+    - "other_case_other_0": ${ True if other_cases[0].type == "Other" and other_case_involving_kids else "" }
+    - "other_case_other_text_0": ${ other_cases[0].other_type if other_cases[0].type == "Other" and other_case_involving_kids else "" }
+    - "other_case_number_1": ${ other_cases[1].name.text if other_case_involving_kids else "" }
+    - "other_case_location_1": ${ other_cases[1].county + ", " + other_cases[1].state if other_case_involving_kids else "" }
+    - "other_case_kids_1": ${ other_cases[1].kids_involved if other_case_involving_kids else "" }
+    - "other_case_final_yes_1": ${ True if other_cases[1].final_order and other_case_involving_kids else "" }
+    - "other_case_final_no_1": ${ True if not other_cases[1].final_order and other_case_involving_kids else "" }
+    - "other_case_final_date_1": ${ other_cases[1].final_order_date if other_cases[1].final_order and other_case_involving_kids else "" }
+    - "other_case_adoption_1": ${ True if other_cases[1].type == "Adoption" and other_case_involving_kids else "" }
+    - "other_case_juvenile_1": ${ True if other_cases[1].type == "Juvenile" and other_case_involving_kids else "" }
+    - "other_case_op_1": ${ True if other_cases[1].type == "Order of Protection" and other_case_involving_kids else "" }
+    - "other_case_other_1": ${ True if other_cases[1].type == "Other" and other_case_involving_kids else "" }
+    - "other_case_other_text_1": ${ other_cases[1].other_type if other_cases[1].type == "Other" and other_case_involving_kids else "" }
+    - "other_case_number_2": ${ other_cases[2].name.text if other_case_involving_kids else "" }
+    - "other_case_location_2": ${ other_cases[2].county + ", " + other_cases[2].state if other_case_involving_kids else "" }
+    - "other_case_kids_2": ${ other_cases[2].kids_involved if other_case_involving_kids else "" }
+    - "other_case_final_yes_2": ${ True if other_cases[2].final_order and other_case_involving_kids else "" }
+    - "other_case_final_no_2": ${ True if not other_cases[2].final_order and other_case_involving_kids else "" }
+    - "other_case_final_date_2": ${ other_cases[2].final_order_date if other_cases[2].final_order and other_case_involving_kids else "" }
+    - "other_case_adoption_2": ${ True if other_cases[2].type == "Adoption" and other_case_involving_kids else "" }
+    - "other_case_juvenile_2": ${ True if other_cases[2].type == "Juvenile" and other_case_involving_kids else "" }
+    - "other_case_op_2": ${ True if other_cases[2].type == "Order of Protection" and other_case_involving_kids else "" }
+    - "other_case_other_2": ${ True if other_cases[2].type == "Other" and other_case_involving_kids else "" }
+    - "other_case_other_text_2": ${ other_cases[2].other_type if other_cases[2].type == "Other" and other_case_involving_kids else "" }
+    
+    - "other_custodian_no": ${ not other_custodian if children_status['minors'] or children_status['support'] else "" }
+    - "other_custodian_yes": ${ other_custodian if children_status['minors'] or children_status['support'] else "" }
+    - "custodian_name_0": ${ custodians[0].name.full(middle="full") if other_custodian else "" }
+    - "custodian_address_0": ${ custodians[0].address.on_one_line(bare=True) if other_custodian else "" }
+    - "custodian_kids_0": ${ custodians[0].kids_involved if other_custodian else "" }
 
 
+    
+    - "kids_lived_with_other_adult_no": ${ not kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
+    - "kids_lived_with_other_adult_yes": ${ kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
 
 
   
