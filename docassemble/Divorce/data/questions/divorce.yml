@@ -123,7 +123,7 @@ code: |
     if children_status['minors'] or children_status['support']: 
       children.gather()
       want_child_support
-      child_support_paid
+      current_child_support
       parenting_plan_info
       current_pt_schedule
       taxes_choice
@@ -1058,11 +1058,12 @@ fields:
 id: is child of marriage
 question: |
   Was ${children[i].name.full(middle="full")} born or adopted after the marriage?
-subquestion: |
-  If the child was born before the marriage, but adoped after the marriage, select **Yes**.
-fields:
-  - no label: children[i].is_of_marriage
-    datatype: yesnoradio
+fields: 
+  - ${children[i].name.full(middle="full")} was: children[i].is_of_marriage
+    datatype: radio
+    choices:
+      - Born or adopted **before** the marriage.: False
+      - Born or adopted **after** the marriage.: True
 ---
 id: does child have a disability
 question: |
@@ -1087,7 +1088,7 @@ fields:
     choices:
       - Yes: Yes
       - No: No
-      - I don't know.: I don't know
+      - I don't know.: I don't know.
 ---
 id: child address
 question: |
@@ -1115,7 +1116,11 @@ fields:
 ---
 id: child former address detail
 question: |
-  Tell us about ${children[i].name.full(middle="full")}'s ${ ordinal(i) } former address
+  % if j==0:
+  Tell us about ${children[i].name.full(middle="full")}'s former address
+  % else:
+  Tell us about ${children[i].name.full(middle="full")}'s ${ ordinal(j) } former address
+  % endif  
 subquestion: |
   You only need to include addresses where they lived in the past five years.
 
@@ -1687,7 +1692,7 @@ id: child support currently being paid
 question: |
   Is any child support currently being paid for the children of the marriage?
 fields:
-  - no label: child_support_paid
+  - no label: current_child_support
     datatype: yesnoradio
 ---
 id: want child support
@@ -2956,15 +2961,102 @@ attachment:
     - "resp_preg_pet_parent_yes": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "Yes" else "" } 
     - "resp_preg_pet_parent_no": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "No" else "" }
     - "resp_preg_pet_parent_idk": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "I don't know." else "" }
+    - "child_name_0": ${ children[0].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_0": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[0].age_in_years() > 1:
+        ${ children[0].age_in_years() }
+        % else:
+        ${ str(children[0].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_0": ${ not children[0].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_0": ${ children[0].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_0": ${ children[0].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_0": ${ not children[0].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_0": ${ children[0].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_0": ${ not children[0].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_0": ${ True if children[0].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_0": ${ True if children[0].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_0": ${ True if children[0].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_0": ${ children[0].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_0": ${ children[0].former_addresses[0].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_0": ${ children[0].former_addresses[1].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_0": ${ children[0].former_addresses[2].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_0": ${ children[0].former_addresses[3].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
 
+    - "child_name_1": ${ children[1].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_1": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[1].age_in_years() > 1:
+        ${ children[1].age_in_years() }
+        % else:
+        ${ str(children[1].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_1": ${ not children[1].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_1": ${ children[1].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_1": ${ children[1].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_1": ${ not children[1].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_1": ${ children[1].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_1": ${ not children[1].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_1": ${ True if children[1].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_1": ${ True if children[1].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_1": ${ True if children[1].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_1": ${ children[1].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_1": ${ children[1].former_addresses[0].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_1": ${ children[1].former_addresses[1].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_1": ${ children[1].former_addresses[2].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_1": ${ children[1].former_addresses[3].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
 
+    - "child_name_2": ${ children[2].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_age_2": |
+        % if children_status['minors'] or children_status['support']:
+        % if children[2].age_in_years() > 1:
+        ${ children[2].age_in_years() }
+        % else:
+        ${ str(children[2].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+    - "child_born_before_marriage_2": ${ not children[2].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_born_after_marriage_2": ${ children[2].is_of_marriage if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_yes_2": ${ children[2].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_disability_no_2": ${ not children[2].has_a_disability if children_status['minors'] or children_status['support'] else "" }
+    - "child_in_school_2": ${ children[2].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_not_in_school_2": ${ not children[2].is_in_school if children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_2": ${ True if children[2].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_no_2": ${ True if children[2].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_idk_2": ${ True if children[2].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_address_2": ${ children[2].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_2": ${ children[2].former_addresses[0].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_1_2": ${ children[2].former_addresses[1].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_2_2": ${ children[2].former_addresses[2].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_3_2": ${ children[2].former_addresses[3].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
 
+    - "additional_children_cb": ${ True if (children_status['minors'] or children_status['support']) and children.number() > 3 else "" }
 
-
-
-
-    
-
+    - "has_other_kids_during_marriage_no": ${ not has_other_kids_during_marriage }
+    - "has_other_kids_during_marriage_yes": ${ has_other_kids_during_marriage }
+    - "other_custody_case_no": ${ not other_custody_case if children_status['minors'] or children_status['support'] else "" }
+    - "other_custody_case_yes": ${ other_custody_case if children_status['minors'] or children_status['support'] else "" }
+    - "other_case_involving_kids_no": ${ not other_case_involving_kids if children_status['minors'] or children_status['support'] else "" }
+    - "other_case_involving_kids_yes": ${ other_case_involving_kids if children_status['minors'] or children_status['support'] else "" }
+    - "other_custodian_no": ${ not other_custodian if children_status['minors'] or children_status['support'] else "" }
+    - "other_custodian_yes": ${ other_custodian if children_status['minors'] or children_status['support'] else "" }
+    - "kids_lived_with_other_adult_no": ${ not kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
+    - "kids_lived_with_other_adult_yes": ${ kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
+    - "current_child_support_yes": ${ current_child_support if children_status['minors'] or children_status['support'] else "" }
+    - "current_child_support_no": ${ not current_child_support if children_status['minors'] or children_status['support'] else "" }
+    - "current_maintenance_yes": ${ current_maintenance }
+    - "current_maintenance_no": ${ not current_maintenance }
+    - "current_pt_schedule_yes": ${ current_pt_schedule if children_status['minors'] or children_status['support'] else "" }
+    - "current_pt_schedule_no": ${ not current_pt_schedule if children_status['minors'] or children_status['support'] else "" }
 
     - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
     - "user__2": ${ users[0].name.full(middle="full") }
@@ -3329,10 +3421,10 @@ review:
       **Do you want the court to order child support for for the children of the marriage?**
       ${ word(yesno(want_child_support)) }        
     show if: children_status['minors'] or children_status['support']
-  - Edit: child_support_paid
+  - Edit: current_child_support
     button: |
       **Is child support being paid for the children of the marriage?**
-      ${ word(yesno(child_support_paid)) }        
+      ${ word(yesno(current_child_support)) }        
     show if: children_status['minors'] or children_status['support']
   - Edit: current_pt_schedule
     button: |
