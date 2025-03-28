@@ -130,6 +130,7 @@ code: |
       parenting_class_info
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
+      formatted_adult_child_list
 
   children_debug   ### DEBUG
   
@@ -1195,6 +1196,13 @@ subquestion: |
 fields:
   - "Anyone else?": adult_children.there_is_another
     datatype: yesnoradio
+---
+reconsider: True
+code: |
+  formatted_adult_child_list = [f"{child.name.full(middle='full')} (age {child.age_in_years()})" for child in adult_children]
+
+
+
 ---
 id: adult child age
 question: |
@@ -2827,16 +2835,20 @@ content: |
 
 ---
 objects:
+  - instructions_no_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
+  - petition_no_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
   - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
   - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
 
 ---
 code: |
+  instructions_no_kids.enabled = False
   instructions_kids.enabled = False
   petition_bundle.enabled = True
+  petition_no_kids.enabled = False
   petition_kids.enabled = False
   additional_kids_petition.enabled = False
   other_children_info.enabled = False
@@ -2853,20 +2865,18 @@ code: |
 
   
   else:
-    # update as divorce without children forms are published
-    instructions_kids.enabled = True
-    petition_kids.enabled = False
-    # update end-------------------------------------------------------
+    instructions_no_kids.enabled = True
+    petition_no_kids.enabled = True
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet, petition_bundle, ], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, ], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
-  - petition_bundle: ALDocumentBundle.using(elements=[petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
+  - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -2877,6 +2887,17 @@ attachment:
   pdf template file: instructions_kids.pdf  
   fields:
       - "fake": ${ "" }
+---
+attachment:
+  variable name: instructions_no_kids[i]
+  name: instructions_no_kids
+  filename: instructions_no_kids
+  editable: False
+  skip undefined: True
+  pdf template file: instructions_no_kids.pdf  
+  fields:
+      - "fake": ${ "" }
+
 ---
 attachment:
   variable name: cook_cover_sheet[i]
@@ -2910,6 +2931,77 @@ attachment:
     - "preparer_email": ${ users[0].email if users[0].has_email_address else ""}
     #- "cook_e_notice_cb": ${ cook_e_notice }
     #- "cook_e_notice_email": ${ users[0].email if cook_e_notice else ""}
+
+---
+attachment:
+  variable name: petition_no_kids[i]
+  name: petition_no_kids
+  filename: petition_no_kids
+  skip undefined: True
+  editable: False
+  pdf template file: petition_no_kids.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "user_is_resident": ${ True }
+    - "user_resident_90": ${ True }
+    - "user_residence_county": ${ users[0].residence_county }
+    - "user_age": ${ users[0].age_in_years() }
+    - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
+    - "user_emp_no": ${ True if users[0].emp_status["No"] else "" }
+    - "user_emp_ss": ${ True if users[0].emp_status["ss"] else "" }
+    - "user_job_title": ${ users[0].employers[0].job_title if users[0].emp_status["Yes"] else "" }
+    - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status["Yes"] else "" }
+    - "user_former_name_yes": ${ users[0].use_former_name }
+    - "user_former_name_no": ${ not users[0].use_former_name }
+    - "user_former_name": ${ users[0].aliases[0].full(middle="full") if users[0].use_former_name else "" }
+      
+    - "resp_is_resident": ${ other_parties[0].is_resident }
+    - "resp_is_not_resident": ${ not other_parties[0].is_resident }
+    - "resp_resident_90": ${ True if other_parties[0].is_resident and other_parties[0].meets_90_day_requirement else "" }
+    - "resp_not_resident_90": ${ True if other_parties[0].is_resident == False or not other_parties[0].meets_90_day_requirement else "" }
+    - "resp_age": ${ other_parties[0].age_in_years() }
+    - "resp_know_address_yes": ${ knows_resp_address }
+    - "resp_know_address_no": ${ not knows_resp_address }
+    - "resp_address": ${ other_parties[0].address.on_one_line(bare=True) if knows_resp_address else "" }
+    - "resp_emp_yes": ${ True if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_emp_no": ${ True if other_parties[0].emp_status["No"] else "" }
+    - "resp_emp_idk": ${ True if other_parties[0].emp_status["idk"] else "" }
+    - "resp_emp_ss": ${ True if other_parties[0].emp_status["ss"] else "" }
+    - "resp_job_title": ${ other_parties[0].employers[0].job_title if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_active_duty_yes": ${ True if other_parties[0].is_active_duty == "Yes" else "" }
+    - "resp_active_duty_no": ${ True if other_parties[0].is_active_duty == "No" else "" }
+    - "resp_active_duty_idk": ${ True if other_parties[0].is_active_duty == "idk" else "" }
+
+    - "marriage_date": ${ marriage_date }
+    - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
+    - "prior_divorce_no": ${ previous_divorce == "No"}
+    - "prior_divorce_idk": ${ previous_divorce == "I don't know."}
+    - "prior_divorce_yes": ${ previous_divorce == "Yes" } 
+    - "prior_divorce_location": ${ previous_divorce_county + ", " + previous_divorce_state if previous_divorce == "Yes" and previous_divorce_in_us else previous_divorce_intl_text + ", " + previous_divorce_country }
+    - "separation_date": ${ separation_date }
+    - "pet_preg_no": ${ not pet_is_pregnant}
+    - "pet_preg_resp_parent_no": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "No" else ""}
+    - "resp_preg_no": ${ True if resp_is_pregnant != "Yes" else "" }
+    - "resp_preg_pet_parent_no": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent != "Yes" else "" }
+    - "no_children_cb": ${ not any_children_together }
+    - "only_adult_children_cb": ${ True if any_children_together and children_status['adults'] else "" }
+    - "adult_children_list": ${ comma_and_list(formatted_adult_child_list) if any_children_together and children_status['adults'] else "" }
+      
+    - "current_maintenance_yes": ${ current_maintenance }
+    - "current_maintenance_no": ${ not current_maintenance }
+
+    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address": ${ users[0].address.on_one_line(bare=True) }
+    - "user_hide_address_cb": ${ True if hide_address else '' }
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_atty_number": ${ '' }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
+
+    
 ---
 attachment:
   variable name: petition_kids[i]
@@ -2966,7 +3058,7 @@ attachment:
     - "pet_preg_resp_parent_no": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "No" else ""}
     - "pet_preg_resp_parent_idk": ${ True if pet_is_pregnant and pet_pregnant_resp_parent == "I don't know." else "" }
     - "resp_preg_yes": ${ True if resp_is_pregnant == "Yes" else "" } 
-    - "resp_preg_no": ${ True if resp_is_pregnant == "No" else "" }
+    - "resp_preg_no": ${ True if resp_is_pregnant != "Yes" else "" }
     - "resp_preg_idk": ${ True if resp_is_pregnant == "I don't know." else "" }
     - "resp_preg_pet_parent_yes": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "Yes" else "" } 
     - "resp_preg_pet_parent_no": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "No" else "" }
