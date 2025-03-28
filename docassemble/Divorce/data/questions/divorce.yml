@@ -3283,12 +3283,27 @@ attachment:
     - "custodian_name_0": ${ custodians[0].name.full(middle="full") if other_custodian else "" }
     - "custodian_address_0": ${ custodians[0].address.on_one_line(bare=True) if other_custodian else "" }
     - "custodian_kids_0": ${ custodians[0].kids_involved if other_custodian else "" }
-
-
+    - "custodian_name_1": ${ custodians[1].name.full(middle="full") if other_custodian else "" }
+    - "custodian_address_1": ${ custodians[1].address.on_one_line(bare=True) if other_custodian else "" }
+    - "custodian_kids_1": ${ custodians[1].kids_involved if other_custodian else "" }
+    - "custodian_name_2": ${ custodians[2].name.full(middle="full") if other_custodian else "" }
+    - "custodian_address_2": ${ custodians[2].address.on_one_line(bare=True) if other_custodian else "" }
+    - "custodian_kids_2": ${ custodians[2].kids_involved if other_custodian else "" }
     
     - "kids_lived_with_other_adult_no": ${ not kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
     - "kids_lived_with_other_adult_yes": ${ kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
-
+    - "other_adult_name_0": ${ other_adults[0].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_kids_0": ${ other_adults[0].kids_involved if kids_lived_with_other_adult else "" }
+    - "other_adult_relationship_0": ${ other_adults[0].relationship if kids_lived_with_other_adult else "" }
+    - "other_adult_address_0": ${ other_adults[0].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
+    - "other_adult_name_1": ${ other_adults[1].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_kids_1": ${ other_adults[1].kids_involved if kids_lived_with_other_adult else "" }
+    - "other_adult_relationship_1": ${ other_adults[1].relationship if kids_lived_with_other_adult else "" }
+    - "other_adult_address_1": ${ other_adults[1].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
+    - "other_adult_name_2": ${ other_adults[2].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_kids_2": ${ other_adults[2].kids_involved if kids_lived_with_other_adult else "" }
+    - "other_adult_relationship_2": ${ other_adults[2].relationship if kids_lived_with_other_adult else "" }
+    - "other_adult_address_2": ${ other_adults[2].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
 
   
 ---
