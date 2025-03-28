@@ -2842,6 +2842,7 @@ objects:
   - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
   - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
+  - judgment_kids: ALDocument.using(title="Judgment for Dissolution", filename="judgment.pdf", has_addendum=False)
 
 ---
 code: |
@@ -2852,6 +2853,7 @@ code: |
   petition_kids.enabled = False
   additional_kids_petition.enabled = False
   other_children_info.enabled = False
+  judgment_kids.enabled = False
 
   cook_cover_sheet.enabled = False
 
@@ -2862,7 +2864,7 @@ code: |
       additional_kids_petition.enabled = True
     if has_other_kids_during_marriage or other_custody_case or other_case_involving_kids or other_custodian or kids_lived_with_other_adult:
       other_children_info.enabled = True
-
+    judgment_kids.enabled = True
   
   else:
     instructions_no_kids.enabled = True
@@ -2872,11 +2874,12 @@ code: |
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, ], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, judgment_bundle, ], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
   - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
+  - judgment_bundle: ALDocumentBundle.using(elements=[judgment_kids, ], filename="judgment.pdf", title="Judgment for Dissolution")   
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -3396,6 +3399,20 @@ attachment:
     - "other_adult_kids_2": ${ other_adults[2].kids_involved if kids_lived_with_other_adult else "" }
     - "other_adult_relationship_2": ${ other_adults[2].relationship if kids_lived_with_other_adult else "" }
     - "other_adult_address_2": ${ other_adults[2].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
+
+---
+attachment:
+  variable name: judgment_kids[i]
+  name: judgment_kids
+  filename: judgment_kids
+  skip undefined: True
+  editable: False
+  pdf template file: judgment_kids.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+
 
   
 ---
