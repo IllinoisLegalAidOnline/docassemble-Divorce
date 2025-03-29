@@ -173,6 +173,7 @@ code: |
     if enter_pet_pensions:
       pensions_pet.gather()
       pet_pensions_qdro
+  if retirement_options == "own" or retirement_options == "split":
     pensions_other
   real_estate_intro
   if has_real_estate:
@@ -1910,12 +1911,12 @@ fields:
       - I don't know. I will decide later.: idk
   - What percent of the debt will you pay?: debts[i].pet_percent
     help: |
-      Enter the percent you want to pay from 1-100%. ${other_parties[0].name.full(middle="full")} will pay the other %.
+      Enter the percent you want to pay from 1-99%. ${other_parties[0].name.full(middle="full")} will pay the other %.
       
       For example, if you want to pay half, enter 50%. ${other_parties[0].name.full(middle="full")} will pay the other half.
     datatype: number
     min: 1
-    max: 100
+    max: 99
     show if:
       variable: debts[i].payment_division
       is: "split"
@@ -3412,9 +3413,130 @@ attachment:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "marriage_date": ${ marriage_date }
+    - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
+    - "no_minor_children_cb": ${}
+    - "minor_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "minor_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "minor_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "additional_minor_children_cb": ${}
+    - "no_support_children_cb": ${}
+    - "support_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "support_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "support_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "additional_support_children_cb": ${}
+    - "no_outside_children_cb": ${}
+    - "outside_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "outside_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "outside_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
+    - "additional_outside_children_cb": ${}
 
+    - "has_real_estate_yes": ${ has_real_estate }
+    - "has_real_estate_no": ${ not has_real_estate }
+    - "real_estate_address": ${ real_estate.on_one_line(bare=True) if has_real_estate else "" }
+    - "attach_legal_desc_yes": ${ attach_legal_desc if has_real_estate else "" }
+    - "attach_legal_desc_no": ${ not attach_legal_desc if has_real_estate else "" }
 
-  
+    - "claim_deps_all_pet": ${ True if taxes_choice == "all" and tax_all == "Me" else "" }
+    - "claim_deps_all_res": ${ True if taxes_choice == "all" and tax_all == "Them" else "" }
+    - "claim_deps_even_pet": ${ True if taxes_choice == "turns" and tax_all == "even" else "" }
+    - "claim_deps_even_res": ${ True if taxes_choice == "turns" and tax_all == "odd" else "" }
+    - "claim_deps_odd_pet": ${ True if taxes_choice == "turns" and tax_all == "odd" else "" }
+    - "claim_deps_odd_res": ${ True if taxes_choice == "turns" and tax_all == "even" else "" }
+    - "claim_dep_half_cb": ${ True if taxes_choice == "split" else "" }
+    - "claim_deps_half_odd_pet": ${ True if taxes_choice == "split" and tax_split_odd == "Me" else "" }
+    - "claim_deps_half_odd_res": ${ True if taxes_choice == "split" and tax_split_odd == "Them" else "" }
+    - "claim_deps_half_even_pet": ${ True if taxes_choice == "split" and tax_split_even == "Me" else "" }
+    - "claim_deps_half_even_res": ${ True if taxes_choice == "split" and tax_split_even == "Them" else "" }
+
+    - "debt_creditor_0": ${ debts[0].name.text if include_debts else "" }
+    - "debt_amount_0": ${ thousands(debts[0].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_0": ${ True if debts[0].payment_division == "Me" or debts[0].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_0": |
+        % if include_debts:
+        % if debts[0].payment_division == "Me":
+        100
+        % elif debts[0].payment_division == "split":
+        ${ debts[0].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_0": ${True if debts[0].payment_division == "them" or debts[0].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_0": |
+        % if include_debts:
+        % if debts[0].payment_division == "them":
+        100
+        % elif debts[0].payment_division == "split":
+        ${ 100 - debts[0].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_1": ${ "COPY code once OK" }
+
+    - "additional_debts_cb": ${ True if include_debts and debts.number() > 5 else "" }
+    - "unlisted_debts_split": ${ True if include_debts and unlisted_debts["joint"] else "" }
+    - "unlisted_debts_own": ${ True if include_debts and unlisted_debts["name"] else "" }
+    - "retire_own_yes": ${ True if retirement_options == "own" else "" }
+    - "retire_own_no": ${ True if retirement_options == "split" else "" }
+    - "res_pension_name_0": ${ pensions_resp[0].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_0": ${ True if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_0": ${ pensions_resp[0].pet_percent if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_0": ${ True if pensions_resp[0].payment_division == "No" and retirement_options == "split" else "" }
+    - "res_pension_name_1": ${ "COPY code once OK"}
+    - "res_pension_yes_1": ${}
+    - "res_pension_pct_1": ${}
+    - "res_pension_no_1": ${}
+    - "res_pension_name_2": ${}
+    - "res_pension_yes_2": ${}
+    - "res_pension_pct_2": ${}
+    - "res_pension_no_2": ${}
+    - "res_qdro_pet": ${ True if resp_pensions_qdro == "Me" and retirement_options == "split" else "" }
+    - "res_qdro_res": ${ True if resp_pensions_qdro == "Them" and retirement_options == "split" else "" }
+
+    - "pet_pension_name_0": ${ pensions_pet[0].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_0": ${ True if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_0": ${ pensions_pet[0].pet_percent if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_0": ${ True if pensions_pet[0].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_pension_name_1": ${ "COPY code once OK" }
+    - "pet_pension_yes_1": ${}
+    - "pet_pension_pct_1": ${}
+    - "pet_pension_no_1": ${}
+    - "pet_pension_name_2": ${}
+    - "pet_pension_yes_2": ${}
+    - "pet_pension_pct_2": ${}
+    - "pet_pension_no_2": ${}
+    - "pet_qdro_pet": ${ True if resp_pensions_qdro == "Me" and retirement_options == "split" else "" }
+    - "pet_qdro_res": ${ True if resp_pensions_qdro == "Them" and retirement_options == "split" else "" }
+    - "other_pension_cb": ${pensions_other if retirement_options == "own" or retirement_options == "split" else "" }
+    - "other_pension_text": ${pensions_other_text if (retirement_options == "own" or retirement_options == "split") and pensions_other else "" }
+
+    - "property_keep_own": ${True if include_property and property_keep else "" }
+    - "property_divide_shared": ${True if include_property and property_list.number() > 0 else "" }
+    - "property_name_0": ${ property_list[0].name.text if include_property else "" }
+    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property else "" }
+    - "property_to_res_0": ${ property_list[0].party == "res" if include_property else "" }
+    - "property_name_1": ${ "COPY code once OK" }
+    - "property_to_pet_1": ${}
+    - "property_to_res_1": ${}
+    - "property_name_2": ${}
+    - "property_to_pet_2": ${}
+    - "property_to_res_2": ${}
+    - "property_name_3": ${}
+    - "property_to_pet_4": ${}
+    - "property_to_res_4": ${}
+    - "additional_property_cb": ${ True if include_property and property_list.number() > 4 else "" }
+    - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
+    - "property_other": ${ True if include_property and property_other else "" }
+    - "property_other_text": ${ property_other_text if include_property and property_other else ""}
+    - "non_marital_prop_pet": ${ pet_nonmarital_property if include_property and pet_has_nonmarital_property else "" }
+    - "non_marital_prop_res": ${ resp_nonmarital_property if include_property and resp_has_nonmarital_property else ""  }
+    
+    - "pet_nonmarital_debt": ${ pet_has_nonmarital_debts if include_debts and pet_has_nonmarital_debts else "" }
+    - "res_nonmarital_debt": ${ resp_has_nonmarital_debts if include_debts and resp_has_nonmarital_debts else "" }
+    
+    - "user_former_name_yes": ${ users[0].use_former_name }
+    - "user_former_name_first": ${ users[0].aliases[0].first if users[0].use_former_name else "" }
+    - "user_former_name_middle": ${ users[0].aliases[0].middle if users[0].use_former_name else "" }
+    - "user_former_name_last": ${ users[0].aliases[0].last if users[0].use_former_name else "" }
+
 ---
 ############### Review page
 id: review screen
