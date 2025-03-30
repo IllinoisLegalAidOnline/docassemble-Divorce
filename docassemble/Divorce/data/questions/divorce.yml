@@ -4032,7 +4032,7 @@ review:
     button: |
       **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_custody_case)) }
-    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custody_cases.revisit
     button: |
       **Other custody or visitation cases involving your children: (Edit to change details)**
@@ -4040,13 +4040,13 @@ review:
       % for my_var in custody_cases:
       * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
       % endfor
-    show if: file_with_kids and other_custody_case and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and other_custody_case and (children_status['minors'] or children_status['support'])
 
   - Edit: other_case_involving_kids
     button: |
       **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_case_involving_kids)) }
-    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_cases.revisit
     button: |
       **Other cases involving your children: (Edit to change details)**
@@ -4054,12 +4054,12 @@ review:
       % for my_var in other_cases:
       * Case number: ${my_var.name.text} in ${my_var.county}, ${my_var.state}
       % endfor
-    show if: file_with_kids and other_case_involving_kids and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and other_case_involving_kids and (children_status['minors'] or children_status['support'])
   - Edit: other_custodian
     button: |
       **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
       ${ word(yesno(other_custodian)) }
-    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custodians.revisit
     button: |
       **Other people with custody or rights involving your children: (Edit to change details)**
@@ -4067,12 +4067,12 @@ review:
       % for my_var in custodians:
       * ${my_var.name.full(middle="full")}
       % endfor
-    show if: file_with_kids and other_custodian and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and other_custodian and (children_status['minors'] or children_status['support'])
   - Edit: kids_lived_with_other_adult
     button: |
       **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
       ${ word(yesno(kids_lived_with_other_adult)) }
-    show if: file_with_kids and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_adults.revisit
     button: |
       **Other adults your children lived with in the last five years: (Edit to change details)**
@@ -4080,12 +4080,12 @@ review:
       % for my_var in other_adults:
       * ${my_var.name.full(middle="full")}
       % endfor
-    show if: file_with_kids and kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
+    show if: any_children_together and kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
   - Edit: has_other_kids_during_marriage
     button: |
       **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
       ${ word(yesno(has_other_kids_during_marriage)) }
-    show if: file_with_kids
+    show if: any_children_together
   - Edit: outside_children.revisit
     button: |
       **Children born or adopted outside the marriage: (Edit to change names and details)**
@@ -4093,7 +4093,7 @@ review:
       % for my_var in outside_children:
         * ${ my_var.name.full(middle="full") }
       % endfor
-    show if: has_other_kids_during_marriage and file_with_kids
+    show if: has_other_kids_during_marriage and any_children_together
 
   - Edit: current_maintenance
     button: |
