@@ -32,6 +32,9 @@ objects:
   - service_address: ALAddress
   - second_service_address: ALAddress  
   - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
+  - minor_children_list: ALPeopleList.using(there_are_any=True, object_Type=ALIndividual, there_is_another=False)
+  - support_children_list: ALPeopleList.using(there_are_any=True, object_Type=ALIndividual, there_is_another=False)
+    
 ---
 code: |
   al_form_type = 'starts_case'
@@ -128,6 +131,7 @@ code: |
       current_pt_schedule
       taxes_choice
       parenting_class_info
+      build_child_lists
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
       formatted_adult_child_list
@@ -957,6 +961,8 @@ question: |
   Information about your children
 subquestion: |
   The court needs information about your children with ${other_parties[0].name.full(middle="full")} to make sure they will be supported.
+
+  **Note:** Illinois law has additional protections for children under 18 in a divorce. There will be more questions about them than older children.
  
   Check all that apply.
 fields:
@@ -1828,6 +1834,21 @@ code: |
     if children_status['minors'] or children_status['support']: 
       file_with_kids = True
 ---
+reconsider: True
+code: |
+  minor_children_list.clear()
+  #minor_children_list.there_is_another = False
+  support_children_list.clear()
+  #support_children_list.there_is_another = False
+  
+  for child in children:
+    if child.age_in_years() < 18:
+      minor_children_list.append(child)
+    else:
+      support_children_list.append(child)
+  
+  build_child_lists = True
+---
 id: current maintenance
 question: |
   Is maintenance (alimony) currently being paid from one spouse to the other?
@@ -1895,7 +1916,7 @@ question: |
   Details for the ${ordinal(i)} marital debt 
 fields:
   - Name of creditor: debts[i].name.text
-    maxlength: 40
+    maxlength: 45
     help: |
       The creditor is the company, institution, or person you owe money to.
   - Total amount owed: debts[i].amount
@@ -1914,7 +1935,7 @@ fields:
       Enter the percent you want to pay from 1-99%. ${other_parties[0].name.full(middle="full")} will pay the other %.
       
       For example, if you want to pay half, enter 50%. ${other_parties[0].name.full(middle="full")} will pay the other half.
-    datatype: number
+    datatype: integer
     min: 1
     max: 99
     show if:
@@ -1935,7 +1956,7 @@ question: |
 subquestion: |
   If there are other marital debts you did not list, they can be divided.
 
-  You can select more than one option.
+  **Note:** You can select more than one of the top two options.
 fields:
   - no label: unlisted_debts
     datatype: checkboxes
@@ -1967,7 +1988,7 @@ fields:
     datatype: yesnoradio
   - List your non-marital debts: pet_nonmarital_debts
     input type: area
-    rows: 2
+    rows: 3
     maxlength: 100
     show if:
       variable: pet_has_nonmarital_debts
@@ -1993,7 +2014,7 @@ fields:
     datatype: yesnoradio
   - List ${other_parties[0].name.full(middle="full")}'s non-marital debts: resp_nonmarital_debts
     input type: area
-    rows: 2
+    rows: 3
     maxlength: 100
     show if:
       variable: resp_has_nonmarital_debts
@@ -2072,7 +2093,7 @@ subquestion: |
   **Note:** Do not list any account numbers. Also, you can list pets on another screen.
 fields:
   - Description of the property or account: property_list[i].name.text
-    maxlength: 40
+    maxlength: 45
     help: |
       You can list a group of items like "bedroom furniture" or "kitchen items." If you are listing a car, describe things like make and model. For example: Chevy Malibu.
   - Who do you want to get this property or account?: property_list[i].party
@@ -2162,7 +2183,7 @@ fields:
       Enter the percent you want to receive from 1-100%. ${other_parties[0].name.full(middle="full")} will receive the other %.
       
       For example, if you want three quarters, enter 75%. ${other_parties[0].name.full(middle="full")} will receive 25%.
-    datatype: number
+    datatype: integer
     min: 1
     max: 100
     show if:
@@ -2236,7 +2257,7 @@ fields:
       Enter the percent you want ${other_parties[0].name.full(middle="full")} to receive from 1-100%. You will receive the other %.
       
       For example, if you want ${other_parties[0].name.full(middle="full")} to get a quarter, enter 25%. You will receive the other 75%.
-    datatype: number
+    datatype: integer
     min: 1
     max: 100
     show if:
@@ -2274,8 +2295,8 @@ fields:
     datatype: yesnoradio
   - Describe the accounts and who you want to get them. Use each person's name to be clear.: pensions_other_text
     input type: area
-    rows: 6
-    maxlength: 400    
+    rows: 4
+    maxlength: 275    
     label above field: True
     show if:
       variable: pensions_other
@@ -2371,8 +2392,8 @@ fields:
     datatype: yesnoradio
   - List your non-marital property: pet_nonmarital_property
     input type: area
-    rows: 4
-    maxlength: 200
+    rows: 5
+    maxlength: 210
     show if:
       variable: pet_has_nonmarital_property
       is: True
@@ -2400,8 +2421,8 @@ fields:
     datatype: yesnoradio
   - List ${other_parties[0].name.full(middle="full")}'s non-marital property: resp_nonmarital_property
     input type: area
-    rows: 4
-    maxlength: 200
+    rows: 5
+    maxlength: 210
     show if:
       variable: resp_has_nonmarital_property
       is: True
@@ -2557,11 +2578,13 @@ question: |
 subquestion: |
   The law requires that ${other_parties[0].name.full(middle="full")} be notified of your divorce case. This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name.full(middle="full")} by hand-delivering the court papers. This can done at ${other_parties[0].name.full(middle="full")}'s home, work, or another location.
 
+  **Note:** This could be a different address from ${other_parties[0].name.full(middle="full")}'s current address.
+  
   If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name.full(middle="full")} is properly notified of the court case. You can ask the court to let you notify them by another method.
 
   To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
 fields:
-  - Have an address for ${other_parties[0].name.full(middle="full")}?: know_resp_location
+  - Have an address where ${other_parties[0].name.full(middle="full")} can be served?: know_resp_location
     datatype: yesnoradio
 ---
 id: service address choice
@@ -2790,7 +2813,7 @@ question: |
 subquestion: |
   
   Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
- 
+
   This program **does not file** your divorce forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
 
   ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
@@ -2854,6 +2877,7 @@ code: |
   petition_kids.enabled = False
   additional_kids_petition.enabled = False
   other_children_info.enabled = False
+  judgment_bundle.enabled = True
   judgment_kids.enabled = False
 
   cook_cover_sheet.enabled = False
@@ -3084,14 +3108,14 @@ attachment:
     - "child_disability_no_0": ${ not children[0].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_0": ${ children[0].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_0": ${ not children[0].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_0": ${ True if children[0].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_0": ${ True if children[0].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_0": ${ True if children[0].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_0": ${ True if children[0].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_0": ${ True if children[0].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_0": ${ True if children[0].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_0": ${ children[0].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_0": ${ children[0].former_addresses[0].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_0": ${ children[0].former_addresses[1].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_0": ${ children[0].former_addresses[2].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_0": ${ children[0].former_addresses[3].on_one_line(bare=True) if children[0].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_0": ${ children[0].former_addresses[0].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_0": ${ children[0].former_addresses[1].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_0": ${ children[0].former_addresses[2].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_0": ${ children[0].former_addresses[3].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "child_name_1": ${ children[1].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
     - "child_age_1": |
@@ -3110,14 +3134,14 @@ attachment:
     - "child_disability_no_1": ${ not children[1].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_1": ${ children[1].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_1": ${ not children[1].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_1": ${ True if children[1].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_1": ${ True if children[1].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_1": ${ True if children[1].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_1": ${ True if children[1].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_1": ${ True if children[1].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_1": ${ True if children[1].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_1": ${ children[1].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_1": ${ children[1].former_addresses[0].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_1": ${ children[1].former_addresses[1].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_1": ${ children[1].former_addresses[2].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_1": ${ children[1].former_addresses[3].on_one_line(bare=True) if children[1].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_1": ${ children[1].former_addresses[0].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_1": ${ children[1].former_addresses[1].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_1": ${ children[1].former_addresses[2].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_1": ${ children[1].former_addresses[3].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "child_name_2": ${ children[2].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
     - "child_age_2": |
@@ -3136,14 +3160,14 @@ attachment:
     - "child_disability_no_2": ${ not children[2].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_2": ${ children[2].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_2": ${ not children[2].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_2": ${ True if children[2].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_2": ${ True if children[2].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_2": ${ True if children[2].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_2": ${ True if children[2].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_2": ${ True if children[2].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_2": ${ True if children[2].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_2": ${ children[2].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_2": ${ children[2].former_addresses[0].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_2": ${ children[2].former_addresses[1].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_2": ${ children[2].former_addresses[2].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_2": ${ children[2].former_addresses[3].on_one_line(bare=True) if children[2].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_2": ${ children[2].former_addresses[0].on_one_line(bare=True) if children[2].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_2": ${ children[2].former_addresses[1].on_one_line(bare=True) if children[2].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_2": ${ children[2].former_addresses[2].on_one_line(bare=True) if children[2].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_2": ${ children[2].former_addresses[3].on_one_line(bare=True) if children[2].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "additional_children_cb": ${ True if (children_status['minors'] or children_status['support']) and children.number() > 3 else "" }
 
@@ -3202,14 +3226,14 @@ attachment:
     - "child_disability_no_3": ${ not children[3].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_3": ${ children[3].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_3": ${ not children[3].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_3": ${ True if children[3].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_3": ${ True if children[3].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_3": ${ True if children[3].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_3": ${ True if children[3].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_3": ${ True if children[3].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_3": ${ True if children[3].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_3": ${ children[3].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_3": ${ children[3].former_addresses[0].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_3": ${ children[3].former_addresses[1].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_3": ${ children[3].former_addresses[2].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_3": ${ children[3].former_addresses[3].on_one_line(bare=True) if children[3].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_3": ${ children[3].former_addresses[0].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_3": ${ children[3].former_addresses[1].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_3": ${ children[3].former_addresses[2].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_3": ${ children[3].former_addresses[3].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "child_name_4": ${ children[4].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
     - "child_age_4": |
@@ -3228,14 +3252,14 @@ attachment:
     - "child_disability_no_4": ${ not children[4].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_4": ${ children[4].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_4": ${ not children[4].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_4": ${ True if children[4].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_4": ${ True if children[4].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_4": ${ True if children[4].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_4": ${ True if children[4].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_4": ${ True if children[4].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_4": ${ True if children[4].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_4": ${ children[4].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_4": ${ children[4].former_addresses[0].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_4": ${ children[4].former_addresses[1].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_4": ${ children[4].former_addresses[2].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_4": ${ children[4].former_addresses[3].on_one_line(bare=True) if children[4].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_4": ${ children[4].former_addresses[0].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_4": ${ children[4].former_addresses[1].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_4": ${ children[4].former_addresses[2].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_4": ${ children[4].former_addresses[3].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "child_name_5": ${ children[5].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
     - "child_age_5": |
@@ -3254,14 +3278,14 @@ attachment:
     - "child_disability_no_5": ${ not children[5].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_5": ${ children[5].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_5": ${ not children[5].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_5": ${ True if children[5].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_5": ${ True if children[5].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_5": ${ True if children[5].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_5": ${ True if children[5].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_5": ${ True if children[5].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_5": ${ True if children[5].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_5": ${ children[5].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_5": ${ children[5].former_addresses[0].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_5": ${ children[5].former_addresses[1].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_5": ${ children[5].former_addresses[2].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_5": ${ children[5].former_addresses[3].on_one_line(bare=True) if children[5].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_5": ${ children[5].former_addresses[0].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_5": ${ children[5].former_addresses[1].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_5": ${ children[5].former_addresses[2].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_5": ${ children[5].former_addresses[3].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
     - "child_name_6": ${ children[6].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
     - "child_age_6": |
@@ -3280,14 +3304,14 @@ attachment:
     - "child_disability_no_6": ${ not children[6].has_a_disability if children_status['minors'] or children_status['support'] else "" }
     - "child_in_school_6": ${ children[6].is_in_school if children_status['minors'] or children_status['support'] else "" }
     - "child_not_in_school_6": ${ not children[6].is_in_school if children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_yes_6": ${ True if children[6].is_resident == "Yes" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_no_6": ${ True if children[6].is_resident == "No" and children_status['minors'] or children_status['support'] else "" }
-    - "child_resident_idk_6": ${ True if children[6].is_resident == "I don't know." and children_status['minors'] or children_status['support'] else "" }
+    - "child_resident_yes_6": ${ True if children[6].is_resident == "Yes" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_no_6": ${ True if children[6].is_resident == "No" and (children_status['minors'] or children_status['support']) else "" }
+    - "child_resident_idk_6": ${ True if children[6].is_resident == "I don't know." and (children_status['minors'] or children_status['support']) else "" }
     - "child_address_6": ${ children[6].address.on_one_line(bare=True) if children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_0_6": ${ children[6].former_addresses[0].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_1_6": ${ children[6].former_addresses[1].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_2_6": ${ children[6].former_addresses[2].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
-    - "child_past_address_3_6": ${ children[6].former_addresses[3].on_one_line(bare=True) if children[6].has_former_address and children_status['minors'] or children_status['support'] else "" }
+    - "child_past_address_0_6": ${ children[6].former_addresses[0].on_one_line(bare=True) if children[6].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_1_6": ${ children[6].former_addresses[1].on_one_line(bare=True) if children[6].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_2_6": ${ children[6].former_addresses[2].on_one_line(bare=True) if children[6].has_former_address and (children_status['minors'] or children_status['support']) else "" }
+    - "child_past_address_3_6": ${ children[6].former_addresses[3].on_one_line(bare=True) if children[6].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
 ---
 attachment:
@@ -3415,34 +3439,34 @@ attachment:
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
     - "marriage_date": ${ marriage_date }
     - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
-    - "no_minor_children_cb": ${}
-    - "minor_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "minor_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "minor_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "additional_minor_children_cb": ${}
-    - "no_support_children_cb": ${}
-    - "support_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "support_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "support_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "additional_support_children_cb": ${}
-    - "no_outside_children_cb": ${}
-    - "outside_child_name_0": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "outside_child_name_1": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "outside_child_name_2": ${ "FIX" if children_status['minors'] or children_status['support'] else "" }
-    - "additional_outside_children_cb": ${}
+    - "no_minor_children_cb": ${ True if minor_children_list.number() == 0 else "" }
+    - "minor_child_name_0": ${ minor_children_list[0].name.full(middle="full") if minor_children_list.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
+    - "minor_child_name_1": ${ minor_children_list[1].name.full(middle="full") if minor_children_list.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
+    - "minor_child_name_2": ${ minor_children_list[2].name.full(middle="full") if minor_children_list.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
+    - "additional_minor_children_cb": ${ True if minor_children_list.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
+    - "no_support_children_cb": ${ True if support_children_list.number() == 0 else "" }
+    - "support_child_name_0": ${ support_children_list[0].name.full(middle="full") if support_children_list.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
+    - "support_child_name_1": ${ support_children_list[1].name.full(middle="full") if support_children_list.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
+    - "support_child_name_2": ${ support_children_list[2].name.full(middle="full") if support_children_list.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
+    - "additional_support_children_cb": ${ True if support_children_list.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
+    - "no_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
+    - "outside_child_name_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
+    - "outside_child_name_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
+    - "outside_child_name_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
+    - "additional_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
 
     - "has_real_estate_yes": ${ has_real_estate }
     - "has_real_estate_no": ${ not has_real_estate }
     - "real_estate_address": ${ real_estate.on_one_line(bare=True) if has_real_estate else "" }
-    - "attach_legal_desc_yes": ${ attach_legal_desc if has_real_estate else "" }
-    - "attach_legal_desc_no": ${ not attach_legal_desc if has_real_estate else "" }
+    - "attach_legal_desc_yes": ${ True if has_real_estate and attach_legal_desc == "Yes" else "" }
+    - "attach_legal_desc_no": ${ True if has_real_estate and attach_legal_desc == "No" else "" }
 
     - "claim_deps_all_pet": ${ True if taxes_choice == "all" and tax_all == "Me" else "" }
     - "claim_deps_all_res": ${ True if taxes_choice == "all" and tax_all == "Them" else "" }
-    - "claim_deps_even_pet": ${ True if taxes_choice == "turns" and tax_all == "even" else "" }
-    - "claim_deps_even_res": ${ True if taxes_choice == "turns" and tax_all == "odd" else "" }
-    - "claim_deps_odd_pet": ${ True if taxes_choice == "turns" and tax_all == "odd" else "" }
-    - "claim_deps_odd_res": ${ True if taxes_choice == "turns" and tax_all == "even" else "" }
+    - "claim_deps_even_pet": ${ True if taxes_choice == "turns" and tax_turns == "even" else "" }
+    - "claim_deps_even_res": ${ True if taxes_choice == "turns" and tax_turns == "odd" else "" }
+    - "claim_deps_odd_pet": ${ True if taxes_choice == "turns" and tax_turns == "odd" else "" }
+    - "claim_deps_odd_res": ${ True if taxes_choice == "turns" and tax_turns == "even" else "" }
     - "claim_dep_half_cb": ${ True if taxes_choice == "split" else "" }
     - "claim_deps_half_odd_pet": ${ True if taxes_choice == "split" and tax_split_odd == "Me" else "" }
     - "claim_deps_half_odd_res": ${ True if taxes_choice == "split" and tax_split_odd == "Them" else "" }
@@ -3469,7 +3493,86 @@ attachment:
         ${ 100 - debts[0].pet_percent }
         % endif
         % endif
-    - "debt_creditor_1": ${ "COPY code once OK" }
+    - "debt_creditor_1": ${ debts[1].name.text if include_debts else "" }
+    - "debt_amount_1": ${ thousands(debts[1].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_1": ${ True if debts[1].payment_division == "Me" or debts[1].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_1": |
+        % if include_debts:
+        % if debts[1].payment_division == "Me":
+        100
+        % elif debts[1].payment_division == "split":
+        ${ debts[1].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_1": ${True if debts[1].payment_division == "them" or debts[1].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_1": |
+        % if include_debts:
+        % if debts[1].payment_division == "them":
+        100
+        % elif debts[1].payment_division == "split":
+        ${ 100 - debts[1].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_2": ${ debts[2].name.text if include_debts else "" }
+    - "debt_amount_2": ${ thousands(debts[2].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_2": ${ True if debts[2].payment_division == "Me" or debts[2].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_2": |
+        % if include_debts:
+        % if debts[2].payment_division == "Me":
+        100
+        % elif debts[2].payment_division == "split":
+        ${ debts[2].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_2": ${True if debts[2].payment_division == "them" or debts[2].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_2": |
+        % if include_debts:
+        % if debts[2].payment_division == "them":
+        100
+        % elif debts[2].payment_division == "split":
+        ${ 100 - debts[2].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_3": ${ debts[3].name.text if include_debts else "" }
+    - "debt_amount_3": ${ thousands(debts[3].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_3": ${ True if debts[3].payment_division == "Me" or debts[3].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_3": |
+        % if include_debts:
+        % if debts[3].payment_division == "Me":
+        100
+        % elif debts[3].payment_division == "split":
+        ${ debts[3].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_3": ${True if debts[3].payment_division == "them" or debts[3].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_3": |
+        % if include_debts:
+        % if debts[3].payment_division == "them":
+        100
+        % elif debts[3].payment_division == "split":
+        ${ 100 - debts[3].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_4": ${ debts[4].name.text if include_debts else "" }
+    - "debt_amount_4": ${ thousands(debts[4].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_4": ${ True if debts[4].payment_division == "Me" or debts[4].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_4": |
+        % if include_debts:
+        % if debts[4].payment_division == "Me":
+        100
+        % elif debts[4].payment_division == "split":
+        ${ debts[4].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_4": ${True if debts[4].payment_division == "them" or debts[4].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_4": |
+        % if include_debts:
+        % if debts[4].payment_division == "them":
+        100
+        % elif debts[4].payment_division == "split":
+        ${ 100 - debts[4].pet_percent }
+        % endif
+        % endif
 
     - "additional_debts_cb": ${ True if include_debts and debts.number() > 5 else "" }
     - "unlisted_debts_split": ${ True if include_debts and unlisted_debts["joint"] else "" }
@@ -3480,14 +3583,14 @@ attachment:
     - "res_pension_yes_0": ${ True if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
     - "res_pension_pct_0": ${ pensions_resp[0].pet_percent if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
     - "res_pension_no_0": ${ True if pensions_resp[0].payment_division == "No" and retirement_options == "split" else "" }
-    - "res_pension_name_1": ${ "COPY code once OK"}
-    - "res_pension_yes_1": ${}
-    - "res_pension_pct_1": ${}
-    - "res_pension_no_1": ${}
-    - "res_pension_name_2": ${}
-    - "res_pension_yes_2": ${}
-    - "res_pension_pct_2": ${}
-    - "res_pension_no_2": ${}
+    - "res_pension_name_1": ${ pensions_resp[1].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_1": ${ True if pensions_resp[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_1": ${ pensions_resp[1].pet_percent if pensions_resp[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_1": ${ True if pensions_resp[1].payment_division == "No" and retirement_options == "split" else "" }
+    - "res_pension_name_2": ${ pensions_resp[2].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_2": ${ True if pensions_resp[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_2": ${ pensions_resp[2].pet_percent if pensions_resp[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_2": ${ True if pensions_resp[2].payment_division == "No" and retirement_options == "split" else "" }
     - "res_qdro_pet": ${ True if resp_pensions_qdro == "Me" and retirement_options == "split" else "" }
     - "res_qdro_res": ${ True if resp_pensions_qdro == "Them" and retirement_options == "split" else "" }
 
@@ -3495,16 +3598,16 @@ attachment:
     - "pet_pension_yes_0": ${ True if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
     - "pet_pension_pct_0": ${ pensions_pet[0].pet_percent if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
     - "pet_pension_no_0": ${ True if pensions_pet[0].payment_division == "No" and retirement_options == "split" else "" }
-    - "pet_pension_name_1": ${ "COPY code once OK" }
-    - "pet_pension_yes_1": ${}
-    - "pet_pension_pct_1": ${}
-    - "pet_pension_no_1": ${}
-    - "pet_pension_name_2": ${}
-    - "pet_pension_yes_2": ${}
-    - "pet_pension_pct_2": ${}
-    - "pet_pension_no_2": ${}
-    - "pet_qdro_pet": ${ True if resp_pensions_qdro == "Me" and retirement_options == "split" else "" }
-    - "pet_qdro_res": ${ True if resp_pensions_qdro == "Them" and retirement_options == "split" else "" }
+    - "pet_pension_name_1": ${ pensions_pet[1].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_1": ${ True if pensions_pet[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_1": ${ pensions_pet[1].pet_percent if pensions_pet[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_1": ${ True if pensions_pet[1].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_pension_name_2": ${ pensions_pet[2].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_2": ${ True if pensions_pet[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_2": ${ pensions_pet[2].pet_percent if pensions_pet[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_2": ${ True if pensions_pet[2].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_qdro_pet": ${ True if pet_pensions_qdro == "Me" and retirement_options == "split" else "" }
+    - "pet_qdro_res": ${ True if pet_pensions_qdro == "Them" and retirement_options == "split" else "" }
     - "other_pension_cb": ${pensions_other if retirement_options == "own" or retirement_options == "split" else "" }
     - "other_pension_text": ${pensions_other_text if (retirement_options == "own" or retirement_options == "split") and pensions_other else "" }
 
@@ -3513,30 +3616,39 @@ attachment:
     - "property_name_0": ${ property_list[0].name.text if include_property else "" }
     - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property else "" }
     - "property_to_res_0": ${ property_list[0].party == "res" if include_property else "" }
-    - "property_name_1": ${ "COPY code once OK" }
-    - "property_to_pet_1": ${}
-    - "property_to_res_1": ${}
-    - "property_name_2": ${}
-    - "property_to_pet_2": ${}
-    - "property_to_res_2": ${}
-    - "property_name_3": ${}
-    - "property_to_pet_4": ${}
-    - "property_to_res_4": ${}
-    - "additional_property_cb": ${ True if include_property and property_list.number() > 4 else "" }
+    - "property_name_1": ${ property_list[1].name.text if include_property else "" }
+    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property else "" }
+    - "property_to_res_1": ${ property_list[1].party == "res" if include_property else "" }
+    - "property_name_2": ${ property_list[2].name.text if include_property else "" }
+    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property else "" }
+    - "property_to_res_2": ${ property_list[2].party == "res" if include_property else "" }
+    - "property_name_3": ${ property_list[3].name.text if include_property else "" }
+    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property else "" }
+    - "property_to_res_3": ${ property_list[3].party == "res" if include_property else "" }
+    - "property_name_4": ${ property_list[4].name.text if include_property else "" }
+    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property else "" }
+    - "property_to_res_4": ${ property_list[4].party == "res" if include_property else "" }
+    - "additional_property_cb": ${ True if include_property and property_list.number() > 5 else "" }
     - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
     - "property_other": ${ True if include_property and property_other else "" }
     - "property_other_text": ${ property_other_text if include_property and property_other else ""}
     - "non_marital_prop_pet": ${ pet_nonmarital_property if include_property and pet_has_nonmarital_property else "" }
     - "non_marital_prop_res": ${ resp_nonmarital_property if include_property and resp_has_nonmarital_property else ""  }
     
-    - "pet_nonmarital_debt": ${ pet_has_nonmarital_debts if include_debts and pet_has_nonmarital_debts else "" }
-    - "res_nonmarital_debt": ${ resp_has_nonmarital_debts if include_debts and resp_has_nonmarital_debts else "" }
+    - "pet_nonmarital_debt": ${ pet_nonmarital_debts if include_debts and pet_has_nonmarital_debts else "" }
+    - "res_nonmarital_debt": ${ resp_nonmarital_debts if include_debts and resp_has_nonmarital_debts else "" }
     
     - "user_former_name_yes": ${ users[0].use_former_name }
     - "user_former_name_first": ${ users[0].aliases[0].first if users[0].use_former_name else "" }
     - "user_former_name_middle": ${ users[0].aliases[0].middle if users[0].use_former_name else "" }
-    - "user_former_name_last": ${ users[0].aliases[0].last if users[0].use_former_name else "" }
-
+    - "user_former_name_last": |
+        % if users[0].use_former_name:
+        % if users[0].aliases[0].suffix != "":
+        ${ users[0].aliases[0].last + ", " + users[0].aliases[0].suffix }
+        % else:
+        ${ users[0].aliases[0].last }
+        % endif
+        % endif
 ---
 ############### Review page
 id: review screen
