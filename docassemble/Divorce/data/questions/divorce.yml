@@ -2877,6 +2877,8 @@ objects:
   - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution (blank)", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
   - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
   - child_support_order: ALDocument.using(title="Order for Support", filename="child_support_order.pdf", has_addendum=False)
+  - support_information_sheet: ALDocument.using(title="Suppport Information Sheet", filename="support_information_sheet.pdf", has_addendum=False)
+  - income_withholding_instructions: ALDocument.using(title="Income withholding instructions", filename="income_withholding_instructions.pdf", has_addendum=False)
 
 
 ---
@@ -2895,6 +2897,8 @@ code: |
   additional_property.enabled = False
   child_support_instructions.enabled = False
   child_support_order.enabled = False
+  support_information_sheet.enabled = False
+  income_withholding_instructions.enabled = False
 
   certification_agreement.enabled = True
   IDPH_certificate_instructions.enabled = True
@@ -2912,6 +2916,9 @@ code: |
       if want_child_support:
         child_support_instructions.enabled = True
         child_support_order.enabled = True
+        support_information_sheet.enabled = True
+        income_withholding_instructions.enabled = False
+  
     elif has_other_kids_during_marriage:
         other_children_info.enabled = True
   
@@ -2949,7 +2956,7 @@ code: |
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, child_support_order, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, child_support_order, support_information_sheet, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
@@ -4122,11 +4129,69 @@ attachment:
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
     - "children_list": ${ comma_and_list(children.full_names()) }
+---
+attachment:
+  variable name: support_information_sheet[i]
+  name: support_information_sheet
+  filename: support_information_sheet
+  skip undefined: True
+  editable: True
+  pdf template file: support_information_sheet.pdf
+  fields:
+    - "county": ${ trial_court.address.county.upper() }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "user_address__2": ${ users[0].address.on_one_line(bare=True) if hide_address else "" }
+    - "user_dob": ${ users[0].birthdate }
+    - "user_phone__2": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status["Yes"] else "" }
+    - "user_employer_address": ${ users[0].employers[0].address.on_one_line(bare=True) if users[0].emp_status["Yes"] else "" }
+    - "user_employer_phone": ${ phone_number_formatted(users[0].employers[0].phone_number) if users[0].emp_status["Yes"] else "" }
+    - "user_employer_2": ${ users[0].employers[1].name.text if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
+    - "user_employer_address_2": ${ users[0].employers[1].address.on_one_line(bare=True) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
+    - "user_employer_phone_2": ${ phone_number_formatted(users[0].employers[1].phone_number) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
 
+    - "respondent__2": ${ other_parties[0].name.full(middle="full") }
+    - "resp_address": ${ other_parties[0].address.on_one_line(bare=True) if knows_resp_address else "" }
+    - "resp_dob": ${ other_parties[0].birthdate }
+    - "resp_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
+    - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer_address": ${ other_parties[0].employers[0].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer_phone": ${ phone_number_formatted(other_parties[0].employers[0].phone_number) if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer_2": ${ other_parties[0].employers[1].name.text if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
+    - "resp_employer_address_2": ${ other_parties[0].employers[1].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
+    - "resp_employer_phone_2": ${ phone_number_formatted(other_parties[0].employers[1].phone_number) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
 
+    - "child_name_0": ${ children[0].name.full(middle="full") }
+    - "child_dob_0": ${ children[0].birthdate }
+    - "child_name_1": ${ children[1].name.full(middle="full") }
+    - "child_dob_1": ${ children[1].birthdate }
+    - "child_name_2": ${ children[2].name.full(middle="full") }
+    - "child_dob_2": ${ children[2].birthdate }
+    - "child_name_3": ${ children[3].name.full(middle="full") }
+    - "child_dob_3": ${ children[3].birthdate }
+    - "child_name_4": ${ children[4].name.full(middle="full") }
+    - "child_dob_4": ${ children[4].birthdate }
+    - "child_name_5": ${ children[5].name.full(middle="full") }
+    - "child_dob_5": ${ children[5].birthdate }
+    - "child_name_6": ${ children[6].name.full(middle="full") }
+    - "child_dob_6": ${ children[6].birthdate }
 
+    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address_line_1": ${}
+    - "user_address_line_2": ${}
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_atty_number": ${ '' }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
 
-
+---
+attachment:
+  variable name: income_withholding_instructions[i]
+  name: income_withholding_instructions
+  filename: income_withholding_instructions
+  pdf template file: income_withholding_instructions.pdf  
 
 
 
