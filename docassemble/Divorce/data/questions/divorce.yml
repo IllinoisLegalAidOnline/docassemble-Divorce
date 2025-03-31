@@ -1045,7 +1045,7 @@ id: any other children with respondent
 question: |
   Do you have another child with ${other_parties[0].name.full(middle="full")}?
 subquestion: |
-  So far you have told us about ${comma_and_list(children.complete_elements().full_names())}.
+  So far you have told us about ${comma_and_list(children.full_names())}.
 
   The divorce forms have room for up to seven children. You only need to include children that you and your spouse gave birth to or adopted who are:
   
@@ -1197,7 +1197,7 @@ id: any other adult children with respondent
 question: |
   Do you have another adult child with ${other_parties[0].name.full(middle="full")}?
 subquestion: |
-  So far you have told us about ${comma_and_list(adult_children.complete_elements().full_names())}.
+  So far you have told us about ${comma_and_list(adult_children.full_names())}.
 
   You only need to include adult children that you and your spouse gave birth to or adopted who are adults. These are adult children who do not need support to attend school or because of a disability.
 fields:
@@ -1277,7 +1277,7 @@ id: any other children outside marriage
 question: |
   Did you or ${other_parties[0].name.full(middle="full")} have another child by birth or adoption with someone else since the date of marriage?
 subquestion: |
-  So far you have told us about ${comma_and_list(outside_children.complete_elements().full_names())}.
+  So far you have told us about ${comma_and_list(outside_children.full_names())}.
 
   The divorce forms have room for up to four children. You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
 fields:
@@ -1837,16 +1837,18 @@ code: |
 reconsider: True
 code: |
   minor_children_list.clear()
-  #minor_children_list.there_is_another = False
+  any_minor_children = False
   support_children_list.clear()
-  #support_children_list.there_is_another = False
+  any_support_children = False
   
   for child in children:
     if child.age_in_years() < 18:
       minor_children_list.append(child)
+      any_minor_children = True
     else:
       support_children_list.append(child)
-  
+      any_support_children = True
+
   build_child_lists = True
 ---
 id: current maintenance
@@ -2874,7 +2876,7 @@ objects:
   - IDPH_certificate_instructions: ALDocument.using(title="IDPH Certificate instructions", filename="IDPH_certificate_instructions.pdf", has_addendum=False)
   - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution (blank)", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
   - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
-
+  - child_support_order: ALDocument.using(title="Order for Support", filename="child_support_order.pdf", has_addendum=False)
 
 
 ---
@@ -2892,6 +2894,7 @@ code: |
   additional_debts.enabled = False
   additional_property.enabled = False
   child_support_instructions.enabled = False
+  child_support_order.enabled = False
 
   certification_agreement.enabled = True
   IDPH_certificate_instructions.enabled = True
@@ -2908,15 +2911,21 @@ code: |
         other_children_info.enabled = True
       if want_child_support:
         child_support_instructions.enabled = True
+        child_support_order.enabled = True
     elif has_other_kids_during_marriage:
         other_children_info.enabled = True
   
     judgment_kids.enabled = True
     if any_children_together:
-      if ((minor_children_list.number() > 3 or support_children_list.number() > 3) and (children_status['minors'] or children_status['support'])) or (has_other_kids_during_marriage and outside_children.number() > 3):
+      if children_status['minors'] or children_status['support']:
+        if any_minor_children:
+          if minor_children_list.number() > 3:
+            additional_kids_judgment.enabled = True
+        if any_support_children:
+          if support_children_list.number() > 3:
+            additional_kids_judgment.enabled = True
+      if has_other_kids_during_marriage and outside_children.number() > 3:
         additional_kids_judgment.enabled = True
-    elif has_other_kids_during_marriage and outside_children.number() > 3:
-      additional_kids_judgment.enabled = True
   
     if include_debts and debts.number() > 5:
       additional_debts.enabled = True
@@ -2940,7 +2949,7 @@ code: |
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, child_support_order, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
@@ -3480,16 +3489,72 @@ attachment:
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
     - "marriage_date": ${ marriage_date }
     - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
-    - "no_minor_children_cb": ${ True if minor_children_list.number() == 0 else "" }
-    - "minor_child_name_0": ${ minor_children_list[0].name.full(middle="full") if minor_children_list.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
-    - "minor_child_name_1": ${ minor_children_list[1].name.full(middle="full") if minor_children_list.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
-    - "minor_child_name_2": ${ minor_children_list[2].name.full(middle="full") if minor_children_list.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
-    - "additional_minor_children_cb": ${ True if minor_children_list.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
-    - "no_support_children_cb": ${ True if support_children_list.number() == 0 else "" }
-    - "support_child_name_0": ${ support_children_list[0].name.full(middle="full") if support_children_list.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
-    - "support_child_name_1": ${ support_children_list[1].name.full(middle="full") if support_children_list.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
-    - "support_child_name_2": ${ support_children_list[2].name.full(middle="full") if support_children_list.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
-    - "additional_support_children_cb": ${ True if support_children_list.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
+    - "no_minor_children_cb": ${ True if any_minor_children == False else "" }
+    - "minor_child_name_0": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 0:
+        ${ minor_children_list[0].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "minor_child_name_1": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 1:
+        ${ minor_children_list[1].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "minor_child_name_2": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 2:
+        ${ minor_children_list[2].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "additional_minor_children_cb": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 3:
+        True
+        % endif
+        % endif
+        % endif
+    - "no_support_children_cb": ${ True if any_support_children == False else "" }
+    - "support_child_name_0": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 0:
+        ${ support_children_list[0].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "support_child_name_1": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 1:
+        ${ support_children_list[1].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "support_child_name_2": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 2:
+        ${ support_children_list[2].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "additional_support_children_cb": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 3:
+        True
+        % endif
+        % endif
+        % endif
     - "no_outside_children_cb": ${ True if not has_other_kids_during_marriage else "" }
     - "outside_child_name_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 0 else "" }
     - "outside_child_name_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 1 else "" }
@@ -3703,16 +3768,74 @@ attachment:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "no_additional_minor_children_cb": ${ True if minor_children_list.number() < 4 else "" }
-    - "minor_child_name_3": ${ minor_children_list[3].name.full(middle="full") if minor_children_list.number() > 3 else "" }
-    - "minor_child_name_4": ${ minor_children_list[4].name.full(middle="full") if minor_children_list.number() > 4 else "" }
-    - "minor_child_name_5": ${ minor_children_list[5].name.full(middle="full") if minor_children_list.number() > 5 else "" }
-    - "minor_child_name_6": ${ minor_children_list[6].name.full(middle="full") if minor_children_list.number() > 6 else "" }
-    - "no_additional_support_children_cb": ${ True if support_children_list.number() < 4 else "" }
-    - "support_child_name_3": ${ support_children_list[3].name.full(middle="full") if support_children_list.number() > 3 else "" }
-    - "support_child_name_4": ${ support_children_list[4].name.full(middle="full") if support_children_list.number() > 4 else "" }
-    - "support_child_name_5": ${ support_children_list[5].name.full(middle="full") if support_children_list.number() > 5 else "" }
-    - "support_child_name_6": ${ support_children_list[6].name.full(middle="full") if support_children_list.number() > 6 else "" }
+    - "no_additional_minor_children_cb": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 3:
+        False
+        % else:
+        True
+        % endif
+        % else:
+        True
+        % endif
+    - "minor_child_name_3": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 3:
+        ${ minor_children_list[3].name.full(middle="full") }
+        % endif
+        % endif
+    - "minor_child_name_4": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 4:
+        ${ minor_children_list[4].name.full(middle="full") }
+        % endif
+        % endif
+    - "minor_child_name_5": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 5:
+        ${ minor_children_list[5].name.full(middle="full") }
+        % endif
+        % endif
+    - "minor_child_name_6": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 6:
+        ${ minor_children_list[6].name.full(middle="full") }
+        % endif
+        % endif
+    - "no_additional_support_children_cb": |
+        % if any_support_children:
+        % if support_children_list.number() > 3:
+        False
+        % else:
+        True
+        % endif
+        % else:
+        True
+        % endif
+    - "support_child_name_3": |
+        % if any_support_children:
+        % if support_children_list.number() > 3:
+        ${ support_children_list[3].name.full(middle="full") }
+        % endif
+        % endif
+    - "support_child_name_4": |
+        % if any_support_children:
+        % if support_children_list.number() > 4:
+        ${ support_children_list[4].name.full(middle="full") }
+        % endif
+        % endif
+    - "support_child_name_5": |
+        % if any_support_children:
+        % if support_children_list.number() > 5:
+        ${ support_children_list[5].name.full(middle="full") }
+        % endif
+        % endif
+    - "support_child_name_6": |
+        % if any_support_children:
+        % if support_children_list.number() > 6:
+        ${ support_children_list[6].name.full(middle="full") }
+        % endif
+        % endif
     - "no_additional_outside_children_cb": ${ True if (has_other_kids_during_marriage and outside_children.number() < 4) or not has_other_kids_during_marriage else "" }
     - "outside_child_name_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
     - "outside_child_name_4": ${ outside_children[4].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 4 else "" }
@@ -3986,7 +4109,19 @@ attachment:
   name: child_support_instructions
   filename: child_support_instructions
   pdf template file: child_support_instructions.pdf  
-
+---
+attachment:
+  variable name: child_support_order[i]
+  name: child_support_order
+  filename: child_support_order
+  skip undefined: True
+  editable: True
+  pdf template file: child_support_order.pdf
+  fields:
+    - "county": ${ trial_court.address.county.upper() }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "children_list": ${ comma_and_list(children.full_names()) }
 
 
 
