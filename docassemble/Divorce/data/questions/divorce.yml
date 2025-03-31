@@ -2867,6 +2867,15 @@ objects:
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
   - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
   - judgment_kids: ALDocument.using(title="Judgment for Dissolution", filename="judgment.pdf", has_addendum=False)
+  - additional_kids_judgment: ALDocument.using(title="Additional Children Information - Judgment", filename="additional_kids_petition.pdf", has_addendum=False)
+  - additional_debts: ALDocument.using(title="Additional Debts", filename="additional_debts.pdf", has_addendum=False)
+  - additional_property: ALDocument.using(title="Additional Personal Property and Bank Accounts", filename="additional_property.pdf", has_addendum=False)
+  - certification_agreement: ALDocument.using(title="Certification Agreement (optional)", filename="certification_agreement.pdf", has_addendum=False)
+  - IDPH_certificate_instructions: ALDocument.using(title="IDPH Certificate instructions", filename="IDPH_certificate_instructions.pdf", has_addendum=False)
+  - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution (blank)", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
+  - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
+
+
 
 ---
 code: |
@@ -2879,32 +2888,64 @@ code: |
   other_children_info.enabled = False
   judgment_bundle.enabled = True
   judgment_kids.enabled = False
+  additional_kids_judgment.enabled = False
+  additional_debts.enabled = False
+  additional_property.enabled = False
+  child_support_instructions.enabled = False
 
+  certification_agreement.enabled = True
+  IDPH_certificate_instructions.enabled = True
+  IDPH_certificate_of_dissolution.enabled = True
   cook_cover_sheet.enabled = False
 
   if file_with_kids:
     instructions_kids.enabled = True
     petition_kids.enabled = True
-    if children.number() > 3:
-      additional_kids_petition.enabled = True
-    if has_other_kids_during_marriage or other_custody_case or other_case_involving_kids or other_custodian or kids_lived_with_other_adult:
-      other_children_info.enabled = True
+    if any_children_together:
+      if children.number() > 3:
+        additional_kids_petition.enabled = True
+      if has_other_kids_during_marriage or other_custody_case or other_case_involving_kids or other_custodian or kids_lived_with_other_adult:
+        other_children_info.enabled = True
+      if want_child_support:
+        child_support_instructions.enabled = True
+    elif has_other_kids_during_marriage:
+        other_children_info.enabled = True
+  
     judgment_kids.enabled = True
+    if any_children_together:
+      if ((minor_children_list.number() > 3 or support_children_list.number() > 3) and (children_status['minors'] or children_status['support'])) or (has_other_kids_during_marriage and outside_children.number() > 3):
+        additional_kids_judgment.enabled = True
+    elif has_other_kids_during_marriage and outside_children.number() > 3:
+      additional_kids_judgment.enabled = True
+  
+    if include_debts and debts.number() > 5:
+      additional_debts.enabled = True
+    if include_property and property_list.number() > 5:
+      additional_property.enabled = True
   
   else:
     instructions_no_kids.enabled = True
     petition_no_kids.enabled = True
+
+    # uncomment once judgment is added
+    #judgment_no_kids.enabled = True
+    #if include_debts and debts.number() > 5:
+    #  additional_debts.enabled = True
+    #if include_property and property_list.number() > 5:
+    #  additional_property.enabled = True
+
+
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, judgment_bundle, ], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
   - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
-  - judgment_bundle: ALDocumentBundle.using(elements=[judgment_kids, ], filename="judgment.pdf", title="Judgment for Dissolution")   
+  - judgment_bundle: ALDocumentBundle.using(elements=[judgment_kids, additional_kids_judgment, additional_debts, additional_property], filename="judgment.pdf", title="Judgment for Dissolution")   
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -3449,11 +3490,11 @@ attachment:
     - "support_child_name_1": ${ support_children_list[1].name.full(middle="full") if support_children_list.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
     - "support_child_name_2": ${ support_children_list[2].name.full(middle="full") if support_children_list.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
     - "additional_support_children_cb": ${ True if support_children_list.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
-    - "no_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
-    - "outside_child_name_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 0 and (children_status['minors'] or children_status['support']) else "" }
-    - "outside_child_name_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 1 and (children_status['minors'] or children_status['support']) else "" }
-    - "outside_child_name_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 2 and (children_status['minors'] or children_status['support']) else "" }
-    - "additional_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 3 and (children_status['minors'] or children_status['support']) else "" }
+    - "no_outside_children_cb": ${ True if not has_other_kids_during_marriage else "" }
+    - "outside_child_name_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 0 else "" }
+    - "outside_child_name_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 1 else "" }
+    - "outside_child_name_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 2 else "" }
+    - "additional_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
 
     - "has_real_estate_yes": ${ has_real_estate }
     - "has_real_estate_no": ${ not has_real_estate }
@@ -3613,21 +3654,21 @@ attachment:
 
     - "property_keep_own": ${True if include_property and property_keep else "" }
     - "property_divide_shared": ${True if include_property and property_list.number() > 0 else "" }
-    - "property_name_0": ${ property_list[0].name.text if include_property else "" }
-    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property else "" }
-    - "property_to_res_0": ${ property_list[0].party == "res" if include_property else "" }
-    - "property_name_1": ${ property_list[1].name.text if include_property else "" }
-    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property else "" }
-    - "property_to_res_1": ${ property_list[1].party == "res" if include_property else "" }
-    - "property_name_2": ${ property_list[2].name.text if include_property else "" }
-    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property else "" }
-    - "property_to_res_2": ${ property_list[2].party == "res" if include_property else "" }
-    - "property_name_3": ${ property_list[3].name.text if include_property else "" }
-    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property else "" }
-    - "property_to_res_3": ${ property_list[3].party == "res" if include_property else "" }
-    - "property_name_4": ${ property_list[4].name.text if include_property else "" }
-    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property else "" }
-    - "property_to_res_4": ${ property_list[4].party == "res" if include_property else "" }
+    - "property_name_0": ${ property_list[0].name.text if include_property and property_list.number() > 0 else "" }
+    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property and property_list.number() > 0 else "" }
+    - "property_to_res_0": ${ property_list[0].party == "res" if include_property and property_list.number() > 0 else "" }
+    - "property_name_1": ${ property_list[1].name.text if include_property and property_list.number() > 1 else "" }
+    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property and property_list.number() > 1 else "" }
+    - "property_to_res_1": ${ property_list[1].party == "res" if include_property and property_list.number() > 1 else "" }
+    - "property_name_2": ${ property_list[2].name.text if include_property and property_list.number() > 2 else "" }
+    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property and property_list.number() > 2 else "" }
+    - "property_to_res_2": ${ property_list[2].party == "res" if include_property and property_list.number() > 2 else "" }
+    - "property_name_3": ${ property_list[3].name.text if include_property and property_list.number() > 3 else "" }
+    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property and property_list.number() > 3 else "" }
+    - "property_to_res_3": ${ property_list[3].party == "res" if include_property and property_list.number() > 3 else "" }
+    - "property_name_4": ${ property_list[4].name.text if include_property and property_list.number() > 4 else "" }
+    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property and property_list.number() > 4 else "" }
+    - "property_to_res_4": ${ property_list[4].party == "res" if include_property and property_list.number() > 4 else "" }
     - "additional_property_cb": ${ True if include_property and property_list.number() > 5 else "" }
     - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
     - "property_other": ${ True if include_property and property_other else "" }
@@ -3649,6 +3690,318 @@ attachment:
         ${ users[0].aliases[0].last }
         % endif
         % endif
+
+---
+attachment:
+  variable name: additional_kids_judgment[i]
+  name: additional_kids_judgment
+  filename: additional_kids_judgment
+  skip undefined: True
+  editable: False
+  pdf template file: additional_kids_judgment.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "no_additional_minor_children_cb": ${ True if minor_children_list.number() < 4 else "" }
+    - "minor_child_name_3": ${ minor_children_list[3].name.full(middle="full") if minor_children_list.number() > 3 else "" }
+    - "minor_child_name_4": ${ minor_children_list[4].name.full(middle="full") if minor_children_list.number() > 4 else "" }
+    - "minor_child_name_5": ${ minor_children_list[5].name.full(middle="full") if minor_children_list.number() > 5 else "" }
+    - "minor_child_name_6": ${ minor_children_list[6].name.full(middle="full") if minor_children_list.number() > 6 else "" }
+    - "no_additional_support_children_cb": ${ True if support_children_list.number() < 4 else "" }
+    - "support_child_name_3": ${ support_children_list[3].name.full(middle="full") if support_children_list.number() > 3 else "" }
+    - "support_child_name_4": ${ support_children_list[4].name.full(middle="full") if support_children_list.number() > 4 else "" }
+    - "support_child_name_5": ${ support_children_list[5].name.full(middle="full") if support_children_list.number() > 5 else "" }
+    - "support_child_name_6": ${ support_children_list[6].name.full(middle="full") if support_children_list.number() > 6 else "" }
+    - "no_additional_outside_children_cb": ${ True if (has_other_kids_during_marriage and outside_children.number() < 4) or not has_other_kids_during_marriage else "" }
+    - "outside_child_name_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
+    - "outside_child_name_4": ${ outside_children[4].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 4 else "" }
+    - "outside_child_name_5": ${ outside_children[5].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 5 else "" }
+    - "outside_child_name_6": ${ outside_children[6].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 6 else "" }
+
+---
+attachment:
+  variable name: additional_debts[i]
+  name: additional_debts
+  filename: additional_debts
+  skip undefined: True
+  editable: False
+  pdf template file: additional_debts.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+
+    - "debt_creditor_5": ${ debts[5].name.text if include_debts else "" }
+    - "debt_amount_5": ${ thousands(debts[5].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_5": ${ True if debts[5].payment_division == "Me" or debts[5].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_5": |
+        % if include_debts:
+        % if debts[5].payment_division == "Me":
+        100
+        % elif debts[5].payment_division == "split":
+        ${ debts[5].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_5": ${True if debts[5].payment_division == "them" or debts[5].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_5": |
+        % if include_debts:
+        % if debts[5].payment_division == "them":
+        100
+        % elif debts[5].payment_division == "split":
+        ${ 100 - debts[5].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_6": ${ debts[6].name.text if include_debts else "" }
+    - "debt_amount_6": ${ thousands(debts[6].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_6": ${ True if debts[6].payment_division == "Me" or debts[6].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_6": |
+        % if include_debts:
+        % if debts[6].payment_division == "Me":
+        100
+        % elif debts[6].payment_division == "split":
+        ${ debts[6].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_6": ${True if debts[6].payment_division == "them" or debts[6].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_6": |
+        % if include_debts:
+        % if debts[6].payment_division == "them":
+        100
+        % elif debts[6].payment_division == "split":
+        ${ 100 - debts[6].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_7": ${ debts[7].name.text if include_debts else "" }
+    - "debt_amount_7": ${ thousands(debts[7].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_7": ${ True if debts[7].payment_division == "Me" or debts[7].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_7": |
+        % if include_debts:
+        % if debts[7].payment_division == "Me":
+        100
+        % elif debts[7].payment_division == "split":
+        ${ debts[7].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_7": ${True if debts[7].payment_division == "them" or debts[7].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_7": |
+        % if include_debts:
+        % if debts[7].payment_division == "them":
+        100
+        % elif debts[7].payment_division == "split":
+        ${ 100 - debts[7].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_8": ${ debts[8].name.text if include_debts else "" }
+    - "debt_amount_8": ${ thousands(debts[8].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_8": ${ True if debts[8].payment_division == "Me" or debts[8].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_8": |
+        % if include_debts:
+        % if debts[8].payment_division == "Me":
+        100
+        % elif debts[8].payment_division == "split":
+        ${ debts[8].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_8": ${True if debts[8].payment_division == "them" or debts[8].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_8": |
+        % if include_debts:
+        % if debts[8].payment_division == "them":
+        100
+        % elif debts[8].payment_division == "split":
+        ${ 100 - debts[8].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_9": ${ debts[9].name.text if include_debts else "" }
+    - "debt_amount_9": ${ thousands(debts[9].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_9": ${ True if debts[9].payment_division == "Me" or debts[9].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_9": |
+        % if include_debts:
+        % if debts[9].payment_division == "Me":
+        100
+        % elif debts[9].payment_division == "split":
+        ${ debts[9].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_9": ${True if debts[9].payment_division == "them" or debts[9].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_9": |
+        % if include_debts:
+        % if debts[9].payment_division == "them":
+        100
+        % elif debts[9].payment_division == "split":
+        ${ 100 - debts[9].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_10": ${ debts[10].name.text if include_debts else "" }
+    - "debt_amount_10": ${ thousands(debts[10].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_10": ${ True if debts[10].payment_division == "Me" or debts[10].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_10": |
+        % if include_debts:
+        % if debts[10].payment_division == "Me":
+        100
+        % elif debts[10].payment_division == "split":
+        ${ debts[10].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_10": ${True if debts[10].payment_division == "them" or debts[10].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_10": |
+        % if include_debts:
+        % if debts[10].payment_division == "them":
+        100
+        % elif debts[10].payment_division == "split":
+        ${ 100 - debts[10].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_11": ${ debts[11].name.text if include_debts else "" }
+    - "debt_amount_11": ${ thousands(debts[11].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_11": ${ True if debts[11].payment_division == "Me" or debts[11].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_11": |
+        % if include_debts:
+        % if debts[11].payment_division == "Me":
+        100
+        % elif debts[11].payment_division == "split":
+        ${ debts[11].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_11": ${True if debts[11].payment_division == "them" or debts[11].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_11": |
+        % if include_debts:
+        % if debts[11].payment_division == "them":
+        100
+        % elif debts[11].payment_division == "split":
+        ${ 100 - debts[11].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_12": ${ debts[12].name.text if include_debts else "" }
+    - "debt_amount_12": ${ thousands(debts[12].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_12": ${ True if debts[12].payment_division == "Me" or debts[12].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_12": |
+        % if include_debts:
+        % if debts[12].payment_division == "Me":
+        100
+        % elif debts[12].payment_division == "split":
+        ${ debts[12].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_12": ${True if debts[12].payment_division == "them" or debts[12].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_12": |
+        % if include_debts:
+        % if debts[12].payment_division == "them":
+        100
+        % elif debts[12].payment_division == "split":
+        ${ 100 - debts[12].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_13": ${ debts[13].name.text if include_debts else "" }
+    - "debt_amount_13": ${ thousands(debts[13].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_13": ${ True if debts[13].payment_division == "Me" or debts[13].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_13": |
+        % if include_debts:
+        % if debts[13].payment_division == "Me":
+        100
+        % elif debts[13].payment_division == "split":
+        ${ debts[13].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_13": ${True if debts[13].payment_division == "them" or debts[13].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_13": |
+        % if include_debts:
+        % if debts[13].payment_division == "them":
+        100
+        % elif debts[13].payment_division == "split":
+        ${ 100 - debts[13].pet_percent }
+        % endif
+        % endif
+
+---
+attachment:
+  variable name: additional_property[i]
+  name: additional_property
+  filename: additional_property
+  skip undefined: True
+  editable: False
+  pdf template file: additional_property.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "property_name_5": ${ property_list[5].name.text if property_list.number > 5 else "" }
+    - "property_to_pet_5": ${ property_list[5].party == "pet" if property_list.number > 5 else "" }
+    - "property_to_res_5": ${ property_list[5].party == "res" if property_list.number > 5 else "" }
+    - "property_name_6": ${ property_list[6].name.text if property_list.number > 6 else "" }
+    - "property_to_pet_6": ${ property_list[6].party == "pet" if property_list.number > 6 else "" }
+    - "property_to_res_6": ${ property_list[6].party == "res" if property_list.number > 6 else "" }
+    - "property_name_7": ${ property_list[7].name.text if property_list.number > 7 else "" }
+    - "property_to_pet_7": ${ property_list[7].party == "pet" if property_list.number > 7 else "" }
+    - "property_to_res_7": ${ property_list[7].party == "res" if property_list.number > 7 else "" }
+    - "property_name_8": ${ property_list[8].name.text if property_list.number > 8 else "" }
+    - "property_to_pet_8": ${ property_list[8].party == "pet" if property_list.number > 8 else "" }
+    - "property_to_res_8": ${ property_list[8].party == "res" if property_list.number > 8 else "" }
+    - "property_name_9": ${ property_list[9].name.text if property_list.number > 9 else "" }
+    - "property_to_pet_9": ${ property_list[9].party == "pet" if property_list.number > 9 else "" }
+    - "property_to_res_9": ${ property_list[9].party == "res" if property_list.number > 9 else "" }
+    - "property_name_10": ${ property_list[10].name.text if property_list.number > 10 else "" }
+    - "property_to_pet_10": ${ property_list[10].party == "pet" if property_list.number > 10 else "" }
+    - "property_to_res_10": ${ property_list[10].party == "res" if property_list.number > 10 else "" }
+    - "property_name_11": ${ property_list[11].name.text if property_list.number > 11 else "" }
+    - "property_to_pet_11": ${ property_list[11].party == "pet" if property_list.number > 11 else "" }
+    - "property_to_res_11": ${ property_list[11].party == "res" if property_list.number > 11 else "" }
+    - "property_name_12": ${ property_list[12].name.text if property_list.number > 12 else "" }
+    - "property_to_pet_12": ${ property_list[12].party == "pet" if property_list.number > 12 else "" }
+    - "property_to_res_12": ${ property_list[12].party == "res" if property_list.number > 12 else "" }
+    - "property_name_13": ${ property_list[13].name.text if property_list.number > 13 else "" }
+    - "property_to_pet_13": ${ property_list[13].party == "pet" if property_list.number > 13 else "" }
+    - "property_to_res_13": ${ property_list[13].party == "res" if property_list.number > 13 else "" }
+---
+attachment:
+  variable name: certification_agreement[i]
+  name: certification_agreement
+  filename: certification_agreement
+  skip undefined: True
+  editable: False
+  pdf template file: certification_agreement.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+---
+attachment:
+  variable name: IDPH_certificate_instructions[i]
+  name: IDPH_certificate_instructions
+  filename: IDPH_certificate_instructions
+  editable: False
+  skip undefined: True
+  pdf template file: IDPH_certificate_instructions.pdf  
+  fields:
+      - "fake": ${ "" }
+---
+attachment:
+  variable name: IDPH_certificate_of_dissolution[i]
+  name: IDPH_certificate_of_dissolution
+  filename: IDPH_certificate_of_dissolution
+  pdf template file: IDPH_certificate_of_dissolution.pdf  
+---
+attachment:
+  variable name: child_support_instructions[i]
+  name: child_support_instructions
+  filename: child_support_instructions
+  pdf template file: child_support_instructions.pdf  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ---
 ############### Review page
 id: review screen
