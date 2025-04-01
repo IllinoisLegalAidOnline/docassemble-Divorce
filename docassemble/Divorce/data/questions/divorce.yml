@@ -1224,8 +1224,6 @@ reconsider: True
 code: |
   formatted_adult_child_list = [f"{child.name.full(middle='full')} (age {child.age_in_years()})" for child in adult_children]
 
-
-
 ---
 id: adult child age
 question: |
@@ -2884,6 +2882,7 @@ objects:
   - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
   - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
+  - judgment_no_kids: ALDocument.using(title="Judgment for Dissolution", filename="judgment.pdf", has_addendum=False)
   - judgment_kids: ALDocument.using(title="Judgment for Dissolution", filename="judgment.pdf", has_addendum=False)
   - additional_kids_judgment: ALDocument.using(title="Additional Children Information - Judgment", filename="additional_kids_petition.pdf", has_addendum=False)
   - additional_debts: ALDocument.using(title="Additional Debts", filename="additional_debts.pdf", has_addendum=False)
@@ -2897,6 +2896,9 @@ objects:
   - income_withholding_instructions: ALDocument.using(title="Income withholding instructions", filename="income_withholding_instructions.pdf", has_addendum=False)
   - income_withholding_for_support: ALDocument.using(title="Income withholding for support (blank)", filename="income_withholding_for_support.pdf", has_addendum=False)
   - income_withholding_letter_to_employer: ALDocument.using(title="Income withholding letter to employer (blank)", filename="income_withholding_letter_to_employer.pdf", has_addendum=False)
+  - divorce_summons: ALDocument.using(title="Summons", filename="divorce_summons.pdf", has_addendum=False)
+  - letter_to_sheriff: ALDocument.using(title="Letter to Sheriff (optional)", filename="letter_to_sheriff.pdf", has_addendum=False)
+  - divorce_appearance: ALDocument.using(title="Appearance for spouse (optional)", filename="divorce_appearance.pdf", has_addendum=False)
 
 
 
@@ -2910,6 +2912,7 @@ code: |
   additional_kids_petition.enabled = False
   other_children_info.enabled = False
   judgment_bundle.enabled = True
+  judgment_no_kids.enabled = False
   judgment_kids.enabled = False
   additional_kids_judgment.enabled = False
   additional_debts.enabled = False
@@ -2920,7 +2923,9 @@ code: |
   income_withholding_instructions.enabled = False
   income_withholding_for_support.enabled = False
   income_withholding_letter_to_employer.enabled = False
-
+  divorce_summons.enabled = True
+  letter_to_sheriff.enabled = False
+  divorce_appearance.enabled = False
   certification_agreement.enabled = True
   IDPH_certificate_instructions.enabled = True
   IDPH_certificate_of_dissolution.enabled = True
@@ -2957,34 +2962,31 @@ code: |
       if has_other_kids_during_marriage and outside_children.number() > 3:
         additional_kids_judgment.enabled = True
   
-    if include_debts and debts.number() > 5:
-      additional_debts.enabled = True
-    if include_property and property_list.number() > 5:
-      additional_property.enabled = True
-  
   else:
     instructions_no_kids.enabled = True
     petition_no_kids.enabled = True
+    judgment_no_kids.enabled = True
+    
+  if include_debts and debts.number() > 5:
+    additional_debts.enabled = True
+  if include_property and property_list.number() > 5:
+    additional_property.enabled = True
 
-    # uncomment once judgment is added
-    #judgment_no_kids.enabled = True
-    #if include_debts and debts.number() > 5:
-    #  additional_debts.enabled = True
-    #if include_property and property_list.number() > 5:
-    #  additional_property.enabled = True
-
-    # >>> maybe move additional_debts and additional_prop enabled code to outside kids/no kids 
+  # add sheriff letter appearance logic here
+  if 1==0:
+    letter_to_sheriff.enabled = True
+    divorce_appearance.enabled = True
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, child_support_instructions, child_support_order, support_information_sheet, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, divorce_summons, letter_to_sheriff, divorce_appearance, child_support_instructions, child_support_order, support_information_sheet, income_withholding_instructions, income_withholding_for_support, income_withholding_letter_to_employer, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
   - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
-  - judgment_bundle: ALDocumentBundle.using(elements=[judgment_kids, additional_kids_judgment, additional_debts, additional_property], filename="judgment.pdf", title="Judgment for Dissolution")   
+  - judgment_bundle: ALDocumentBundle.using(elements=[judgment_no_kids, judgment_kids, additional_kids_judgment, additional_debts, additional_property], filename="judgment.pdf", title="Judgment for Dissolution")   
 ---
 attachment:
   variable name: instructions_kids[i]
@@ -3504,6 +3506,205 @@ attachment:
     - "other_adult_kids_2": ${ other_adults[2].kids_involved if kids_lived_with_other_adult else "" }
     - "other_adult_relationship_2": ${ other_adults[2].relationship if kids_lived_with_other_adult else "" }
     - "other_adult_address_2": ${ other_adults[2].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
+
+---
+attachment:
+  variable name: judgment_no_kids[i]
+  name: judgment_no_kids
+  filename: judgment_no_kids
+  skip undefined: True
+  editable: True
+  pdf template file: judgment_no_kids.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "marriage_date": ${ marriage_date }
+    - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
+    - "no_children_cb": ${ not any_children_together }
+    - "only_adult_children_cb": ${ True if any_children_together and children_status['adults'] else "" }
+    - "adult_children_list": ${ comma_and_list(formatted_adult_child_list) if any_children_together and children_status['adults'] else "" }
+    - "has_real_estate_yes": ${ has_real_estate }
+    - "has_real_estate_no": ${ not has_real_estate }
+    - "real_estate_address": ${ real_estate.on_one_line(bare=True) if has_real_estate else "" }
+    - "attach_legal_desc_yes": ${ True if has_real_estate and attach_legal_desc == "Yes" else "" }
+    - "attach_legal_desc_no": ${ True if has_real_estate and attach_legal_desc == "No" else "" }
+    - "debt_creditor_0": ${ debts[0].name.text if include_debts else "" }
+    - "debt_amount_0": ${ thousands(debts[0].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_0": ${ True if debts[0].payment_division == "Me" or debts[0].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_0": |
+        % if include_debts:
+        % if debts[0].payment_division == "Me":
+        100
+        % elif debts[0].payment_division == "split":
+        ${ debts[0].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_0": ${True if debts[0].payment_division == "them" or debts[0].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_0": |
+        % if include_debts:
+        % if debts[0].payment_division == "them":
+        100
+        % elif debts[0].payment_division == "split":
+        ${ 100 - debts[0].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_1": ${ debts[1].name.text if include_debts else "" }
+    - "debt_amount_1": ${ thousands(debts[1].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_1": ${ True if debts[1].payment_division == "Me" or debts[1].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_1": |
+        % if include_debts:
+        % if debts[1].payment_division == "Me":
+        100
+        % elif debts[1].payment_division == "split":
+        ${ debts[1].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_1": ${True if debts[1].payment_division == "them" or debts[1].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_1": |
+        % if include_debts:
+        % if debts[1].payment_division == "them":
+        100
+        % elif debts[1].payment_division == "split":
+        ${ 100 - debts[1].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_2": ${ debts[2].name.text if include_debts else "" }
+    - "debt_amount_2": ${ thousands(debts[2].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_2": ${ True if debts[2].payment_division == "Me" or debts[2].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_2": |
+        % if include_debts:
+        % if debts[2].payment_division == "Me":
+        100
+        % elif debts[2].payment_division == "split":
+        ${ debts[2].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_2": ${True if debts[2].payment_division == "them" or debts[2].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_2": |
+        % if include_debts:
+        % if debts[2].payment_division == "them":
+        100
+        % elif debts[2].payment_division == "split":
+        ${ 100 - debts[2].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_3": ${ debts[3].name.text if include_debts else "" }
+    - "debt_amount_3": ${ thousands(debts[3].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_3": ${ True if debts[3].payment_division == "Me" or debts[3].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_3": |
+        % if include_debts:
+        % if debts[3].payment_division == "Me":
+        100
+        % elif debts[3].payment_division == "split":
+        ${ debts[3].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_3": ${True if debts[3].payment_division == "them" or debts[3].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_3": |
+        % if include_debts:
+        % if debts[3].payment_division == "them":
+        100
+        % elif debts[3].payment_division == "split":
+        ${ 100 - debts[3].pet_percent }
+        % endif
+        % endif
+    - "debt_creditor_4": ${ debts[4].name.text if include_debts else "" }
+    - "debt_amount_4": ${ thousands(debts[4].amount, show_decimals=True) if include_debts else "" }
+    - "debt_pet_pay_4": ${ True if debts[4].payment_division == "Me" or debts[4].payment_division == "split" and include_debts else "" }
+    - "debt_pet_pct_4": |
+        % if include_debts:
+        % if debts[4].payment_division == "Me":
+        100
+        % elif debts[4].payment_division == "split":
+        ${ debts[4].pet_percent }
+        % endif
+        % endif
+    - "debt_res_pay_4": ${True if debts[4].payment_division == "them" or debts[4].payment_division == "split" and include_debts else ""}
+    - "debt_res_pct_4": |
+        % if include_debts:
+        % if debts[4].payment_division == "them":
+        100
+        % elif debts[4].payment_division == "split":
+        ${ 100 - debts[4].pet_percent }
+        % endif
+        % endif
+
+    - "additional_debts_cb": ${ True if include_debts and debts.number() > 5 else "" }
+    - "unlisted_debts_split": ${ True if include_debts and unlisted_debts["joint"] else "" }
+    - "unlisted_debts_own": ${ True if include_debts and unlisted_debts["name"] else "" }
+    - "retire_own_yes": ${ True if retirement_options == "own" else "" }
+    - "retire_own_no": ${ True if retirement_options == "split" else "" }
+    - "res_pension_name_0": ${ pensions_resp[0].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_0": ${ True if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_0": ${ pensions_resp[0].pet_percent if pensions_resp[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_0": ${ True if pensions_resp[0].payment_division == "No" and retirement_options == "split" else "" }
+    - "res_pension_name_1": ${ pensions_resp[1].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_1": ${ True if pensions_resp[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_1": ${ pensions_resp[1].pet_percent if pensions_resp[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_1": ${ True if pensions_resp[1].payment_division == "No" and retirement_options == "split" else "" }
+    - "res_pension_name_2": ${ pensions_resp[2].name.text if retirement_options == "split" else "" }
+    - "res_pension_yes_2": ${ True if pensions_resp[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_pct_2": ${ pensions_resp[2].pet_percent if pensions_resp[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "res_pension_no_2": ${ True if pensions_resp[2].payment_division == "No" and retirement_options == "split" else "" }
+    - "res_qdro_pet": ${ True if resp_pensions_qdro == "Me" and retirement_options == "split" else "" }
+    - "res_qdro_res": ${ True if resp_pensions_qdro == "Them" and retirement_options == "split" else "" }
+
+    - "pet_pension_name_0": ${ pensions_pet[0].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_0": ${ True if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_0": ${ pensions_pet[0].pet_percent if pensions_pet[0].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_0": ${ True if pensions_pet[0].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_pension_name_1": ${ pensions_pet[1].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_1": ${ True if pensions_pet[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_1": ${ pensions_pet[1].pet_percent if pensions_pet[1].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_1": ${ True if pensions_pet[1].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_pension_name_2": ${ pensions_pet[2].name.text if retirement_options == "split" else "" }
+    - "pet_pension_yes_2": ${ True if pensions_pet[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_pct_2": ${ pensions_pet[2].pet_percent if pensions_pet[2].payment_division == "Yes" and retirement_options == "split" else "" }
+    - "pet_pension_no_2": ${ True if pensions_pet[2].payment_division == "No" and retirement_options == "split" else "" }
+    - "pet_qdro_pet": ${ True if pet_pensions_qdro == "Me" and retirement_options == "split" else "" }
+    - "pet_qdro_res": ${ True if pet_pensions_qdro == "Them" and retirement_options == "split" else "" }
+    - "other_pension_cb": ${pensions_other if retirement_options == "own" or retirement_options == "split" else "" }
+    - "other_pension_text": ${pensions_other_text if (retirement_options == "own" or retirement_options == "split") and pensions_other else "" }
+
+    - "property_keep_own": ${True if include_property and property_keep else "" }
+    - "property_divide_shared": ${True if include_property and property_list.number() > 0 else "" }
+    - "property_name_0": ${ property_list[0].name.text if include_property and property_list.number() > 0 else "" }
+    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property and property_list.number() > 0 else "" }
+    - "property_to_res_0": ${ property_list[0].party == "res" if include_property and property_list.number() > 0 else "" }
+    - "property_name_1": ${ property_list[1].name.text if include_property and property_list.number() > 1 else "" }
+    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property and property_list.number() > 1 else "" }
+    - "property_to_res_1": ${ property_list[1].party == "res" if include_property and property_list.number() > 1 else "" }
+    - "property_name_2": ${ property_list[2].name.text if include_property and property_list.number() > 2 else "" }
+    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property and property_list.number() > 2 else "" }
+    - "property_to_res_2": ${ property_list[2].party == "res" if include_property and property_list.number() > 2 else "" }
+    - "property_name_3": ${ property_list[3].name.text if include_property and property_list.number() > 3 else "" }
+    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property and property_list.number() > 3 else "" }
+    - "property_to_res_3": ${ property_list[3].party == "res" if include_property and property_list.number() > 3 else "" }
+    - "property_name_4": ${ property_list[4].name.text if include_property and property_list.number() > 4 else "" }
+    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property and property_list.number() > 4 else "" }
+    - "property_to_res_4": ${ property_list[4].party == "res" if include_property and property_list.number() > 4 else "" }
+    - "additional_property_cb": ${ True if include_property and property_list.number() > 5 else "" }
+    - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
+    - "property_other": ${ True if include_property and property_other else "" }
+    - "property_other_text": ${ property_other_text if include_property and property_other else ""}
+    - "non_marital_prop_pet": ${ pet_nonmarital_property if include_property and pet_has_nonmarital_property else "" }
+    - "non_marital_prop_res": ${ resp_nonmarital_property if include_property and resp_has_nonmarital_property else ""  }
+    
+    - "pet_nonmarital_debt": ${ pet_nonmarital_debts if include_debts and pet_has_nonmarital_debts else "" }
+    - "res_nonmarital_debt": ${ resp_nonmarital_debts if include_debts and resp_has_nonmarital_debts else "" }
+    
+    - "user_former_name_yes": ${ users[0].use_former_name }
+    - "user_former_name_first": ${ users[0].aliases[0].first if users[0].use_former_name else "" }
+    - "user_former_name_middle": ${ users[0].aliases[0].middle if users[0].use_former_name else "" }
+    - "user_former_name_last": |
+        % if users[0].use_former_name:
+        % if users[0].aliases[0].suffix != "":
+        ${ users[0].aliases[0].last + ", " + users[0].aliases[0].suffix }
+        % else:
+        ${ users[0].aliases[0].last }
+        % endif
+        % endif
 
 ---
 attachment:
@@ -4202,8 +4403,8 @@ attachment:
 
     - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
     - "user__2": ${ users[0].name.full(middle="full") }
-    - "user_address_line_1": ${}
-    - "user_address_line_2": ${}
+    - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
+    - "user_address_line_2": ${ users[0].address.line_two() }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "user_atty_number": ${ '' }
     - "user_email": ${ users[0].email if users[0].has_email_address else "" }
@@ -4237,9 +4438,123 @@ attachment:
   editable: True  
   pdf template file: income_withholding_letter_for_employer.pdf  
 
+---
+attachment:
+  variable name: divorce_summons[i]
+  name: divorce_summons
+  filename: divorce_summons
+  skip undefined: True
+  editable: False
+  pdf template file: divorce_summons.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "county__2": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${other_parties[0].name.full(middle="full")}
+    - "respondent__2": ${other_parties[0].name.full(middle="full")}
+    - "respondent__3": ${other_parties[0].name.full(middle="full")}
+    - "courthouse_address": ${ courthouse_info }
+    - "clerk_phone": ${ trial_court.phone }
+    - "clerk_website": ${ trial_court.website }
+    
+    - "service_address_line_1": |
+        % if service_address_choice == "other":
+        ${ service_address.line_one(bare=True) }
+        % elif service_address_choice == "home":
+        ${ other_parties[0].address.line_one(bare=True) }        
+        % elif service_address_choice == "work":
+        ${ other_parties[0].employers[0].address.line_one(bare=True) }
+        % else:
+        ${ other_parties[0].employers[1].address.line_one(bare=True) }
+        % endif
+    - "service_address_csz": |
+        % if service_address_choice == "other":
+        ${ service_address.line_two() }
+        % elif service_address_choice == "home":
+        ${ other_parties[0].address.line_two() }        
+        % elif service_address_choice == "work":
+        ${ other_parties[0].employers[0].address.line_two() }        
+        % else:
+        ${ other_parties[0].employers[1].address.line_two() }        
+        % endif
+    - "respondent_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
+    - "respondent_email": ${ other_parties[0].email }
+    - "service_alt_no": ${ not has_second_service_address }
+    - "service_alt_yes": ${ has_second_service_address }      
+    - "service_alt_address_line_1": |
+        % if has_second_service_address == True:
+        % if second_service_address_choice == "other":
+        ${ second_service_address.line_one(bare=True) }
+        % elif second_service_address_choice == "home":
+        ${ other_parties[0].address.line_one(bare=True) }        
+        % elif service_address_choice == "work":
+        ${ other_parties[0].employers[0].address.line_one(bare=True) }
+        % else:
+        ${ other_parties[0].employers[1].address.line_one(bare=True) }
+        % endif
+        % endif
+    - "service_alt_address_csz": |
+        % if has_second_service_address == True:
+        % if second_service_address_choice == "other":
+        ${ second_service_address.line_two() }
+        % elif second_service_address_choice == "home":
+        ${ other_parties[0].address.line_two() }        
+        % elif service_address_choice == "work":
+        ${ other_parties[0].employers[0].address.line_two() }        
+        % else:
+        ${ other_parties[0].employers[1].address.line_two() }        
+        % endif
+        % endif
+    - "respondent_alt_phone": ${ phone_number_formatted(other_parties[0].phone_number_alt) if has_second_service_address == True else "" }
+    - "respondent_alt_email": ${ other_parties[0].email_alt if has_second_service_address == True else "" }
 
+    - "service_method_sheriff": ${ True if service_method == "sheriff" and service_state == "IL" else ""}
+    - "service_method_sheriff_outside_il": ${ True if service_method == "sheriff" and service_state != "IL" else ""}
+    - "service_location_outside_il": |
+        % if service_method == "sheriff" and service_state != "IL":
+        ${ service_county + ", " + service_state }
+        % endif
+    - "service_method_sps": ${ True if service_method == "sps" else "" }
+    - "service_method_detective": ${ True if service_method == "detective" else "" }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
+    - "user_address_line_2": ${ users[0].address.line_two() }
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
 
+---
+attachment:
+  variable name: letter_to_sheriff[i]
+  name: letter_to_sheriff
+  filename: letter_to_sheriff
+  skip undefined: True
+  editable: True  
+  pdf template file: letter_to_sheriff.pdf  
+  fields: 
+    - "service_county": ${ service_county }
+    - "service_state": ${ state_name(service_state) }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${other_parties[0].name.full(middle="full")}
+    - "respondent__2": ${other_parties[0].name.full(middle="full")}
+    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address": ${ users[0].address.on_one_line(bare=True) }
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
 
+---
+attachment:
+  variable name: divorce_appearance[i]
+  name: divorce_appearance
+  filename: divorce_appearance
+  skip undefined: True
+  editable: True
+  pdf template file: divorce_appearance.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
 
 ---
 ############### Review page
@@ -4294,7 +4609,6 @@ review:
     button: |
       **Reason to end marriage or civil union:**
       Irreconcilable differences
-
   
   - note: |
       <h4>About you</h4>
