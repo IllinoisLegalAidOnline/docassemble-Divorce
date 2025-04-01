@@ -132,6 +132,7 @@ code: |
       taxes_choice
       parenting_class_info
       build_child_lists
+      child_detail_update
     elif children_status['adults'] and children_status['minors'] == False and children_status['support'] == False:
       adult_children.gather()
       formatted_adult_child_list
@@ -1002,6 +1003,17 @@ code: |
   if children[i].former_addresses.number_gathered() >= 4:
     children[i].former_addresses.there_is_another = False
 ---
+reconsider: True
+code: |
+  for child in children:
+    if child.age_in_years() < 18:
+      child.is_resident
+      child.address.address
+      if child.has_former_address:
+        child.former_addresses.gather()
+  
+  child_detail_update = True
+---
 code: |
   adult_children[i].name.first
   adult_children[i].birthdate
@@ -1118,6 +1130,10 @@ fields:
 id: does child have former address
 question: |
   Has ${children[i].name.full(middle="full")} lived at any other addresses in the last five years?
+subquestion: |
+  This does not include their current address:
+  
+  ${ children[i].address.on_one_line(bare=True) }
 fields:
   - no label: children[i].has_former_address
     datatype: yesnoradio
@@ -2879,6 +2895,9 @@ objects:
   - child_support_order: ALDocument.using(title="Order for Support", filename="child_support_order.pdf", has_addendum=False)
   - support_information_sheet: ALDocument.using(title="Suppport Information Sheet", filename="support_information_sheet.pdf", has_addendum=False)
   - income_withholding_instructions: ALDocument.using(title="Income withholding instructions", filename="income_withholding_instructions.pdf", has_addendum=False)
+  - income_withholding_for_support: ALDocument.using(title="Income withholding for support (blank)", filename="income_withholding_for_support.pdf", has_addendum=False)
+  - income_withholding_letter_to_employer: ALDocument.using(title="Income withholding letter to employer (blank)", filename="income_withholding_letter_to_employer.pdf", has_addendum=False)
+
 
 
 ---
@@ -2899,6 +2918,8 @@ code: |
   child_support_order.enabled = False
   support_information_sheet.enabled = False
   income_withholding_instructions.enabled = False
+  income_withholding_for_support.enabled = False
+  income_withholding_letter_to_employer.enabled = False
 
   certification_agreement.enabled = True
   IDPH_certificate_instructions.enabled = True
@@ -2917,7 +2938,9 @@ code: |
         child_support_instructions.enabled = True
         child_support_order.enabled = True
         support_information_sheet.enabled = True
-        income_withholding_instructions.enabled = False
+        income_withholding_instructions.enabled = True
+        income_withholding_for_support.enabled = True
+        income_withholding_letter_to_employer.enabled = True
   
     elif has_other_kids_during_marriage:
         other_children_info.enabled = True
@@ -2950,7 +2973,7 @@ code: |
     #if include_property and property_list.number() > 5:
     #  additional_property.enabled = True
 
-
+    # >>> maybe move additional_debts and additional_prop enabled code to outside kids/no kids 
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
@@ -3488,7 +3511,7 @@ attachment:
   name: judgment_kids
   filename: judgment_kids
   skip undefined: True
-  editable: False
+  editable: True
   pdf template file: judgment_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
@@ -4128,7 +4151,6 @@ attachment:
     - "county": ${ trial_court.address.county.upper() }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "children_list": ${ comma_and_list(children.full_names()) }
 ---
 attachment:
   variable name: support_information_sheet[i]
@@ -4193,10 +4215,27 @@ attachment:
   filename: income_withholding_instructions
   pdf template file: income_withholding_instructions.pdf  
 
+---
+attachment:
+  variable name: income_withholding_for_support[i]
+  name: income_withholding_for_support
+  filename: income_withholding_for_support
+  skip undefined: True
+  editable: True  
+  pdf template file: income_withholding_for_support.pdf  
+  fields: 
+    - "issuing_state": ${"Illinois"}
+    - "payee_name": ${ "Illinois State Disbursement Unit (SDU)" }
+    - "payee_address": ${ "PO Box 5400, Carol Stream, IL 60197-5400" }
 
-
-
-
+---
+attachment:
+  variable name: income_withholding_letter_for_employer[i]
+  name: income_withholding_letter_for_employer
+  filename: income_withholding_letter_for_employer
+  skip undefined: True
+  editable: True  
+  pdf template file: income_withholding_letter_for_employer.pdf  
 
 
 
