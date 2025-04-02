@@ -205,7 +205,7 @@ code: |
     if has_second_service_address:  
       if second_service_address_choice == "other":
         second_service_address.address
-        other_parties[0].phone_number_alt
+      other_parties[0].phone_number_alt
     service_method
     service_state
     service_county
@@ -2685,6 +2685,8 @@ code: |
   else:
     service_state = other_parties[0].employers[1].address.state
 ---
+depends on:
+  - service_address_choice
 id: service county
 question: |
   In which county can the sheriff find ${other_parties[0].name.full(middle="full")}?
@@ -2972,8 +2974,7 @@ code: |
   if include_property and property_list.number() > 5:
     additional_property.enabled = True
 
-  # add sheriff letter appearance logic here
-  if 1==0:
+  if (trial_court.address.county != service_county) or service_state != "IL":
     letter_to_sheriff.enabled = True
     divorce_appearance.enabled = True
   
@@ -3993,7 +3994,7 @@ attachment:
   name: additional_kids_judgment
   filename: additional_kids_judgment
   skip undefined: True
-  editable: False
+  editable: True
   pdf template file: additional_kids_judgment.pdf
   fields:
     - "county": ${ trial_court.address.county }
@@ -4067,7 +4068,16 @@ attachment:
         ${ support_children_list[6].name.full(middle="full") }
         % endif
         % endif
-    - "no_additional_outside_children_cb": ${ True if (has_other_kids_during_marriage and outside_children.number() < 4) or not has_other_kids_during_marriage else "" }
+    - "no_outside_support_children": |
+        % if has_other_kids_during_marriage:
+        % if outside_children.number() > 3:
+        False
+        % else:
+        True
+        % endif
+        % else:
+        True
+        % endif
     - "outside_child_name_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
     - "outside_child_name_4": ${ outside_children[4].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 4 else "" }
     - "outside_child_name_5": ${ outside_children[5].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 5 else "" }
@@ -4079,7 +4089,7 @@ attachment:
   name: additional_debts
   filename: additional_debts
   skip undefined: True
-  editable: False
+  editable: True
   pdf template file: additional_debts.pdf
   fields:
     - "county": ${ trial_court.address.county }
@@ -4273,39 +4283,39 @@ attachment:
   name: additional_property
   filename: additional_property
   skip undefined: True
-  editable: False
+  editable: True
   pdf template file: additional_property.pdf
   fields:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "property_name_5": ${ property_list[5].name.text if property_list.number > 5 else "" }
-    - "property_to_pet_5": ${ property_list[5].party == "pet" if property_list.number > 5 else "" }
-    - "property_to_res_5": ${ property_list[5].party == "res" if property_list.number > 5 else "" }
-    - "property_name_6": ${ property_list[6].name.text if property_list.number > 6 else "" }
-    - "property_to_pet_6": ${ property_list[6].party == "pet" if property_list.number > 6 else "" }
-    - "property_to_res_6": ${ property_list[6].party == "res" if property_list.number > 6 else "" }
-    - "property_name_7": ${ property_list[7].name.text if property_list.number > 7 else "" }
-    - "property_to_pet_7": ${ property_list[7].party == "pet" if property_list.number > 7 else "" }
-    - "property_to_res_7": ${ property_list[7].party == "res" if property_list.number > 7 else "" }
-    - "property_name_8": ${ property_list[8].name.text if property_list.number > 8 else "" }
-    - "property_to_pet_8": ${ property_list[8].party == "pet" if property_list.number > 8 else "" }
-    - "property_to_res_8": ${ property_list[8].party == "res" if property_list.number > 8 else "" }
-    - "property_name_9": ${ property_list[9].name.text if property_list.number > 9 else "" }
-    - "property_to_pet_9": ${ property_list[9].party == "pet" if property_list.number > 9 else "" }
-    - "property_to_res_9": ${ property_list[9].party == "res" if property_list.number > 9 else "" }
-    - "property_name_10": ${ property_list[10].name.text if property_list.number > 10 else "" }
-    - "property_to_pet_10": ${ property_list[10].party == "pet" if property_list.number > 10 else "" }
-    - "property_to_res_10": ${ property_list[10].party == "res" if property_list.number > 10 else "" }
-    - "property_name_11": ${ property_list[11].name.text if property_list.number > 11 else "" }
-    - "property_to_pet_11": ${ property_list[11].party == "pet" if property_list.number > 11 else "" }
-    - "property_to_res_11": ${ property_list[11].party == "res" if property_list.number > 11 else "" }
-    - "property_name_12": ${ property_list[12].name.text if property_list.number > 12 else "" }
-    - "property_to_pet_12": ${ property_list[12].party == "pet" if property_list.number > 12 else "" }
-    - "property_to_res_12": ${ property_list[12].party == "res" if property_list.number > 12 else "" }
-    - "property_name_13": ${ property_list[13].name.text if property_list.number > 13 else "" }
-    - "property_to_pet_13": ${ property_list[13].party == "pet" if property_list.number > 13 else "" }
-    - "property_to_res_13": ${ property_list[13].party == "res" if property_list.number > 13 else "" }
+    - "property_name_5": ${ property_list[5].name.text if property_list.number() > 5 else "" }
+    - "property_to_pet_5": ${ property_list[5].party == "pet" if property_list.number() > 5 else "" }
+    - "property_to_res_5": ${ property_list[5].party == "res" if property_list.number() > 5 else "" }
+    - "property_name_6": ${ property_list[6].name.text if property_list.number() > 6 else "" }
+    - "property_to_pet_6": ${ property_list[6].party == "pet" if property_list.number() > 6 else "" }
+    - "property_to_res_6": ${ property_list[6].party == "res" if property_list.number() > 6 else "" }
+    - "property_name_7": ${ property_list[7].name.text if property_list.number() > 7 else "" }
+    - "property_to_pet_7": ${ property_list[7].party == "pet" if property_list.number() > 7 else "" }
+    - "property_to_res_7": ${ property_list[7].party == "res" if property_list.number() > 7 else "" }
+    - "property_name_8": ${ property_list[8].name.text if property_list.number() > 8 else "" }
+    - "property_to_pet_8": ${ property_list[8].party == "pet" if property_list.number() > 8 else "" }
+    - "property_to_res_8": ${ property_list[8].party == "res" if property_list.number() > 8 else "" }
+    - "property_name_9": ${ property_list[9].name.text if property_list.number() > 9 else "" }
+    - "property_to_pet_9": ${ property_list[9].party == "pet" if property_list.number() > 9 else "" }
+    - "property_to_res_9": ${ property_list[9].party == "res" if property_list.number() > 9 else "" }
+    - "property_name_10": ${ property_list[10].name.text if property_list.number() > 10 else "" }
+    - "property_to_pet_10": ${ property_list[10].party == "pet" if property_list.number() > 10 else "" }
+    - "property_to_res_10": ${ property_list[10].party == "res" if property_list.number() > 10 else "" }
+    - "property_name_11": ${ property_list[11].name.text if property_list.number() > 11 else "" }
+    - "property_to_pet_11": ${ property_list[11].party == "pet" if property_list.number() > 11 else "" }
+    - "property_to_res_11": ${ property_list[11].party == "res" if property_list.number() > 11 else "" }
+    - "property_name_12": ${ property_list[12].name.text if property_list.number() > 12 else "" }
+    - "property_to_pet_12": ${ property_list[12].party == "pet" if property_list.number() > 12 else "" }
+    - "property_to_res_12": ${ property_list[12].party == "res" if property_list.number() > 12 else "" }
+    - "property_name_13": ${ property_list[13].name.text if property_list.number() > 13 else "" }
+    - "property_to_pet_13": ${ property_list[13].party == "pet" if property_list.number() > 13 else "" }
+    - "property_to_res_13": ${ property_list[13].party == "res" if property_list.number() > 13 else "" }
 ---
 attachment:
   variable name: certification_agreement[i]
@@ -4537,6 +4547,8 @@ attachment:
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${other_parties[0].name.full(middle="full")}
     - "respondent__2": ${other_parties[0].name.full(middle="full")}
+    - "county": ${ trial_court.address.county }
+    - "county__2": ${ trial_court.address.county }
     - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
     - "user__2": ${ users[0].name.full(middle="full") }
     - "user_address": ${ users[0].address.on_one_line(bare=True) }
