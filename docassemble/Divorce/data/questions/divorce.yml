@@ -52,8 +52,8 @@ sections:
   - section_about_you: About you
   - section_about_spouse: About your spouse
   - section_children: Children and support
-  - section_debts: Debts
   - section_property: Property
+  - section_debts: Debts
   - section_filing: Filing details
   - section_download: Download  
 ---
@@ -156,20 +156,19 @@ code: |
   current_maintenance
   
   set_progress(60)
-  nav.set_section('section_debts')
-  debts_intro
-  if include_debts:
-    debts.gather()
-    unlisted_debts
-    pet_has_nonmarital_debts
-    resp_has_nonmarital_debts
-
-  set_progress(70)
   nav.set_section('section_property')
   property_intro
   if include_property:
     property_keep
     property_list.gather()
+    property_exchange
+    pet_has_nonmarital_property
+    resp_has_nonmarital_property
+    property_other
+  real_estate_intro
+  if has_real_estate:
+    real_estate.address
+    attach_legal_desc
   retirement_intro
   if retirement_options == "split":
     if enter_resp_pensions:
@@ -180,15 +179,15 @@ code: |
       pet_pensions_qdro
   if retirement_options == "own" or retirement_options == "split":
     pensions_other
-  real_estate_intro
-  if has_real_estate:
-    real_estate.address
-    attach_legal_desc
-  if include_property:
-    pet_has_nonmarital_property
-    resp_has_nonmarital_property
-    property_exchange
-    property_other
+
+  set_progress(80)
+  nav.set_section('section_debts')
+  debts_intro
+  if include_debts:
+    debts.gather()
+    unlisted_debts
+    pet_has_nonmarital_debts
+    resp_has_nonmarital_debts
   
   set_progress(90)
   nav.set_section('section_filing')
@@ -199,6 +198,7 @@ code: |
     case_type_marriage
   courthouse_info
 
+  optional_appearance
   if know_resp_location:
     if service_address_choice == "other":
       service_address.address
@@ -214,6 +214,7 @@ code: |
 
   set_progress(100)
   nav.set_section('section_download')
+  when_to_use_forms
   forms_assembling
   snapshot_forms
   get_docs_screen
@@ -2064,11 +2065,11 @@ id: include personal property and bank accounts
 question: |
   Do you want to add information about personal property and bank accounts?
 subquestion: |
-  Personal property is things like cars, furniture, electronics, household items, or keepsakes.
+  Personal property is things like cars, furniture, electronics, household items, or keepsakes. It also includes pets.
   
-  These will be listed on the draft form of the final divorce judgment. You can say what property goes to each person. This is not final. The judge may decide differently, or you may reach an different agreement on how to divide the property.
+  These will be listed on the draft form of the final divorce judgment. You can say what property goes to each person. What you enter is not final. The judge may decide differently, or you may reach an different agreement on how to divide the property.
   
-  Select **Yes** if you want to add information about property in your own name, pets, how property exchanges will be handled, or anything else.
+  Select **Yes** if you want to add details now about how you want property to divided. If you do not enter it now, you can add it to your divorce judgment later.
 
   **Note:** This section does not include retirement accounts. Those will be asked about later.
 fields:
@@ -2458,7 +2459,9 @@ id: other property orders
 question: |
   Do you want the final divorce judgment to say anything else about property?
 subquestion: |
-  **Note:** This includes **pets**.
+  This includes **pets**.
+  
+  **Note:** It **does not include** your house or retirement accounts. We will ask about those on another screen.
 fields:
   - Anything else about property or pets?: property_other
     datatype: yesnoradio
@@ -2603,11 +2606,28 @@ fields:
   - Have an address where ${other_parties[0].name.full(middle="full")} can be served?: know_resp_location
     datatype: yesnoradio
 ---
+id: optional appearance
+question: |
+  Do you want to make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?
+subquestion: |
+  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name.full(middle="full")} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
+
+  **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers.
+
+fields:
+  - Make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?: optional_appearance
+    datatype: yesnoradio    
+terms:
+  - "Appearance": |
+      The *Appearance* is a form filed by your spouse stating that they will participate in the case. It includes their contact information.
+---
 id: service address choice
 question: |
   Where can ${other_parties[0].name.full(middle="full")} be found?
 subquestion: |
   This is where they will be served with Divorce court papers.
+
+  **Note:** It is a good idea to answer these questions even if you think ${other_parties[0].name.full(middle="full")} will sign and file an *Appearance*.
 fields:
   - no label: service_address_choice
     datatype: radio
@@ -2813,6 +2833,33 @@ terms:
   - "e-signature": |
       An e-signature is an electronic signature. It is a digital version of a signature that has the same effect as a hand-written signature. 
 ---
+id: when to use forms
+continue button field: when_to_use_forms
+question: |
+  How and when to use the forms
+subquestion: |
+  This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
+
+  * *Petition for Dissolution*
+  * *Summons*
+
+  The rest of the forms can be used later.
+  
+  **Note:** The forms that you use later are not complete. This is on purpose. You probably won't use them for months or longer. Things can change between now and then. Also, how your property and debts are divided might change. You can update these forms before they are used in your divorce case.
+
+  Be sure to read the instructions you can download to learn how and when to use the forms made by this program.
+---
+template: many_forms_help
+subject: |
+  **How and when to use the divorce forms**
+content: |  
+  Use these forms to start the divorce case:
+
+  * *Petition for Dissolution*
+  * *Summons*
+
+  The other forms are used later. **Note:** Forms that are used later are not complete. Be sure to review and complete them before using. Read the instructions for details.
+---
 id: forms assembling
 continue button field: forms_assembling
 question: |
@@ -2838,7 +2885,7 @@ subquestion: |
   
   ${ al_user_bundle.download_list_html() }
 
-  [NEWLINE]
+  ${ collapse_template(many_forms_help) }  
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
 
@@ -2891,17 +2938,17 @@ objects:
   - additional_property: ALDocument.using(title="Additional Personal Property and Bank Accounts", filename="additional_property.pdf", has_addendum=False)
   - certification_agreement: ALDocument.using(title="Certification Agreement (optional)", filename="certification_agreement.pdf", has_addendum=False)
   - IDPH_certificate_instructions: ALDocument.using(title="IDPH Certificate instructions", filename="IDPH_certificate_instructions.pdf", has_addendum=False)
-  - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution (blank)", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
+  - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
   - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
   - child_support_order: ALDocument.using(title="Order for Support", filename="child_support_order.pdf", has_addendum=False)
   - support_information_sheet: ALDocument.using(title="Suppport Information Sheet", filename="support_information_sheet.pdf", has_addendum=False)
   - income_withholding_instructions: ALDocument.using(title="Income withholding instructions", filename="income_withholding_instructions.pdf", has_addendum=False)
-  - income_withholding_for_support: ALDocument.using(title="Income withholding for support (blank)", filename="income_withholding_for_support.pdf", has_addendum=False)
-  - income_withholding_letter_to_employer: ALDocument.using(title="Income withholding letter to employer (blank)", filename="income_withholding_letter_to_employer.pdf", has_addendum=False)
+  - income_withholding_for_support: ALDocument.using(title="Income withholding for support", filename="income_withholding_for_support.pdf", has_addendum=False)
+  - income_withholding_letter_to_employer: ALDocument.using(title="Income withholding letter to employer", filename="income_withholding_letter_to_employer.pdf", has_addendum=False)
   - divorce_summons: ALDocument.using(title="Summons", filename="divorce_summons.pdf", has_addendum=False)
+  - divorce_summons_blank: ALDocument.using(title="Summons", filename="divorce_summons.pdf", has_addendum=False)
   - letter_to_sheriff: ALDocument.using(title="Letter to Sheriff (optional)", filename="letter_to_sheriff.pdf", has_addendum=False)
   - divorce_appearance: ALDocument.using(title="Appearance for spouse (optional)", filename="divorce_appearance.pdf", has_addendum=False)
-
 
 
 ---
@@ -2925,7 +2972,8 @@ code: |
   income_withholding_instructions.enabled = False
   income_withholding_for_support.enabled = False
   income_withholding_letter_to_employer.enabled = False
-  divorce_summons.enabled = True
+  divorce_summons.enabled = False
+  divorce_summons_blank.enabled = False
   letter_to_sheriff.enabled = False
   divorce_appearance.enabled = False
   certification_agreement.enabled = True
@@ -2974,15 +3022,21 @@ code: |
   if include_property and property_list.number() > 5:
     additional_property.enabled = True
 
-  if (trial_court.address.county != service_county) or service_state != "IL":
-    letter_to_sheriff.enabled = True
+  if know_resp_location:
+    divorce_summons.enabled = True
+    if (trial_court.address.county != service_county) or service_state != "IL":
+      letter_to_sheriff.enabled = True
+  else:
+    divorce_summons_blank.enabled = True
+
+  if optional_appearance:
     divorce_appearance.enabled = True
   
   if trial_court_index == -1:
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, divorce_summons, letter_to_sheriff, divorce_appearance, child_support_instructions, child_support_order, support_information_sheet, income_withholding_instructions, income_withholding_for_support, income_withholding_letter_to_employer, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, divorce_summons, letter_to_sheriff, divorce_summons_blank,  divorce_appearance, child_support_instructions, child_support_order, support_information_sheet, income_withholding_instructions, income_withholding_for_support, income_withholding_letter_to_employer, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
@@ -4350,6 +4404,8 @@ attachment:
   name: child_support_instructions
   filename: child_support_instructions
   pdf template file: child_support_instructions.pdf  
+  fields:
+      - "fake": ${ "" }
 ---
 attachment:
   variable name: child_support_order[i]
@@ -4441,12 +4497,12 @@ attachment:
 
 ---
 attachment:
-  variable name: income_withholding_letter_for_employer[i]
-  name: income_withholding_letter_for_employer
-  filename: income_withholding_letter_for_employer
+  variable name: income_withholding_letter_to_employer[i]
+  name: income_withholding_letter_to_employer
+  filename: income_withholding_letter_to_employer
   skip undefined: True
   editable: True  
-  pdf template file: income_withholding_letter_for_employer.pdf  
+  pdf template file: income_withholding_letter_to_employer.pdf  
 
 ---
 attachment:
@@ -4532,6 +4588,31 @@ attachment:
     - "user_address_line_2": ${ users[0].address.line_two() }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "user_email": ${ users[0].email if users[0].has_email_address else "" }
+---
+attachment:
+  variable name: divorce_summons_blank[i]
+  name: divorce_summons_blank
+  filename: divorce_summons_blank
+  skip undefined: True
+  editable: False
+  pdf template file: divorce_summons.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "county__2": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name.full(middle="full") }
+    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "respondent__1": ${other_parties[0].name.full(middle="full")}
+    - "respondent__2": ${other_parties[0].name.full(middle="full")}
+    - "respondent__3": ${other_parties[0].name.full(middle="full")}
+    - "courthouse_address": ${ courthouse_info }
+    - "clerk_phone": ${ trial_court.phone }
+    - "clerk_website": ${ trial_court.website }
+    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
+    - "user_address_line_2": ${ users[0].address.line_two() }
+    - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
+    - "user_email": ${ users[0].email if users[0].has_email_address else "" }
+
 
 ---
 attachment:
@@ -5024,6 +5105,149 @@ review:
 
 
   - note: |
+      <h4>Property</h4>
+  - Edit: include_property
+    button: |
+      **Do you want to add information about personal property or bank accounts?**
+      ${ word(yesno(include_property)) }
+  - Edit: property_keep
+    button: |
+      **Do you want each person to keep the property and bank accounts in their own name or possession?**
+      ${ word(yesno(property_keep)) }      
+    show if: include_property    
+  - Edit: property_list.revisit
+    button: |
+      **Personal property or bank accounts: (Edit to change details)**
+
+      % for my_var in property_list:
+      * ${ my_var.name.text}
+      % endfor
+    show if: include_property    
+
+  - Edit: property_exchange
+    button: |
+      **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
+      ${ word(yesno(property_exchange)) }      
+    show if: include_property
+  - Edit: pet_has_nonmarital_property
+    button: |
+      **Do you want to list your non-marital property?**
+      ${ word(yesno(pet_has_nonmarital_property)) }
+    show if: include_property    
+  - Edit: pet_nonmarital_property
+    button: |
+      **Your non-marital property:**
+      ${pet_nonmarital_property}
+    show if: include_property and pet_has_nonmarital_property    
+  - Edit: resp_has_nonmarital_property
+    button: |
+      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?**
+      ${ word(yesno(resp_has_nonmarital_property)) }
+    show if: include_property    
+  - Edit: resp_nonmarital_property
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s non-marital property:**
+      ${resp_nonmarital_property}
+    show if: include_property and resp_has_nonmarital_property    
+  - Edit: property_other
+    button: |
+      **Do you want the final divorce judgment to say anything else about property?**
+      ${ word(yesno(property_other)) }      
+    show if: include_property    
+  - Edit: property_other_text
+    button: |
+      **Other information about property to include in the divorce judgment:**
+      ${ property_other_text }      
+    show if: include_property and property_other
+
+  - Edit: has_real_estate
+    button: |
+      **Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?**
+      ${ word(yesno(has_real_estate)) }
+  - Edit: real_estate.address
+    button: |
+      **Marital real estate address:**
+      ${ real_estate.on_one_line(bare=True) }
+    show if: has_real_estate
+  - Edit: attach_legal_desc
+    button: |
+      **Will you attach a legal description of the real estate to the final divorce judgment?**
+      ${ attach_legal_desc }
+    show if: has_real_estate
+  
+  - Edit: retirement_options
+    button: |
+      **Do you want to add information about retirement accounts and pensions?**
+      
+      % if retirement_options == "own":
+      * Yes, each person should get the retirement accounts and pensions in their own name.
+      % elif retirement_options == "split":
+      * Yes, the retirement accounts and pensions should be split.
+      % else:
+      * No, I will add this later.
+      % endif
+  - Edit: enter_resp_pensions
+    button: |
+      **Do you want to include information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      ${ word(yesno(enter_resp_pensions)) }      
+    show if: retirement_options == "split"    
+  - Edit: pensions_resp.revisit
+    button: |
+      **${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions: (Edit to change details)**
+
+      % for my_var in pensions_resp:
+      * ${ my_var.name.text}
+      % endfor
+    show if: retirement_options == "split" and enter_resp_pensions
+  - Edit: resp_pensions_qdro
+    button: |
+      **Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      
+      % if resp_pensions_qdro == "Me":
+      * I will prepare the paperwork.
+      % elif resp_pensions_qdro == "Them":
+      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      % else:
+      * I don't know. I will decide later.
+      % endif
+    show if: retirement_options == "split" and enter_resp_pensions
+  - Edit: enter_pet_pensions
+    button: |
+      **Do you want to include information about your retirement accounts and pensions?**
+      ${ word(yesno(enter_pet_pensions)) }      
+    show if: retirement_options == "split"    
+  - Edit: pensions_pet.revisit
+    button: |
+      **Your retirement accounts or pensions: (Edit to change details)**
+
+      % for my_var in pensions_pet:
+      * ${ my_var.name.text}
+      % endfor
+    show if: retirement_options == "split" and enter_pet_pensions
+  - Edit: pet_pensions_qdro
+    button: |
+      **Who do you want to prepare the papwerwork for your retirement accounts and pensions?**
+      
+      % if resp_pensions_qdro == "Me":
+      * I will prepare the paperwork.
+      % elif resp_pensions_qdro == "Them":
+      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      % else:
+      * I don't know. I will decide later.
+      % endif
+    show if: retirement_options == "split" and enter_pet_pensions
+  - Edit: pensions_other
+    button: |
+      **Do you want the final divorce judgment to say anything else about retirement accounts or pensions?**
+      ${ word(yesno(pensions_other)) }      
+    show if: retirement_options == "own" or retirement_options == "split"
+  - Edit: pensions_other_text
+    button: |
+      **Other information about retirement accounts or pensions to include in the divorce judgment:**
+      ${ pensions_other_text }      
+    show if: (retirement_options == "own" or retirement_options == "split") and pensions_other
+
+  - note: |
       <h4>Debts</h4>
   - Edit: include_debts
     button: |
@@ -5072,149 +5296,7 @@ review:
       ${resp_nonmarital_debts}
     show if: include_debts and resp_has_nonmarital_debts    
 
-
-  - note: |
-      <h4>Property</h4>
-  - Edit: include_property
-    button: |
-      **Do you want to add information about personal property or bank accounts?**
-      ${ word(yesno(include_property)) }
-  - Edit: property_keep
-    button: |
-      **Do you want each person to keep the property and bank accounts in their own name or possession?**
-      ${ word(yesno(property_keep)) }      
-    show if: include_property    
-  - Edit: property_list.revisit
-    button: |
-      **Personal property or bank accounts: (Edit to change details)**
-
-      % for my_var in property_list:
-      * ${ my_var.name.text}
-      % endfor
-    show if: include_property    
-
-  - Edit: retirement_options
-    button: |
-      **Do you want to add information about retirement accounts and pensions?**
-      
-      % if retirement_options == "own":
-      * Yes, each person should get the retirement accounts and pensions in their own name.
-      % elif retirement_options == "split":
-      * Yes, the retirement accounts and pensions should be split.
-      % else:
-      * No, I will add this later.
-      % endif
-  - Edit: enter_resp_pensions
-    button: |
-      **Do you want to include information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions now?**
-      ${ word(yesno(enter_resp_pensions)) }      
-    show if: retirement_options == "split"    
-  - Edit: pensions_resp.revisit
-    button: |
-      **${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions: (Edit to change details)**
-
-      % for my_var in pensions_resp:
-      * ${ my_var.name.text}
-      % endfor
-    show if: retirement_options == "split" and enter_resp_pensions
-  - Edit: resp_pensions_qdro
-    button: |
-      **Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
-      
-      % if resp_pensions_qdro == "Me":
-      * I will prepare the paperwork.
-      % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
-      % else:
-      * I don't know. I will decide later.
-      % endif
-    show if: retirement_options == "split" and enter_resp_pensions
-  - Edit: enter_pet_pensions
-    button: |
-      **Do you want to include information about your retirement accounts and pensions now?**
-      ${ word(yesno(enter_pet_pensions)) }      
-    show if: retirement_options == "split"    
-  - Edit: pensions_pet.revisit
-    button: |
-      **Your retirement accounts or pensions: (Edit to change details)**
-
-      % for my_var in pensions_pet:
-      * ${ my_var.name.text}
-      % endfor
-    show if: retirement_options == "split" and enter_pet_pensions
-  - Edit: pet_pensions_qdro
-    button: |
-      **Who do you want to prepare the papwerwork for your retirement accounts and pensions?**
-      
-      % if resp_pensions_qdro == "Me":
-      * I will prepare the paperwork.
-      % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
-      % else:
-      * I don't know. I will decide later.
-      % endif
-    show if: retirement_options == "split" and enter_pet_pensions
-  - Edit: pensions_other
-    button: |
-      **Do you want the final divorce judgment to say anything else about retirement accounts or pensions?**
-      ${ word(yesno(pensions_other)) }      
-    show if: retirement_options == "own" or retirement_options == "split"
-  - Edit: pensions_other_text
-    button: |
-      **Other information about retirement accounts or pensions to include in the divorce judgment:**
-      ${ pensions_other_text }      
-    show if: (retirement_options == "own" or retirement_options == "split") and pensions_other
-  - Edit: has_real_estate
-    button: |
-      **Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?**
-      ${ word(yesno(has_real_estate)) }
-  - Edit: real_estate.address
-    button: |
-      **Marital real estate address:**
-      ${ real_estate.on_one_line(bare=True) }
-    show if: has_real_estate
-  - Edit: attach_legal_desc
-    button: |
-      **Will you attach a legal description of the real estate to the final divorce judgment?**
-      ${ attach_legal_desc }
-    show if: has_real_estate
-
-  - Edit: pet_has_nonmarital_property
-    button: |
-      **Do you want to list your non-marital property?**
-      ${ word(yesno(pet_has_nonmarital_property)) }
-    show if: include_property    
-  - Edit: pet_nonmarital_property
-    button: |
-      **Your non-marital property:**
-      ${pet_nonmarital_property}
-    show if: include_property and pet_has_nonmarital_property    
-  - Edit: resp_has_nonmarital_property
-    button: |
-      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?**
-      ${ word(yesno(resp_has_nonmarital_property)) }
-    show if: include_property    
-  - Edit: resp_nonmarital_property
-    button: |
-      **${other_parties[0].name.full(middle="full")}'s non-marital property:**
-      ${resp_nonmarital_property}
-    show if: include_property and resp_has_nonmarital_property    
-  - Edit: property_exchange
-    button: |
-      **Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?**
-      ${ word(yesno(property_exchange)) }      
-    show if: include_property
-  - Edit: property_other
-    button: |
-      **Do you want the final divorce judgment to say anything else about property?**
-      ${ word(yesno(property_other)) }      
-    show if: include_property    
-  - Edit: property_other_text
-    button: |
-      **Other information about property to include in the divorce judgment:**
-      ${ property_other_text }      
-    show if: include_property and property_other
-      
+  
   - note: |
       <h4>Filing details</h4>
   - Edit: 
@@ -5276,6 +5358,11 @@ review:
       Ending a civil union
       % endif
     show if: trial_court_index == -1
+  - Edit: optional_appearance
+    button: |
+      **Make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?**
+      ${ word(yesno(optional_appearance)) }
+  
   - Edit: know_resp_location
     button: |
       **Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?**
