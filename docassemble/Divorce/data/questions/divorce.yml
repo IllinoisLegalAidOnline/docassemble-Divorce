@@ -71,7 +71,7 @@ code: |
   divorce_relief
   if users[0].is_resident:
     if users[0].meets_90_day_requirement == False:
-      must_meet_90_day_requirement
+      residency_requirement
   else:
     must_live_in_illinois
 
@@ -106,6 +106,7 @@ code: |
   nav.set_section('section_about_spouse')
   if other_parties[0].is_resident:
     other_parties[0].meets_90_day_requirement
+      
   if knows_resp_address:
     other_parties[0].address.address
   other_parties[0].phone_number  
@@ -137,7 +138,7 @@ code: |
       adult_children.gather()
       formatted_adult_child_list
 
-  children_debug   ### DEBUG
+  #children_debug   ### DEBUG
   
   if file_with_kids:
     if any_children_together:
@@ -300,7 +301,8 @@ question: |
 subquestion: |
   You can file a divorce in Illinois if:
 
-  * You and your spouse have lived in Illinois for at least 90 days, and
+  * You live in Illinois,
+  * You or your spouse will have lived in Illinois for at least 90 days when the final divorce judgment is entered, and
   * There is no other divorce case already filed and still pending anywhere else (not dismissed).
 
   **Note:** If your spouse is on active duty with any branch of the US military service, they must sign an *Entry of Appearance* form. This and other blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
@@ -355,7 +357,7 @@ question: |
 subquestion: |
   You must live in Illinois if you want to file for divorce in Illinois.
   
-  You can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
+  If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
 buttons:
   - Exit: exit
   - Restart: restart
@@ -369,17 +371,16 @@ fields:
   - no label: users[0].meets_90_day_requirement
     datatype: yesnoradio
 ---
-id: must meet 90 day requirement
-event: must_meet_90_day_requirement
+id: user 90 day requirement
+continue button field: residency_requirement
 question: |
-  Sorry
+  Illinois residency requirement for divorce
 subquestion: |
-  You must live in Illinois for longer than 90 days if you want to file for divorce in Illinois.
+  You or your spouse must live in Illinois for longer than 90 days to get a divorce in Illinois.
+
+  **Note:** You can file the divorce case before you or your spouse has lived in Illinois for 90 days. However, you or your spouse must have lived in Illinois for at least 90 days before the final divorce judgment can be entered.
   
-  You can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
-buttons:
-  - Exit: exit
-  - Restart: restart
+  If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
 ---
 id: user name
 sets:
@@ -531,7 +532,7 @@ fields:
 ---
 id: divorce grounds
 question: |
-  Have irreconcilable differences caused the irretrievalble breakdown of the marriage or civil union?
+  Have irreconcilable differences caused the irretrievable breakdown of the marriage or civil union?
 subquestion: |
   Select **Yes** if:
   
@@ -576,7 +577,7 @@ id: hide address
 question: |
   Do you want to keep your address hidden?
 subquestion: |
-  You do not need to list where you are staying on your court papers. You can use an address where you can receive court notices instead.
+  You do not need to list where you are staying on your court papers if you are worried that sharing your address would put you or your household at risk. You can use an address where you can receive court notices instead.
 field: hide_address
 choices:
   - Yes: True
@@ -2840,7 +2841,7 @@ question: |
 subquestion: |
   This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
 
-  * *Petition for Dissolution*
+  * *Petition for Divorce*
   * *Summons*
 
   The rest of the forms can be used later.
@@ -2855,7 +2856,7 @@ subject: |
 content: |  
   Use these forms to start the divorce case:
 
-  * *Petition for Dissolution*
+  * *Petition for Divorce*
   * *Summons*
 
   The other forms are used later. **Note:** Forms that are used later are not complete. Be sure to review and complete them before using. Read the instructions for details.
@@ -2914,7 +2915,7 @@ content: |
 
   The forms you use to start the divorce case are:
 
-  * *Petition for Dissolution*
+  * *Petition for Divorce*
   * *Summons*
   
   Thanks for using ILAO Easy Forms!
@@ -2932,8 +2933,8 @@ objects:
   - instructions_no_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - instructions_kids: ALDocument.using(title="Instructions", filename="instructions.pdf", has_addendum=False)
   - cook_cover_sheet: ALDocument.using(title="Domestic Relations Cover Sheet", filename="cook_cover_sheet.pdf", has_addendum=False)
-  - petition_no_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
-  - petition_kids: ALDocument.using(title="Petition for Dissolution", filename="petition.pdf", has_addendum=False)
+  - petition_no_kids: ALDocument.using(title="Petition for Divorce", filename="petition.pdf", has_addendum=False)
+  - petition_kids: ALDocument.using(title="Petition for Divorce", filename="petition.pdf", has_addendum=False)
   - additional_kids_petition: ALDocument.using(title="Additional Children Information - Petition", filename="additional_kids_petition.pdf", has_addendum=False)
   - other_children_info: ALDocument.using(title="Other Information about Children - Petition", filename="other_children_info.pdf", has_addendum=False)
   - judgment_no_kids: ALDocument.using(title="Judgment for Dissolution", filename="judgment.pdf", has_addendum=False)
@@ -3045,7 +3046,7 @@ objects:
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
-  - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Dissolution")
+  - petition_bundle: ALDocumentBundle.using(elements=[petition_no_kids, petition_kids, additional_kids_petition, other_children_info], filename="petition.pdf", title="Petition for Divorce")
   - judgment_bundle: ALDocumentBundle.using(elements=[judgment_no_kids, judgment_kids, additional_kids_judgment, additional_debts, additional_property], filename="judgment.pdf", title="Judgment for Dissolution")   
 ---
 attachment:
