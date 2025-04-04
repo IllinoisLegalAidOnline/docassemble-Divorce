@@ -273,13 +273,13 @@ subquestion: |
   * Date and place of your marriage or civil union, 
   * Date you and your spouse separated,
   * Addresses for you and your spouse,
-  * Place of employment and income for you and your spouse,
+  * Employment information for you and your spouse,
   * Whether you or your spouse receive Social Security,
   * Information about any real estate, personal property, and retirement and bank accounts that you or your spouse own or debts you and your spouse owe.
 
   If you and your spouse have children, you also need to know:
 
-  * Names and birth dates of all of the children you and your spouse have together or separately, and
+  * Names and birth dates of all the children you and your spouse have together or separately, and
   * Information about other court cases that involve the children you and your spouse have together.
 
   Set aside 20 to 45 minutes to finish this program. You can log in and save your work to continue later. 
@@ -312,7 +312,7 @@ continue button field: divorce_info
 question: |
   Divorce information
 subquestion: |
-  A divorce can take months or even years. It can depend on how quickly the people can agree to how things will be divided and how children will be taken care of. If the parties do not agree on all terms, the judge will need to decide.
+  A divorce can take months or even years. It can depend on how quickly the spouses can agree to how things will be divided and how children will be taken care of. If the parties do not agree on all terms, the judge will need to decide.
 
   **Note:** This Easy Form will make many forms. Some will be used when you file the case, some during the case, and some when the judgment is final. Some of the forms are ready while others are partially complete.
   
@@ -336,12 +336,14 @@ subquestion: |
     * That you be allowed to return to using your former name if you want.
     * For any other relief that is appropriate.
   
-  If you have **children of the marriage**, the divorce petition also asks the judge to order:
+  If you have **{children of the marriage}**, the divorce petition also asks the judge to order:
   
     * That the Parenting Plan for the minor children that you file be approved.
     * Child support for the care or education of the minor children, if appropriate.
     * Support for the care or education of the adult children, if appropriate.
-
+terms:
+  - "children of the marriage": |
+      Children of the marriage are children that you and your spouse had together either by birth or adoption.
 ---
 id: live in IL
 question: |
@@ -527,8 +529,8 @@ subquestion: |
 fields:
   - Separation date: separation_date
     datatype: BirthDate
+    alMin: ${ marriage_date.format("yyyy-MM-dd") }    
     alMax: ${ today().format("yyyy-MM-dd") }
-    alMin: ${ marriage_date.format("yyyy-MM-dd")}    
 ---
 id: divorce grounds
 question: |
@@ -564,7 +566,7 @@ question: |
 subquestion: |
   To use this program, you and your spouse or partner must have irreconcilable differences that led to the irretrievable breakdown of the marriage or civil union.
 
-  This means that you and your spouse have tried to fix the problems in your marriage or civil union, but could not. Or it could be that the problems are so bad that trying to fix them is not best for your family.
+  This means that you and your spouse have tried to fix the problems in your marriage or civil union, but could not. It could also mean that the problems are so bad that trying to fix them is not best for your family.
   
    Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
 buttons:
@@ -673,7 +675,7 @@ question: |
 fields:
   - Date of birth: users[0].birthdate
     datatype: BirthDate
-    alMax: ${ today().format("yyyy-MM-dd") }
+    alMax: ${ marriage_date.format("yyyy-MM-dd") }    
 ---
 id: employment status
 question: |
@@ -770,7 +772,7 @@ question: |
 fields:
   - Date of birth: other_parties[0].birthdate
     datatype: BirthDate
-    alMax: ${ today().format("yyyy-MM-dd") }
+    alMax: ${ marriage_date.format("yyyy-MM-dd") }    
 ---
 id: spouse lives in IL
 question: |
@@ -997,13 +999,10 @@ code: |
   children[i].former_addresses[j].address
   children[i].former_addresses[j].complete = True
 ---
-code: |
-  if children.number_gathered() >= 7:
-    children.there_is_another = False
----
-code: |
-  if children[i].former_addresses.number_gathered() >= 4:
-    children[i].former_addresses.there_is_another = False
+# testing making sure this code happens after all gather code in yml
+#code: |
+#  if children[i].former_addresses.number_gathered() >= 4:
+#    children[i].former_addresses.there_is_another = False
 ---
 reconsider: True
 code: |
@@ -1074,12 +1073,14 @@ question: |
   When was ${children[i].name.full(middle="full")} born?
 fields:
   - Birth date: children[i].birthdate
-    datatype: ThreePartsDate
+    datatype: BirthDate
     alMax: ${ today().format("yyyy-MM-dd") }
 ---
 id: is child of marriage
 question: |
   Was ${children[i].name.full(middle="full")} born or adopted after the marriage?
+subquestion: |
+  **Note:** If the child was born before the marriage, but adoped after the marriage, select **Born or adopted after the marriage**.
 fields: 
   - ${children[i].name.full(middle="full")} was: children[i].is_of_marriage
     datatype: radio
@@ -1167,10 +1168,14 @@ id: more former addresses
 question: |
   Does ${children[i].name.full(middle="full")} have any other addresses from the past five years?
 subquestion: |
+  You already told us about their current address:
+
+  ${ children[i].address.on_one_line(bare=True) }
+  
   The court forms have space for up to four former addresses.
   
-  So far you told us about:
-
+  So far you told us about these former addresses:
+  
   % for former_address in children[i].former_addresses:
     * ${ former_address.on_one_line(bare=True) }
   % endfor
@@ -1181,7 +1186,10 @@ fields:
 code: |
   if children[i].former_addresses.number_gathered() >= 4:
     children[i].former_addresses.there_is_another = False
-  
+---
+code: |
+  if children.number_gathered() >= 7:
+    children.there_is_another = False
 ---
 sets:
   - adult_children[0].name.first
@@ -1247,10 +1255,6 @@ code: |
   outside_children[i].name.first
   outside_children[i].complete = True
 ---
-code: |
-  if outside_children.number_gathered() >= 4:
-    outside_children.there_is_another = False
----
 sets:
   - outside_children[0].name.first
   - outside_children[0].name.middle
@@ -1299,6 +1303,10 @@ subquestion: |
 fields:
   - "Anyone else?": outside_children.there_is_another
     datatype: yesnoradio
+---
+code: |
+  if outside_children.number_gathered() >= 4:
+    outside_children.there_is_another = False
 
 ---
 id: involvement in other custody case about children
@@ -1316,10 +1324,6 @@ code: |
   custody_cases[i].kids_involved
   custody_cases[i].final_order
   custody_cases[i].complete = True
----
-code: |
-  if custody_cases.number_gathered() >= 3:
-    custody_cases.there_is_another = False
 ---
 id: info about first custody case
 question: |
@@ -1406,6 +1410,10 @@ fields:
   - "Any other cases?": custody_cases.there_is_another
     datatype: yesnoradio
 ---
+code: |
+  if custody_cases.number_gathered() >= 3:
+    custody_cases.there_is_another = False
+---
 id: another court case that impacts children
 question: |
   Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?
@@ -1423,10 +1431,6 @@ code: |
   other_cases[i].final_order
   other_cases[i].type
   other_cases[i].complete = True
----
-code: |
-  if other_cases.number_gathered() >= 3:
-    other_cases.there_is_another = False
 ---
 id: info about first other case
 question: |
@@ -1537,6 +1541,10 @@ fields:
   - "Any other cases?": other_cases.there_is_another
     datatype: yesnoradio
 ---
+code: |
+  if other_cases.number_gathered() >= 3:
+    other_cases.there_is_another = False
+---
 id: another custodian
 question: |
   Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?
@@ -1552,10 +1560,6 @@ fields:
 code: |
   custodians[i].name.first
   custodians[i].complete = True
----
-code: |
-  if custodians.number_gathered() >= 3:
-    custodians.there_is_another = False
 ---
 sets:
   - custodians[0].name.first
@@ -1633,6 +1637,10 @@ fields:
   - "Anyone else?": custodians.there_is_another
     datatype: yesnoradio
 ---
+code: |
+  if custodians.number_gathered() >= 3:
+    custodians.there_is_another = False
+---
 id: children lived with another adult in last 5 years
 question: |
   Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years?
@@ -1643,10 +1651,6 @@ fields:
 code: |
   other_adults[i].name.first
   other_adults[i].complete = True
----
-code: |
-  if other_adults.number_gathered() >= 3:
-    other_adults.there_is_another = False
 ---
 sets:
   - other_adults[0].name.first
@@ -1718,6 +1722,10 @@ subquestion: |
 fields:
   - "Anyone else?": other_adults.there_is_another
     datatype: yesnoradio
+---
+code: |
+  if other_adults.number_gathered() >= 3:
+    other_adults.there_is_another = False
 ---
 id: child support currently being paid
 question: |
@@ -1815,7 +1823,7 @@ fields:
     show if:
       variable: taxes_choice
       is: "split"   
-  - If odd number of children, who will claim the children in **odd** tax years?: tax_split_odd
+  - If there's an odd number of children, who will claim the children in **odd** tax years?: tax_split_odd
     datatype: radio
     choices:
       - Me: Me
@@ -1825,7 +1833,7 @@ fields:
     show if:
       variable: taxes_choice
       is: "split"      
-  - If odd number of children, who will claim the children in **even** tax years?: tax_split_even
+  - If there's an odd number of children, who will claim the children in **even** tax years?: tax_split_even
     datatype: radio
     choices:
       - Me: Me
@@ -2917,6 +2925,8 @@ content: |
 
   * *Petition for Divorce*
   * *Summons*
+
+  Remember to review and update the other forms before using them later in your case.
   
   Thanks for using ILAO Easy Forms!
   
@@ -3790,6 +3800,20 @@ attachment:
         % endif
         % endif
         % endif
+    - "minor_child_age_0": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 0:
+        % if minor_children_list[0].age_in_years() > 1:
+        ${ minor_children_list[0].age_in_years() }
+        % else:
+        ${ str(minor_children_list[0].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+        % endif
     - "minor_child_name_1": |
         % if children_status['minors'] or children_status['support']:
         % if any_minor_children:
@@ -3798,11 +3822,39 @@ attachment:
         % endif
         % endif
         % endif
+    - "minor_child_age_1": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 1:
+        % if minor_children_list[1].age_in_years() > 1:
+        ${ minor_children_list[1].age_in_years() }
+        % else:
+        ${ str(minor_children_list[1].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+        % endif
     - "minor_child_name_2": |
         % if children_status['minors'] or children_status['support']:
         % if any_minor_children:
         % if minor_children_list.number() > 2:
         ${ minor_children_list[2].name.full(middle="full") }
+        % endif
+        % endif
+        % endif
+    - "minor_child_age_2": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_minor_children:
+        % if minor_children_list.number() > 2:
+        % if minor_children_list[2].age_in_years() > 1:
+        ${ minor_children_list[2].age_in_years() }
+        % else:
+        ${ str(minor_children_list[2].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
         % endif
         % endif
         % endif
@@ -3823,6 +3875,20 @@ attachment:
         % endif
         % endif
         % endif
+    - "support_child_age_0": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 0:
+        % if support_children_list[0].age_in_years() > 1:
+        ${ support_children_list[0].age_in_years() }
+        % else:
+        ${ str(support_children_list[0].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+        % endif        
     - "support_child_name_1": |
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
@@ -3831,6 +3897,20 @@ attachment:
         % endif
         % endif
         % endif
+    - "support_child_age_1": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 1:
+        % if support_children_list[1].age_in_years() > 1:
+        ${ support_children_list[1].age_in_years() }
+        % else:
+        ${ str(support_children_list[1].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+        % endif        
     - "support_child_name_2": |
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
@@ -3839,6 +3919,20 @@ attachment:
         % endif
         % endif
         % endif
+    - "support_child_age_2": |
+        % if children_status['minors'] or children_status['support']:
+        % if any_support_children:
+        % if support_children_list.number() > 2:
+        % if support_children_list[2].age_in_years() > 1:
+        ${ support_children_list[2].age_in_years() }
+        % else:
+        ${ str(support_children_list[2].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+        % endif        
     - "additional_support_children_cb": |
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
@@ -4076,10 +4170,34 @@ attachment:
         ${ minor_children_list[3].name.full(middle="full") }
         % endif
         % endif
+    - "minor_child_age_3": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 3:
+        % if minor_children_list[3].age_in_years() > 1:
+        ${ minor_children_list[3].age_in_years() }
+        % else:
+        ${ str(minor_children_list[3].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
     - "minor_child_name_4": |
         % if any_minor_children:
         % if minor_children_list.number() > 4:
         ${ minor_children_list[4].name.full(middle="full") }
+        % endif
+        % endif
+    - "minor_child_age_4": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 4:
+        % if minor_children_list[4].age_in_years() > 1:
+        ${ minor_children_list[4].age_in_years() }
+        % else:
+        ${ str(minor_children_list[4].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
         % endif
         % endif
     - "minor_child_name_5": |
@@ -4088,10 +4206,34 @@ attachment:
         ${ minor_children_list[5].name.full(middle="full") }
         % endif
         % endif
+    - "minor_child_age_5": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 5:
+        % if minor_children_list[5].age_in_years() > 1:
+        ${ minor_children_list[5].age_in_years() }
+        % else:
+        ${ str(minor_children_list[5].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
     - "minor_child_name_6": |
         % if any_minor_children:
         % if minor_children_list.number() > 6:
         ${ minor_children_list[6].name.full(middle="full") }
+        % endif
+        % endif
+    - "minor_child_age_6": |
+        % if any_minor_children:
+        % if minor_children_list.number() > 6:
+        % if minor_children_list[6].age_in_years() > 1:
+        ${ minor_children_list[6].age_in_years() }
+        % else:
+        ${ str(minor_children_list[6].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
         % endif
         % endif
     - "no_additional_support_children_cb": |
@@ -4110,10 +4252,46 @@ attachment:
         ${ support_children_list[3].name.full(middle="full") }
         % endif
         % endif
+    - "support_child_age_3": |
+        % if any_support_children:
+        % if support_children_list.number() > 3:
+        % if support_children_list[3].age_in_years() > 1:
+        ${ support_children_list[3].age_in_years() }
+        % else:
+        ${ str(support_children_list[3].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
     - "support_child_name_4": |
         % if any_support_children:
         % if support_children_list.number() > 4:
         ${ support_children_list[4].name.full(middle="full") }
+        % endif
+        % endif
+    - "support_child_age_4": |
+        % if any_support_children:
+        % if support_children_list.number() > 4:
+        % if support_children_list[4].age_in_years() > 1:
+        ${ support_children_list[4].age_in_years() }
+        % else:
+        ${ str(support_children_list[4].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
+    - "support_child_age_4": |
+        % if any_support_children:
+        % if support_children_list.number() > 4:
+        % if support_children_list[4].age_in_years() > 1:
+        ${ support_children_list[4].age_in_years() }
+        % else:
+        ${ str(support_children_list[4].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
         % endif
         % endif
     - "support_child_name_5": |
@@ -4122,10 +4300,34 @@ attachment:
         ${ support_children_list[5].name.full(middle="full") }
         % endif
         % endif
+    - "support_child_age_5": |
+        % if any_support_children:
+        % if support_children_list.number() > 5:
+        % if support_children_list[5].age_in_years() > 1:
+        ${ support_children_list[5].age_in_years() }
+        % else:
+        ${ str(support_children_list[5].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
+        % endif
+        % endif
     - "support_child_name_6": |
         % if any_support_children:
         % if support_children_list.number() > 6:
         ${ support_children_list[6].name.full(middle="full") }
+        % endif
+        % endif
+    - "support_child_age_6": |
+        % if any_support_children:
+        % if support_children_list.number() > 6:
+        % if support_children_list[6].age_in_years() > 1:
+        ${ support_children_list[6].age_in_years() }
+        % else:
+        ${ str(support_children_list[6].age_in_months()) + ' months' }
+        % endif
+        % else:
+        ${ "" }
         % endif
         % endif
     - "no_outside_support_children": |
