@@ -69,11 +69,6 @@ code: |
   accept_terms
   divorce_info
   divorce_relief
-  if users[0].is_resident:
-    if users[0].meets_90_day_requirement == False:
-      residency_requirement
-  else:
-    must_live_in_illinois
 
   set_progress(10)  
   nav.set_section('section_basic')
@@ -90,9 +85,15 @@ code: |
   
   set_progress(20)
   nav.set_section('section_about_you')
+  if users[0].is_resident:
+    if users[0].meets_90_day_requirement == False:
+      residency_requirement
+  else:
+    residency_requirement
   hide_address
   users[0].address.address
-  users[0].residence_county
+  if not hide_address:
+    users[0].residence_county
   users[0].phone_number
   users[0].birthdate
   if users[0].emp_status["Yes"]:
@@ -301,11 +302,10 @@ question: |
 subquestion: |
   You can file a divorce in Illinois if:
 
-  * You live in Illinois,
   * You or your spouse will have lived in Illinois for at least 90 days when the final divorce judgment is entered, and
   * There is no other divorce case already filed and still pending anywhere else (not dismissed).
 
-  **Note:** If your spouse is on active duty with any branch of the US military service, they must sign an *Entry of Appearance* form. This and other blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
+  **Note:** If your spouse is on active duty with any branch of the US military service, they can state this on an *Appearance (Divorce)* form. You will have the option to get this form from this program. If you want to get the *Appearance (Divorce)* later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 ---
 id: divorce info
 continue button field: divorce_info
@@ -419,16 +419,31 @@ question: |
   When were you married?
 subquestion: |
   If you are ending a civil union, enter the date you were united.
+
+  ${ collapse_template(civil_unions_help) }  
 fields:
   - Date of marriage or civil union: marriage_date
     datatype: BirthDate
     alMax: ${ today().format("yyyy-MM-dd") }
+---
+template: civil_unions_help
+subject: |
+  **Learn more about civil unions**
+content: |  
+  A civil union is a legal relationship between two people, either of the same or different sex. It provides all of the legal obligations, responsibilities, protections and benefits that the law of Illinois gives to married couples.
+
+  A civil union is not the same as a marriage.
+
+  * A civil union does not provide the same federal benefits and protections as a marriage, like social security survivors' and spousal benefits, or federal income tax rights for married couples.
+  * Civil unions aren't recognized in all states.
 ---
 id: marriage location
 question: |
   Where were you married?
 subquestion: |
   If you are ending a civil union, enter the location where the civil union occurred.
+  
+  ${ collapse_template(civil_unions_help) }  
 fields:
   - Were you married or united in the United States?: marriage_in_america
     datatype: yesnoradio
@@ -580,10 +595,9 @@ question: |
   Do you want to keep your address hidden?
 subquestion: |
   You do not need to list where you are staying on your court papers if you are worried that sharing your address would put you or your household at risk. You can use an address where you can receive court notices instead.
-field: hide_address
-choices:
-  - Yes: True
-  - No: False
+fields:
+  - no label: hide_address
+    datatype: yesnoradio
 ---
 id: get user address
 question: |
@@ -612,16 +626,26 @@ fields:
 ---
 id: user residence county
 question: |
-  In which county do you live?
+  In which county do you currently live?
 subquestion: |
-  **Reminder:** You must file the divorce in the county where you or your spouse lives.
+  **This county will appear on your court papers.** If you want to keep this hidden because it would put you or my household at risk, **Edit** your answers and say you want to hide your address.
 
   ${ collapse_template(county_lookup_help) }
 fields:
-  - County: users[0].residence_county
-    code:
-      court_list._load_courts()["address_county"].unique()
-
+  - State where you currently live: users[0].residence_state
+    code: |
+      states_list()
+    help: |
+      Choose a state first then enter the county.
+  - County where you currently live: users[0].residence_county
+    code: |
+      court_list._load_courts()["address_county"].unique()      
+    js show if: |
+      val('users[0].residence_state') === "IL"
+  - County where you currently live: users[0].residence_county
+    maxlength: 25
+    js show if: |
+      val('users[0].residence_state') != "IL" && val('users[0].residence_state') != ""
 ---
 id: your contact information
 question: |
@@ -882,7 +906,9 @@ id: spouse active duty
 question: |
   Is ${other_parties[0].name.full(middle="full")} currently on active duty as a member of the Armed Forces of the United States of America?
 subquestion: |
-  If your spouse is on active duty with any branch of the US military service, they must sign an *Entry of Appearance* form. This and other blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
+  If your spouse is on active duty with any branch of the US military service, they can state this on an *Appearance (Divorce)* form. You will have the option to get this form from this program.
+  
+  If you want to get the *Appearance (Divorce)* later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 fields:
   - no label: other_parties[0].is_active_duty
     datatype: radio
@@ -2488,7 +2514,7 @@ id: case county
 question: |
   Where do you want to file your divorce?
 subquestion: |
-  **Note:** You must file the divorce in the county where you or your spouse lives.
+  **Note:** You must file the divorce in the Illinois county where you or your spouse will have lived for at least 90 days when the final divorce judgment is entered.
 
   ${ collapse_template(county_lookup_help) }
 fields:
@@ -2592,7 +2618,9 @@ id: cook case type
 question: |
   What kind of case are you filing?
 subquestion: |
-  This information is used by the Cook County Circuit Clerk.
+  This information is used by the Cook County Circuit Clerk. You should be able to confirm by looking at your marriage license or civil union license.
+
+  ${ collapse_template(civil_unions_help) } 
 fields:
   - I am filing a petition to end a: case_type_marriage
     datatype: radio
@@ -2621,14 +2649,16 @@ question: |
 subquestion: |
   If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name.full(middle="full")} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
 
-  **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers.
+  **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers. If you want to get this later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 
 fields:
-  - Make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?: optional_appearance
+  - Make an optional *Appearance (Divorce)* form for ${other_parties[0].name.full(middle="full")}?: optional_appearance
     datatype: yesnoradio    
 terms:
   - "Appearance": |
-      The *Appearance* is a form filed by your spouse stating that they will participate in the case. It includes their contact information.
+      The *Appearance (Divorce)* form can be filed by your spouse stating that they will participate in the case. It includes their contact information.
+
+      If ${other_parties[0].name.full(middle="full")} is on active duty with any branch of the US military service, they can state this on their *Appearance (Divorce)* form. 
 ---
 id: service address choice
 question: |
@@ -2849,8 +2879,8 @@ question: |
 subquestion: |
   This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
 
-  * *Petition for Divorce*
-  * *Summons*
+  * *Petition for Divorce*, and
+  * *Summons*, unless you don't want to serve ${other_parties[0].name.full(middle="full")} with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The rest of the forms can be used later.
   
@@ -2864,8 +2894,8 @@ subject: |
 content: |  
   Use these forms to start the divorce case:
 
-  * *Petition for Divorce*
-  * *Summons*
+  * *Petition for Divorce*, and
+  * *Summons*, unless you don't want to serve ${other_parties[0].name.full(middle="full")} with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The other forms are used later. **Note:** Forms that are used later are not complete. Be sure to review and complete them before using. Read the instructions for details.
 ---
@@ -3125,9 +3155,20 @@ attachment:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "user_is_resident": ${ True }
-    - "user_resident_90": ${ True }
-    - "user_residence_county": ${ users[0].residence_county }
+    - "user_is_resident": ${ users[0].is_resident }
+    - "user_is_not_resident": ${ not users[0].is_resident }
+    - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
+    - "user_not_resident_90": ${ True if users[0].is_resident == False or not users[0].meets_90_day_requirement else "" }    
+    - "user_residence_county": |
+        % if hide_address == True:
+        I do not want to disclose the county because it would put me or my household at risk.
+        % else:
+        % if users[0].residence_state == "IL":
+        ${ users[0].residence_county }
+        % else:
+        ${ users[0].residence_county + ", " + users[0].residence_state }
+        % endif
+        % endif
     - "user_age": ${ users[0].age_in_years() }
     - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
     - "user_emp_no": ${ True if users[0].emp_status["No"] else "" }
@@ -3195,9 +3236,20 @@ attachment:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "user_is_resident": ${ True }
-    - "user_resident_90": ${ True }
-    - "user_residence_county": ${ users[0].residence_county }
+    - "user_is_resident": ${ users[0].is_resident }
+    - "user_is_not_resident": ${ not users[0].is_resident }
+    - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
+    - "user_not_resident_90": ${ True if users[0].is_resident == False or not users[0].meets_90_day_requirement else "" }    
+    - "user_residence_county": |
+        % if hide_address == True:
+        I do not want to disclose the county because it would put me or my household at risk.
+        % else:
+        % if users[0].residence_state == "IL":
+        ${ users[0].residence_county }
+        % else:
+        ${ users[0].residence_county + ", " + users[0].residence_state }
+        % endif
+        % endif
     - "user_age": ${ users[0].age_in_years() }
     - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
     - "user_emp_no": ${ True if users[0].emp_status["No"] else "" }
@@ -4917,6 +4969,15 @@ review:
     button: |
       **Your name:**
       ${users[0].name.full(middle="full")}
+  - Edit: users[0].is_resident
+    button: |
+      **Do you live in Illinois?**
+      ${ word(yesno(users[0].is_resident)) }
+  - Edit: users[0].meets_90_day_requirement
+    button: |
+      **Have you lived in Illinois for longer than 90 days?**
+      ${ word(yesno(users[0].meets_90_day_requirement)) }
+    show if: users[0].is_resident
   - Edit: hide_address
     button: |
       **Do you want to keep your address hidden?**
@@ -4931,8 +4992,13 @@ review:
       ${ users[0].address.on_one_line(bare=True) }
   - Edit: users[0].residence_county
     button: |
-      **County where you live:**
+      **County where you currently live:**
+      % if users[0].residence_county == "IL":
       ${ users[0].residence_county }
+      % else:
+      ${ users[0].residence_county + ", " + users[0].residence_state }
+      % endif
+    show if: hide_address == False
   - Edit: users[0].phone_number
     button: |
       **Your phone number:**
@@ -5044,6 +5110,7 @@ review:
     button: |
       **Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?**
       ${ word(yesno(other_parties[0].meets_90_day_requirement)) }
+    show if: other_parties[0].is_resident
   - Edit: knows_resp_address
     button: |
       **Do you know ${other_parties[0].name.full(middle="full")}'s current address?**
