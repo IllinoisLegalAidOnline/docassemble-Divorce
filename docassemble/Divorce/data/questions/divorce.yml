@@ -92,7 +92,10 @@ code: |
     residency_requirement
   hide_address
   users[0].address.address
-  if not hide_address:
+  if hide_address:
+    if not hide_county:
+      users[0].residence_county
+  else:
     users[0].residence_county
   users[0].phone_number
   users[0].birthdate
@@ -594,7 +597,7 @@ id: hide address
 question: |
   Do you want to keep your address hidden?
 subquestion: |
-  You do not need to list where you are staying on your court papers if you are worried that sharing your address would put you or your household at risk. You can use an address where you can receive court notices instead.
+  You do not need to list where you are staying on your court papers if you are worried that sharing your address would put you or your household at risk. You can use a mailing address where you can receive court notices instead.
 fields:
   - no label: hide_address
     datatype: yesnoradio
@@ -624,11 +627,22 @@ fields:
     default: IL      
   - ZIP code: users[0].address.zip
 ---
+id: hide residence county
+question: |
+  Do you want to keep the county where you are living hidden?
+subquestion: |
+  The county where you live is important, even if you are hiding your address by using a mailing address on your court papers.
+
+  The judge needs to know the county where you live to be sure your divorce case is filed in the right place.
+fields:
+  - no label: hide_county
+    datatype: yesnoradio
+---
 id: user residence county
 question: |
   In which county do you currently live?
 subquestion: |
-  **This county will appear on your court papers.** If you want to keep this hidden because it would put you or my household at risk, **Edit** your answers and say you want to hide your address.
+  **This county will appear on your court papers.** If you want to keep this hidden because it would put you or your household at risk, **Edit** your answers and say you want to hide your address and county.
 
   ${ collapse_template(county_lookup_help) }
 fields:
@@ -2880,7 +2894,7 @@ subquestion: |
   This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
 
   * *Petition for Divorce*, and
-  * *Summons*, unless you don't want to serve ${other_parties[0].name.full(middle="full")} with court papers. They will have to file an *Appearance (Divorce)* instead.
+  * *Summons*, unless ${other_parties[0].name.full(middle="full")} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The rest of the forms can be used later.
   
@@ -2895,7 +2909,7 @@ content: |
   Use these forms to start the divorce case:
 
   * *Petition for Divorce*, and
-  * *Summons*, unless you don't want to serve ${other_parties[0].name.full(middle="full")} with court papers. They will have to file an *Appearance (Divorce)* instead.
+  * *Summons*, unless ${other_parties[0].name.full(middle="full")} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The other forms are used later. **Note:** Forms that are used later are not complete. Be sure to review and complete them before using. Read the instructions for details.
 ---
@@ -3160,14 +3174,14 @@ attachment:
     - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
     - "user_not_resident_90": ${ True if users[0].is_resident == False or not users[0].meets_90_day_requirement else "" }    
     - "user_residence_county": |
-        % if hide_address == True:
+        % if hide_address:
+        % if hide_county:
         I do not want to disclose the county because it would put me or my household at risk.
-        % else:
-        % if users[0].residence_state == "IL":
-        ${ users[0].residence_county }
         % else:
         ${ users[0].residence_county + ", " + users[0].residence_state }
         % endif
+        % else:
+        ${ users[0].residence_county + ", " + users[0].residence_state }
         % endif
     - "user_age": ${ users[0].age_in_years() }
     - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
@@ -3241,14 +3255,14 @@ attachment:
     - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
     - "user_not_resident_90": ${ True if users[0].is_resident == False or not users[0].meets_90_day_requirement else "" }    
     - "user_residence_county": |
-        % if hide_address == True:
+        % if hide_address:
+        % if hide_county:
         I do not want to disclose the county because it would put me or my household at risk.
-        % else:
-        % if users[0].residence_state == "IL":
-        ${ users[0].residence_county }
         % else:
         ${ users[0].residence_county + ", " + users[0].residence_state }
         % endif
+        % else:
+        ${ users[0].residence_county + ", " + users[0].residence_state }
         % endif
     - "user_age": ${ users[0].age_in_years() }
     - "user_emp_yes": ${ True if users[0].emp_status["Yes"] else "" }
@@ -4990,6 +5004,11 @@ review:
       **Your home address:**
       % endif    
       ${ users[0].address.on_one_line(bare=True) }
+  - Edit: hide_county
+    button: |
+      **Do you want to keep the county where you live hidden?**
+      ${ word(yesno(hide_county)) }
+    show if: hide_address
   - Edit: users[0].residence_county
     button: |
       **County where you currently live:**
