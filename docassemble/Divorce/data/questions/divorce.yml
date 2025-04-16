@@ -265,7 +265,7 @@ subquestion: |
 
   The process can be complicated. We will give you basic information about divorce on the next screens and on instructions you can download at the end of the program.
 
-  To learn more, read ILAO's guide about [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
+  To learn more, read ILAO's guide to [**getting a divorce**](https://www.illinoislegalaid.org/node/30446).
 field: sees_nav_bar
 ---
 id: instructions
@@ -280,7 +280,7 @@ subquestion: |
   * Addresses for you and your spouse,
   * Employment information for you and your spouse,
   * Whether you or your spouse receive Social Security,
-  * Information about any real estate, personal property, and retirement and bank accounts that you or your spouse own or debts you and your spouse owe.
+  * Information about any real estate, personal property, retirement accounts, bank accounts, or debts that you and your spouse own or owe.
 
   If you and your spouse have children, you also need to know:
 
@@ -1016,7 +1016,7 @@ fields:
     datatype: checkboxes
     choices:
       - Younger than 18.: minors
-      - 18 or older but are still in school or have a disability.: support
+      - 18 or older but need support because they are still in school or have a disability.: support
       - Adults who do not need support to attend school or because of a disability.: adults
     none of the above: False
 validation code: |
@@ -1777,7 +1777,7 @@ fields:
 ---
 id: want child support
 question: |
-  Do you want the court to order child support for for the children of the marriage?
+  Do you want the court to order child support for the children of the marriage?
 subquestion: |
   You can select **Yes** if you want ${other_parties[0].name.full(middle="full")} to pay or if you think you will pay child support.
   
@@ -2119,7 +2119,7 @@ subquestion: |
   
   These will be listed on the draft form of the final divorce judgment. You can say what property goes to each person. What you enter is not final. The judge may decide differently, or you may reach an different agreement on how to divide the property.
   
-  Select **Yes** if you want to add details now about how you want property to divided. If you do not enter it now, you can add it to your divorce judgment later.
+  Select **Yes** if you want to add details now about how you want property to be divided. If you do not enter it now, you can add it to your divorce judgment later.
 
   **Note:** This section does not include retirement accounts. Those will be asked about later.
 fields:
@@ -2267,7 +2267,7 @@ code: |
 ---
 id: qdro for resp pensions
 question: |
-  Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?
+  Who do you want to prepare the paperwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?
 subquestion: |
   The person you select will have to prepare a Qualified Domestic Relations Order (QDRO) or Qualified Illinois Domestic Relations Order (QILDRO) after the divorce is final to make sure you receive your share.
   
@@ -2341,7 +2341,7 @@ code: |
 ---
 id: qdro for pet pensions
 question: |
-  Who do you want to prepare the papwerwork for your retirement accounts and pensions?
+  Who do you want to prepare the paperwork for your retirement accounts and pensions?
 subquestion: |
   The person you select will have to prepare a Qualified Domestic Relations Order (QDRO) or Qualified Illinois Domestic Relations Order (QILDRO) after the divorce is final to make sure you receive your share.
   
@@ -3002,7 +3002,7 @@ objects:
   - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
   - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
   - child_support_order: ALDocument.using(title="Order for Support", filename="child_support_order.pdf", has_addendum=False)
-  - support_information_sheet: ALDocument.using(title="Suppport Information Sheet", filename="support_information_sheet.pdf", has_addendum=False)
+  - support_information_sheet: ALDocument.using(title="Support Information Sheet", filename="support_information_sheet.pdf", has_addendum=False)
   - income_withholding_instructions: ALDocument.using(title="Income withholding instructions", filename="income_withholding_instructions.pdf", has_addendum=False)
   - income_withholding_for_support: ALDocument.using(title="Income withholding for support", filename="income_withholding_for_support.pdf", has_addendum=False)
   - income_withholding_letter_to_employer: ALDocument.using(title="Income withholding letter to employer", filename="income_withholding_letter_to_employer.pdf", has_addendum=False)
