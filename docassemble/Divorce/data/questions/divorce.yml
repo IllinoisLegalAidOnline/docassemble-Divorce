@@ -1933,8 +1933,6 @@ subquestion: |
 fields:
   - no label: want_maintenance
     datatype: yesnoradio
-
-
 ---
 id: debts intro
 continue button field: debts_intro
@@ -2005,6 +2003,7 @@ fields:
     datatype: integer
     min: 1
     max: 99
+    under text: You don't need to enter the % sign.
     show if:
       variable: debts[i].payment_division
       is: "split"
@@ -2253,6 +2252,7 @@ fields:
     datatype: integer
     min: 1
     max: 100
+    under text: You don't need to enter the % sign.
     show if:
       variable: pensions_resp[i].payment_division
       is: "Yes"
@@ -2327,6 +2327,7 @@ fields:
     datatype: integer
     min: 1
     max: 100
+    under text: You don't need to enter the % sign.
     show if:
       variable: pensions_pet[i].payment_division
       is: "Yes"
