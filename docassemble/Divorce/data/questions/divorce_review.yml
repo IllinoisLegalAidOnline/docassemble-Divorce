@@ -1116,7 +1116,7 @@ columns:
   - Description: |
       row_item.name.text if defined("row_item.name.text") else ""
   - Will go to: |
-      "Me" if row_item.party == "pet" else other_parties[0].name.full(middle="full")       
+      other_parties[0].name.full(middle="full") if row_item.party == "res" else row_item.party       
   - Edit: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True

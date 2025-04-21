@@ -223,6 +223,7 @@ code: |
   when_to_use_forms
   forms_assembling
   snapshot_forms
+  set_progress_to_100_once
   get_docs_screen
 ---
 code: |
@@ -241,6 +242,11 @@ code: |
   stuff_to_snapshot['with_kids'] = showifdef('file_with_kids')
   
   stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
+
+  try:
+    stuff_to_snapshot['session_id'] = current_context().session
+  except:
+    pass
   
   store_variables_snapshot(
   	data=stuff_to_snapshot, persistent=True
@@ -254,6 +260,16 @@ code: |
 code: |
   reconsider('snapshot_interview_state')
   snapshot_forms = True
+---
+# this code block will ensure that when a user reaches the download screen, My Easy Forms will list it as 100% complete
+code: |
+    al_temp_metadata = get_interview_metadata(
+      current_context().filename, current_context().session
+    )
+    al_temp_metadata["progress"] = 100
+    set_current_session_metadata(al_temp_metadata)
+    del(al_temp_metadata)
+    set_progress_to_100_once = True
 ---
 id: welcome
 question: |
@@ -2156,6 +2172,8 @@ id: property information
 question: |
   Details for the ${ordinal(i)} property or account
 subquestion: |
+  If you want this to be split, or if you do not know how it should be divided at this time, select **I don't know.** You will have a chance to explain in your final divorce judgment.
+  
   **Note:** Do not list any account numbers. Also, you can list pets on another screen.
 fields:
   - Description of the property or account: property_list[i].name.text
@@ -2165,8 +2183,9 @@ fields:
   - Who do you want to get this property or account?: property_list[i].party
     datatype: radio
     choices:
-      - Me: pet
+      - Me: Me
       - ${other_parties[0].name.full(middle="full")}: res
+      - I don't know.: I don't know.                                                    
 ---
 code: |
   property_list[i].name.text
@@ -3809,19 +3828,19 @@ attachment:
     - "property_keep_own": ${True if include_property and property_keep else "" }
     - "property_divide_shared": ${True if include_property and property_list.number() > 0 else "" }
     - "property_name_0": ${ property_list[0].name.text if include_property and property_list.number() > 0 else "" }
-    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property and property_list.number() > 0 else "" }
+    - "property_to_pet_0": ${ property_list[0].party == "Me" if include_property and property_list.number() > 0 else "" }
     - "property_to_res_0": ${ property_list[0].party == "res" if include_property and property_list.number() > 0 else "" }
     - "property_name_1": ${ property_list[1].name.text if include_property and property_list.number() > 1 else "" }
-    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property and property_list.number() > 1 else "" }
+    - "property_to_pet_1": ${ property_list[1].party == "Me" if include_property and property_list.number() > 1 else "" }
     - "property_to_res_1": ${ property_list[1].party == "res" if include_property and property_list.number() > 1 else "" }
     - "property_name_2": ${ property_list[2].name.text if include_property and property_list.number() > 2 else "" }
-    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property and property_list.number() > 2 else "" }
+    - "property_to_pet_2": ${ property_list[2].party == "Me" if include_property and property_list.number() > 2 else "" }
     - "property_to_res_2": ${ property_list[2].party == "res" if include_property and property_list.number() > 2 else "" }
     - "property_name_3": ${ property_list[3].name.text if include_property and property_list.number() > 3 else "" }
-    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property and property_list.number() > 3 else "" }
+    - "property_to_pet_3": ${ property_list[3].party == "Me" if include_property and property_list.number() > 3 else "" }
     - "property_to_res_3": ${ property_list[3].party == "res" if include_property and property_list.number() > 3 else "" }
     - "property_name_4": ${ property_list[4].name.text if include_property and property_list.number() > 4 else "" }
-    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property and property_list.number() > 4 else "" }
+    - "property_to_pet_4": ${ property_list[4].party == "Me" if include_property and property_list.number() > 4 else "" }
     - "property_to_res_4": ${ property_list[4].party == "res" if include_property and property_list.number() > 4 else "" }
     - "additional_property_cb": ${ True if include_property and property_list.number() > 5 else "" }
     - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
@@ -4174,19 +4193,19 @@ attachment:
     - "property_keep_own": ${True if include_property and property_keep else "" }
     - "property_divide_shared": ${True if include_property and property_list.number() > 0 else "" }
     - "property_name_0": ${ property_list[0].name.text if include_property and property_list.number() > 0 else "" }
-    - "property_to_pet_0": ${ property_list[0].party == "pet" if include_property and property_list.number() > 0 else "" }
+    - "property_to_pet_0": ${ property_list[0].party == "Me" if include_property and property_list.number() > 0 else "" }
     - "property_to_res_0": ${ property_list[0].party == "res" if include_property and property_list.number() > 0 else "" }
     - "property_name_1": ${ property_list[1].name.text if include_property and property_list.number() > 1 else "" }
-    - "property_to_pet_1": ${ property_list[1].party == "pet" if include_property and property_list.number() > 1 else "" }
+    - "property_to_pet_1": ${ property_list[1].party == "Me" if include_property and property_list.number() > 1 else "" }
     - "property_to_res_1": ${ property_list[1].party == "res" if include_property and property_list.number() > 1 else "" }
     - "property_name_2": ${ property_list[2].name.text if include_property and property_list.number() > 2 else "" }
-    - "property_to_pet_2": ${ property_list[2].party == "pet" if include_property and property_list.number() > 2 else "" }
+    - "property_to_pet_2": ${ property_list[2].party == "Me" if include_property and property_list.number() > 2 else "" }
     - "property_to_res_2": ${ property_list[2].party == "res" if include_property and property_list.number() > 2 else "" }
     - "property_name_3": ${ property_list[3].name.text if include_property and property_list.number() > 3 else "" }
-    - "property_to_pet_3": ${ property_list[3].party == "pet" if include_property and property_list.number() > 3 else "" }
+    - "property_to_pet_3": ${ property_list[3].party == "Me" if include_property and property_list.number() > 3 else "" }
     - "property_to_res_3": ${ property_list[3].party == "res" if include_property and property_list.number() > 3 else "" }
     - "property_name_4": ${ property_list[4].name.text if include_property and property_list.number() > 4 else "" }
-    - "property_to_pet_4": ${ property_list[4].party == "pet" if include_property and property_list.number() > 4 else "" }
+    - "property_to_pet_4": ${ property_list[4].party == "Me" if include_property and property_list.number() > 4 else "" }
     - "property_to_res_4": ${ property_list[4].party == "res" if include_property and property_list.number() > 4 else "" }
     - "additional_property_cb": ${ True if include_property and property_list.number() > 5 else "" }
     - "property_exchange_yes": ${ True if include_property and property_exchange else "" }
@@ -4620,31 +4639,31 @@ attachment:
     - "petitioner__1": ${ users[0].name.full(middle="full") }
     - "respondent__1": ${ other_parties[0].name.full(middle="full") }
     - "property_name_5": ${ property_list[5].name.text if property_list.number() > 5 else "" }
-    - "property_to_pet_5": ${ property_list[5].party == "pet" if property_list.number() > 5 else "" }
+    - "property_to_pet_5": ${ property_list[5].party == "Me" if property_list.number() > 5 else "" }
     - "property_to_res_5": ${ property_list[5].party == "res" if property_list.number() > 5 else "" }
     - "property_name_6": ${ property_list[6].name.text if property_list.number() > 6 else "" }
-    - "property_to_pet_6": ${ property_list[6].party == "pet" if property_list.number() > 6 else "" }
+    - "property_to_pet_6": ${ property_list[6].party == "Me" if property_list.number() > 6 else "" }
     - "property_to_res_6": ${ property_list[6].party == "res" if property_list.number() > 6 else "" }
     - "property_name_7": ${ property_list[7].name.text if property_list.number() > 7 else "" }
-    - "property_to_pet_7": ${ property_list[7].party == "pet" if property_list.number() > 7 else "" }
+    - "property_to_pet_7": ${ property_list[7].party == "Me" if property_list.number() > 7 else "" }
     - "property_to_res_7": ${ property_list[7].party == "res" if property_list.number() > 7 else "" }
     - "property_name_8": ${ property_list[8].name.text if property_list.number() > 8 else "" }
-    - "property_to_pet_8": ${ property_list[8].party == "pet" if property_list.number() > 8 else "" }
+    - "property_to_pet_8": ${ property_list[8].party == "Me" if property_list.number() > 8 else "" }
     - "property_to_res_8": ${ property_list[8].party == "res" if property_list.number() > 8 else "" }
     - "property_name_9": ${ property_list[9].name.text if property_list.number() > 9 else "" }
-    - "property_to_pet_9": ${ property_list[9].party == "pet" if property_list.number() > 9 else "" }
+    - "property_to_pet_9": ${ property_list[9].party == "Me" if property_list.number() > 9 else "" }
     - "property_to_res_9": ${ property_list[9].party == "res" if property_list.number() > 9 else "" }
     - "property_name_10": ${ property_list[10].name.text if property_list.number() > 10 else "" }
-    - "property_to_pet_10": ${ property_list[10].party == "pet" if property_list.number() > 10 else "" }
+    - "property_to_pet_10": ${ property_list[10].party == "Me" if property_list.number() > 10 else "" }
     - "property_to_res_10": ${ property_list[10].party == "res" if property_list.number() > 10 else "" }
     - "property_name_11": ${ property_list[11].name.text if property_list.number() > 11 else "" }
-    - "property_to_pet_11": ${ property_list[11].party == "pet" if property_list.number() > 11 else "" }
+    - "property_to_pet_11": ${ property_list[11].party == "Me" if property_list.number() > 11 else "" }
     - "property_to_res_11": ${ property_list[11].party == "res" if property_list.number() > 11 else "" }
     - "property_name_12": ${ property_list[12].name.text if property_list.number() > 12 else "" }
-    - "property_to_pet_12": ${ property_list[12].party == "pet" if property_list.number() > 12 else "" }
+    - "property_to_pet_12": ${ property_list[12].party == "Me" if property_list.number() > 12 else "" }
     - "property_to_res_12": ${ property_list[12].party == "res" if property_list.number() > 12 else "" }
     - "property_name_13": ${ property_list[13].name.text if property_list.number() > 13 else "" }
-    - "property_to_pet_13": ${ property_list[13].party == "pet" if property_list.number() > 13 else "" }
+    - "property_to_pet_13": ${ property_list[13].party == "Me" if property_list.number() > 13 else "" }
     - "property_to_res_13": ${ property_list[13].party == "res" if property_list.number() > 13 else "" }
 ---
 attachment:
