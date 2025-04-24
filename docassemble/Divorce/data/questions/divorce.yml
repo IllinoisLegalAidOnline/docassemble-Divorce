@@ -223,7 +223,6 @@ code: |
   when_to_use_forms
   forms_assembling
   snapshot_forms
-  set_progress_to_100_once
   get_docs_screen
 ---
 code: |
@@ -261,16 +260,6 @@ code: |
   reconsider('snapshot_interview_state')
   snapshot_forms = True
 ---
-# this code block will ensure that when a user reaches the download screen (the first time), My Easy Forms will list it as 100% complete
-code: |
-    al_temp_metadata = get_interview_metadata(
-      current_context().filename, current_context().session
-    )
-    al_temp_metadata["progress"] = 100
-    set_current_session_metadata(al_temp_metadata)
-    del(al_temp_metadata)
-    set_progress_to_100_once = True
----
 id: welcome
 question: |
   Divorce
@@ -295,7 +284,7 @@ subquestion: |
   * Date you and your spouse separated,
   * Addresses for you and your spouse,
   * Employment information for you and your spouse,
-  * Whether you or your spouse receive Social Security,
+  * Whether you or your spouse receive Social Security, and
   * Information about any real estate, personal property, retirement accounts, bank accounts, or debts that you and your spouse own or owe.
 
   If you and your spouse have children, you also need to know:
@@ -325,6 +314,8 @@ subquestion: |
   * You or your spouse will have lived in Illinois for at least 90 days when the final divorce judgment is entered, and
   * There is no other divorce case already filed and still pending anywhere else (not dismissed).
 
+  If you have minor children with your spouse, they must have lived in Illinois for the past 6 months.
+  
   **Note:** If your spouse is on active duty with any branch of the US military service, they can state this on an *Appearance (Divorce)* form. You will have the option to get this form from this program. If you want to get the *Appearance (Divorce)* later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 ---
 id: divorce info
