@@ -1165,7 +1165,9 @@ id: child address
 question: |
   What is ${children[i].name.full(middle="full")}'s current address?
 subquestion: |
-  **This address will appear on your court papers.** 
+  **This address will appear on your court papers.**
+
+  **Note:** If ${children[i].name.full(middle="full")} lives at more than one location, you can enter other addresses on the next screens that ask about former addresses.
 fields:
   - Street address: children[i].address.address
     address autocomplete: True
