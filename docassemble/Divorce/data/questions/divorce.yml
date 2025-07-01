@@ -814,7 +814,7 @@ fields:
 ---
 id: spouse birthdate
 question: |
-  When was ${other_parties[0].name.full(middle="full")} born?
+  When was ${other_parties[0].name_full()} born?
 fields:
   - Date of birth: other_parties[0].birthdate
     datatype: BirthDate
@@ -822,28 +822,28 @@ fields:
 ---
 id: spouse lives in IL
 question: |
-  Does ${other_parties[0].name.full(middle="full")} live in Illinois?
+  Does ${other_parties[0].name_full()} live in Illinois?
 fields:
   - no label: other_parties[0].is_resident
     datatype: yesnoradio  
 ---
 id: spouse lives in IL for 90 days
 question: |
-  Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?
+  Has ${other_parties[0].name_full()} lived in Illinois for longer than 90 days?
 fields:
   - no label: other_parties[0].meets_90_day_requirement
     datatype: yesnoradio
 ---
 id: know spouse address
 question: |
-  Do you know ${other_parties[0].name.full(middle="full")}'s current address?
+  Do you know ${other_parties[0].name_full()}'s current address?
 fields:
   - no label: knows_resp_address
     datatype: yesnoradio
 ---
 id: get spouse address
 question: |
-  What is ${other_parties[0].name.full(middle="full")}'s current address?
+  What is ${other_parties[0].name_full()}'s current address?
 fields:
   - Street address: other_parties[0].address.address
     address autocomplete: True
@@ -858,7 +858,7 @@ fields:
 ---
 id: spouse contact information
 question: |
-  What are ${other_parties[0].name.full(middle="full")}'s phone number and email address?
+  What are ${other_parties[0].name_full()}'s phone number and email address?
 subquestion: |
   If you do not know, leave these blank.
 fields:
@@ -871,7 +871,7 @@ fields:
 ---
 id: spouse employment status
 question: |
-  Is ${other_parties[0].name.full(middle="full")} currently employed?
+  Is ${other_parties[0].name_full()} currently employed?
 subquestion: |
   Check all that apply.
 fields:
@@ -892,9 +892,9 @@ validation code: |
 id: spouse employer info
 question: |
   % if j == 0:
-  Tell us about ${other_parties[0].name.full(middle="full")}'s job
+  Tell us about ${other_parties[0].name_full()}'s job
   % else:
-  Tell us about ${other_parties[0].name.full(middle="full")}'s second job
+  Tell us about ${other_parties[0].name_full()}'s second job
   % endif
 fields:
   - Job title: other_parties[i].employers[j].job_title
@@ -917,16 +917,16 @@ fields:
 ---
 id: spouse second job question
 question: |
-  Does ${other_parties[0].name.full(middle="full")} have another job?
+  Does ${other_parties[0].name_full()} have another job?
 subquestion: |
-  So far you told us about ${other_parties[0].name.full(middle="full")}'s job as ${ other_parties[0].employers[0].job_title } for this employer: ${other_parties[0].employers[0].name.text }.
+  So far you told us about ${other_parties[0].name_full()}'s job as ${ other_parties[0].employers[0].job_title } for this employer: ${other_parties[0].employers[0].name.text }.
 fields: 
   no label: other_parties[0].has_second_job
   datatype: yesnoradio
 ---
 id: spouse active duty
 question: |
-  Is ${other_parties[0].name.full(middle="full")} currently on active duty as a member of the Armed Forces of the United States of America?
+  Is ${other_parties[0].name_full()} currently on active duty as a member of the Armed Forces of the United States of America?
 subquestion: |
   If your spouse is on active duty with any branch of the US military service, they can state this on an *Appearance (Divorce)* form. You will have the option to get this form from this program.
   
@@ -968,7 +968,7 @@ question: |
 fields:
   - Are you currently pregnant?: pet_is_pregnant
     datatype: yesnoradio
-  - Is ${other_parties[0].name.full(middle="full")} the other parent of the unborn child?: pet_pregnant_resp_parent
+  - Is ${other_parties[0].name_full()} the other parent of the unborn child?: pet_pregnant_resp_parent
     datatype: radio
     choices:
       - Yes: Yes
@@ -980,9 +980,9 @@ fields:
 ---
 id: respondent pregnant
 question: |
-  ${other_parties[0].name.full(middle="full")}'s pregnancy
+  ${other_parties[0].name_full()}'s pregnancy
 fields:
-  - Is ${other_parties[0].name.full(middle="full")} currently pregnant?: resp_is_pregnant
+  - Is ${other_parties[0].name_full()} currently pregnant?: resp_is_pregnant
     datatype: radio
     choices:
       - Yes: Yes
@@ -1000,9 +1000,9 @@ fields:
 ---
 id: any children together
 question: |
-  Do you and ${other_parties[0].name.full(middle="full")} have any children together?
+  Do you and ${other_parties[0].name_full()} have any children together?
 subquestion: |
-  These can be children born to or adopted by you and ${other_parties[0].name.full(middle="full")}.
+  These can be children born to or adopted by you and ${other_parties[0].name_full()}.
 
   These can also be adult children.
 fields:
@@ -1013,7 +1013,7 @@ id: children information
 question: |
   Information about your children
 subquestion: |
-  The court needs information about your children with ${other_parties[0].name.full(middle="full")} to make sure they will be supported.
+  The court needs information about your children with ${other_parties[0].name_full()} to make sure they will be supported.
 
   **Note:** Illinois law has additional protections for children under 18 in a divorce. There will be more questions about them than older children.
  
@@ -1075,7 +1075,7 @@ sets:
   - children[0].name.suffix
 id: name of first child with respondent
 question: |
-  Who is your child with ${other_parties[0].name.full(middle="full")}?
+  Who is your child with ${other_parties[0].name_full()}?
 subquestion: |
   You only need to include children that you and your spouse gave birth to or adopted who are:
   
@@ -1092,7 +1092,7 @@ sets:
   - children[i].name.last
   - children[i].name.suffix
 question: |
-  Who is your ${ ordinal(i) } child with ${other_parties[0].name.full(middle="full")}?
+  Who is your ${ ordinal(i) } child with ${other_parties[0].name_full()}?
 subquestion: |
   You only need to include children that you and your spouse gave birth to or adopted who are:
   
@@ -1104,7 +1104,7 @@ fields:
 ---
 id: any other children with respondent
 question: |
-  Do you have another child with ${other_parties[0].name.full(middle="full")}?
+  Do you have another child with ${other_parties[0].name_full()}?
 subquestion: |
   So far you have told us about ${comma_and_list(children.full_names())}.
 
@@ -1118,7 +1118,7 @@ fields:
 ---
 id: child age
 question: |
-  When was ${children[i].name.full(middle="full")} born?
+  When was ${children[i].name_full()} born?
 fields:
   - Birth date: children[i].birthdate
     datatype: BirthDate
@@ -1126,11 +1126,11 @@ fields:
 ---
 id: is child of marriage
 question: |
-  Was ${children[i].name.full(middle="full")} born or adopted after the marriage?
+  Was ${children[i].name_full()} born or adopted after the marriage?
 subquestion: |
   **Note:** If the child was born before the marriage, but adoped after the marriage, select **Born or adopted after the marriage**.
 fields: 
-  - ${children[i].name.full(middle="full")} was: children[i].is_of_marriage
+  - ${children[i].name_full()} was: children[i].is_of_marriage
     datatype: radio
     choices:
       - Born or adopted **before** the marriage.: False
@@ -1138,21 +1138,21 @@ fields:
 ---
 id: does child have a disability
 question: |
-  Does ${children[i].name.full(middle="full")} have a disability?
+  Does ${children[i].name_full()} have a disability?
 fields:
   - no label: children[i].has_a_disability
     datatype: yesnoradio
 ---
 id: is child in school
 question: |
-  Is ${children[i].name.full(middle="full")} in school?
+  Is ${children[i].name_full()} in school?
 fields:
   - no label: children[i].is_in_school
     datatype: yesnoradio
 ---
 id: child address
 question: |
-  Has ${children[i].name.full(middle="full")} lived in Illinois for the last 6 months or more?
+  Has ${children[i].name_full()} lived in Illinois for the last 6 months or more?
 fields:
   - Illinois resident for 6 months or more?: children[i].is_resident
     datatype: radio
@@ -1163,11 +1163,11 @@ fields:
 ---
 id: child address
 question: |
-  What is ${children[i].name.full(middle="full")}'s current address?
+  What is ${children[i].name_full()}'s current address?
 subquestion: |
   **This address will appear on your court papers.**
 
-  **Note:** If ${children[i].name.full(middle="full")} lives at more than one location, you can enter other addresses on the next screens that ask about former addresses.
+  **Note:** If ${children[i].name_full()} lives at more than one location, you can enter other addresses on the next screens that ask about former addresses.
 fields:
   - Street address: children[i].address.address
     address autocomplete: True
@@ -1182,7 +1182,7 @@ fields:
 ---
 id: does child have former address
 question: |
-  Has ${children[i].name.full(middle="full")} lived at any other addresses in the last five years?
+  Has ${children[i].name_full()} lived at any other addresses in the last five years?
 subquestion: |
   This does not include their current address:
   
@@ -1194,9 +1194,9 @@ fields:
 id: child former address detail
 question: |
   % if j==0:
-  Tell us about ${children[i].name.full(middle="full")}'s former address
+  Tell us about ${children[i].name_full()}'s former address
   % else:
-  Tell us about ${children[i].name.full(middle="full")}'s ${ ordinal(j) } former address
+  Tell us about ${children[i].name_full()}'s ${ ordinal(j) } former address
   % endif  
 subquestion: |
   You only need to include addresses where they lived in the past five years.
@@ -1216,7 +1216,7 @@ fields:
 ---
 id: more former addresses
 question: |
-  Does ${children[i].name.full(middle="full")} have any other addresses from the past five years?
+  Does ${children[i].name_full()} have any other addresses from the past five years?
 subquestion: |
   You already told us about their current address:
 
@@ -1248,7 +1248,7 @@ sets:
   - adult_children[0].name.suffix
 id: name of first adult child with respondent
 question: |
-  Who is your adult child with ${other_parties[0].name.full(middle="full")}?
+  Who is your adult child with ${other_parties[0].name_full()}?
 subquestion: |
   You only need to include adult children that you and your spouse gave birth to or adopted who are adults. These are adult children who do not need support to attend school or because of a disability.
 fields:
@@ -1262,7 +1262,7 @@ sets:
   - adult_children[i].name.last
   - adult_children[i].name.suffix
 question: |
-  Who is your ${ ordinal(i) } adult child with ${other_parties[0].name.full(middle="full")}?
+  Who is your ${ ordinal(i) } adult child with ${other_parties[0].name_full()}?
 subquestion: |
   You only need to include adult children that you and your spouse gave birth to or adopted who are adults. These are adult children who do not need support to attend school or because of a disability.
 fields:
@@ -1271,7 +1271,7 @@ fields:
 ---
 id: any other adult children with respondent
 question: |
-  Do you have another adult child with ${other_parties[0].name.full(middle="full")}?
+  Do you have another adult child with ${other_parties[0].name_full()}?
 subquestion: |
   So far you have told us about ${comma_and_list(adult_children.full_names())}.
 
@@ -1282,12 +1282,12 @@ fields:
 ---
 reconsider: True
 code: |
-  formatted_adult_child_list = [f"{child.name.full(middle='full')} (age {child.age_in_years()})" for child in adult_children]
+  formatted_adult_child_list = [f"{child.name_full()} (age {child.age_in_years()})" for child in adult_children]
 
 ---
 id: adult child age
 question: |
-  When was ${adult_children[i].name.full(middle="full")} born?
+  When was ${adult_children[i].name_full()} born?
 fields:
   - Birth date: adult_children[i].birthdate
     datatype: ThreePartsDate
@@ -1295,7 +1295,7 @@ fields:
 ---
 id: has other kids during marriage
 question: |
-  Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?
+  Did you or ${other_parties[0].name_full()} have a child by birth or adoption with someone else since the date of marriage?
 fields:
   - no label: has_other_kids_during_marriage
     datatype: yesnoradio
@@ -1314,7 +1314,7 @@ id: info about first child born or adopted outside marriage
 question: |
   Information about child born or adopted outside of marriage
 subquestion: |
-  You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+  You only need to include children that you or ${other_parties[0].name_full()} have had by birth or adoption with someone else since the date of marriage.
 fields:
   - code: |
       outside_children[0].name_fields()
@@ -1322,7 +1322,7 @@ fields:
     datatype: radio    
     choices:
       - My child: "My child"
-      - ${other_parties[0].name.full(middle="full")}'s child: "My spouse's child"
+      - ${other_parties[0].name_full()}'s child: "My spouse's child"
 ---
 id: info about other children born or adopted outside marriage
 sets:
@@ -1333,7 +1333,7 @@ sets:
 question: |
   Information about a ${ ordinal(i) } child born or adopted outside of marriage
 subquestion: |
-  You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+  You only need to include children that you or ${other_parties[0].name_full()} have had by birth or adoption with someone else since the date of marriage.
 fields:
   - code: |
       outside_children[i].name_fields()
@@ -1341,15 +1341,15 @@ fields:
     datatype: radio    
     choices:
       - My child: "My child"
-      - ${other_parties[0].name.full(middle="full")}'s child: "My spouse's child"
+      - ${other_parties[0].name_full()}'s child: "My spouse's child"
 ---
 id: any other children outside marriage
 question: |
-  Did you or ${other_parties[0].name.full(middle="full")} have another child by birth or adoption with someone else since the date of marriage?
+  Did you or ${other_parties[0].name_full()} have another child by birth or adoption with someone else since the date of marriage?
 subquestion: |
   So far you have told us about ${comma_and_list(outside_children.full_names())}.
 
-  The divorce forms have room for up to four children. You only need to include children that you or ${other_parties[0].name.full(middle="full")} have had by birth or adoption with someone else since the date of marriage.
+  The divorce forms have room for up to four children. You only need to include children that you or ${other_parties[0].name_full()} have had by birth or adoption with someone else since the date of marriage.
 fields:
   - "Anyone else?": outside_children.there_is_another
     datatype: yesnoradio
@@ -1361,7 +1361,7 @@ code: |
 ---
 id: involvement in other custody case about children
 question: |
-  Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name_full()}?
 fields:
   - no label: other_custody_case
     datatype: yesnoradio
@@ -1379,7 +1379,7 @@ id: info about first custody case
 question: |
   Information about another custody or visitation case
 subquestion: |
-  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name_full()}.
 
   This information should be found on the court papers from the other case.
 fields:
@@ -1414,7 +1414,7 @@ id: info about other custody cases
 question: |
   Information about a ${ ordinal(i) } custody or visitation case
 subquestion: |
-  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+  You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name_full()}.
 
   This information should be found on the court papers from the other case.  
 fields:
@@ -1447,7 +1447,7 @@ fields:
 ---
 id: any other custody cases
 question: |
-  Have you been involved in any other court cases about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Have you been involved in any other court cases about custody or visitation with any of the children you have with ${other_parties[0].name_full()}?
 subquestion: |
   So far you have told us about:
 
@@ -1455,7 +1455,7 @@ subquestion: |
   * Case number: ${case.name.text} in ${case.county}, ${case.state}
   % endfor  
 
-  The divorce forms have room for up to three cases. You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")}.
+  The divorce forms have room for up to three cases. You only need to include custody or visitation cases that involve one or more children you have with ${other_parties[0].name_full()}.
 fields:
   - "Any other cases?": custody_cases.there_is_another
     datatype: yesnoradio
@@ -1466,7 +1466,7 @@ code: |
 ---
 id: another court case that impacts children
 question: |
-  Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name_full()}?
 subquestion: |
   These include adoption, juvenile, or Order of Protection cases. There could be other cases, too. You can enter details about the cases that might affect your children on the next screens.
 fields:
@@ -1486,7 +1486,7 @@ id: info about first other case
 question: |
   Information about another case
 subquestion: |
-  You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases. 
+  You only need to include cases that involve one or more children you have with ${other_parties[0].name_full()} that **are not** custody or visitation cases. 
 
   This information should be found on the court papers from the other case.
 fields:
@@ -1533,7 +1533,7 @@ id: info about other cases
 question: |
   Information about a ${ ordinal(i) } other case
 subquestion: |
-  You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases. 
+  You only need to include cases that involve one or more children you have with ${other_parties[0].name_full()} that **are not** custody or visitation cases. 
 
   This information should be found on the court papers from the other case.  
 fields:
@@ -1578,7 +1578,7 @@ fields:
 ---
 id: any other cases
 question: |
-  Have you been involved in any other court cases with any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Have you been involved in any other court cases with any of the children you have with ${other_parties[0].name_full()}?
 subquestion: |
   So far you have told us about:
 
@@ -1586,7 +1586,7 @@ subquestion: |
   * Case number: ${case.name.text} in ${case.county}, ${case.state}
   % endfor  
 
-  The divorce forms have room for up to three cases. You only need to include cases that involve one or more children you have with ${other_parties[0].name.full(middle="full")} that **are not** custody or visitation cases.
+  The divorce forms have room for up to three cases. You only need to include cases that involve one or more children you have with ${other_parties[0].name_full()} that **are not** custody or visitation cases.
 fields:
   - "Any other cases?": other_cases.there_is_another
     datatype: yesnoradio
@@ -1597,7 +1597,7 @@ code: |
 ---
 id: another custodian
 question: |
-  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name_full()}?
 subquestion: |
   This person could have:
 
@@ -1622,8 +1622,8 @@ question: |
 subquestion: |
   You only need to include people who have:
 
-  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
-  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+  * Physical custody of one or more of your children you have with ${other_parties[0].name_full()}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name_full()}.
 fields:
   - code: |
       custodians[0].name_fields()
@@ -1653,8 +1653,8 @@ question: |
 subquestion: |
   You only need to include people who have:
 
-  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
-  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+  * Physical custody of one or more of your children you have with ${other_parties[0].name_full()}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name_full()}.
 fields:
   - code: |
       custodians[i].name_fields()
@@ -1675,14 +1675,14 @@ fields:
 ---
 id: any other custodians
 question: |
-  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?
+  Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name_full()}?
 subquestion: |
   So far you have told us about ${comma_and_list(custodians.complete_elements().full_names())}.
 
   The divorce forms have room for up to three people. You only need to include people who have:
 
-  * Physical custody of one or more of your children you have with ${other_parties[0].name.full(middle="full")}, or
-  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name.full(middle="full")}.
+  * Physical custody of one or more of your children you have with ${other_parties[0].name_full()}, or
+  * Rights to legal custody, physical custody, or visitation with your children you have with ${other_parties[0].name_full()}.
 fields:
   - "Anyone else?": custodians.there_is_another
     datatype: yesnoradio
@@ -1693,7 +1693,7 @@ code: |
 ---
 id: children lived with another adult in last 5 years
 question: |
-  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years?
+  Have any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last five years?
 fields:
   - no label: kids_lived_with_other_adult
     datatype: yesnoradio
@@ -1711,7 +1711,7 @@ id: info about first custodian
 question: |
   Information about other adult your children lived with in last five years
 subquestion: |
-  You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+  You only need to include this information if any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last five years.
 fields:
   - code: |
       other_adults[0].name_fields()
@@ -1741,7 +1741,7 @@ sets:
 question: |
     Information about a ${ ordinal(i) } other adult your children lived with in last five years
 subquestion: |
-  You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+  You only need to include this information if any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last five years.
 fields:
   - code: |
       other_adults[i].name_fields()
@@ -1764,11 +1764,11 @@ fields:
 ---
 id: any other other_adults
 question: |
-  Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years?
+  Have any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last five years?
 subquestion: |
   So far you have told us about ${comma_and_list(other_adults.complete_elements().full_names())}.
 
-  The divorce forms have room for up to three people. You only need to include this information if any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last five years.
+  The divorce forms have room for up to three people. You only need to include this information if any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last five years.
 fields:
   - "Anyone else?": other_adults.there_is_another
     datatype: yesnoradio
@@ -1788,7 +1788,7 @@ id: want child support
 question: |
   Do you want the court to order child support for the children of the marriage?
 subquestion: |
-  You can select **Yes** if you want ${other_parties[0].name.full(middle="full")} to pay or if you think you will pay child support.
+  You can select **Yes** if you want ${other_parties[0].name_full()} to pay or if you think you will pay child support.
   
   Selecting **Yes** will give you the forms to help set up a child support order.
 fields:
@@ -1797,7 +1797,7 @@ fields:
 ---
 id: current parenting time schedule
 question: |
-  Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?
+  Is there currently a schedule for when the children are with you or ${other_parties[0].name_full()}?
 subquestion: |
   This is often called a Parenting Time schedule. It is sometimes part of a Parenting Plan.
 fields:
@@ -1809,9 +1809,9 @@ continue button field: parenting_plan_info
 question: |
   About Parenting Plans
 subquestion: |
-  A Parenting Plan lists who is responsible for decision-making for the children and includes a schedule for when the children are with you and when they are with ${other_parties[0].name.full(middle="full")}.
+  A Parenting Plan lists who is responsible for decision-making for the children and includes a schedule for when the children are with you and when they are with ${other_parties[0].name_full()}.
 
-  The law requires that you file a suggested Parenting Plan **within 120 days** of the date your petition is filed or the date your spouse was notified. You and ${other_parties[0].name.full(middle="full")} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
+  The law requires that you file a suggested Parenting Plan **within 120 days** of the date your petition is filed or the date your spouse was notified. You and ${other_parties[0].name_full()} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
 
   A judge may not require a Parenting Plan to be filed, so ask the judge during your first court date whether they want you to file one.
   
@@ -1854,7 +1854,7 @@ fields:
     datatype: radio
     choices:
       - Me: Me
-      - ${other_parties[0].name.full(middle="full")}: Them
+      - ${other_parties[0].name_full()}: Them
     show if:
       variable: taxes_choice
       is: "all"
@@ -1864,12 +1864,12 @@ fields:
       - Even: even
       - Odd: odd
     help: |
-      ${other_parties[0].name.full(middle="full")} will get to claim them on the other tax years.
+      ${other_parties[0].name_full()} will get to claim them on the other tax years.
     show if:
       variable: taxes_choice
       is: "turns"
   - note: |
-      Both you and ${other_parties[0].name.full(middle="full")} will get to claim one-half of the children each tax year.
+      Both you and ${other_parties[0].name_full()} will get to claim one-half of the children each tax year.
     show if:
       variable: taxes_choice
       is: "split"   
@@ -1877,7 +1877,7 @@ fields:
     datatype: radio
     choices:
       - Me: Me
-      - ${other_parties[0].name.full(middle="full")}: Them
+      - ${other_parties[0].name_full()}: Them
     help: |
       As the children get older, there may be a time when an odd number of them are dependents.
     show if:
@@ -1887,7 +1887,7 @@ fields:
     datatype: radio
     choices:
       - Me: Me
-      - ${other_parties[0].name.full(middle="full")}: Them
+      - ${other_parties[0].name_full()}: Them
     help: |
       As the children get older, there may be a time when an odd number of them are dependents.
     show if:
@@ -1934,7 +1934,7 @@ fields:
 ---
 id: want maintenance
 question: |
-  Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?
+  Do you want ${other_parties[0].name_full()} to pay you maintenance (alimony)?
 subquestion: |
   A judge can make one spouse pay the other spouse money on an ongoing basis after a divorce. This is called "maintenance." It used to be called "spousal support" or "alimony."
   
@@ -1950,10 +1950,10 @@ question: |
 subquestion: |
   "Marital debt" means debts that a couple takes on during their marriage. Spouses are responsible for each other's expenses for the family during their marriage.
 
-  * Marital debt will be divided in the divorce. If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * Marital debt will be divided in the divorce. If you and ${other_parties[0].name_full()} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
   * Your divorce Petition will ask for a fair division of the marital debts obtained during the marriage/civil union.
   
-  "Non-marital debts" are debts that you or ${other_parties[0].name.full(middle="full")} acquired outside the marriage. Each party will be assigned their own non-marital debt.
+  "Non-marital debts" are debts that you or ${other_parties[0].name_full()} acquired outside the marriage. Each party will be assigned their own non-marital debt.
 
   * Your divorce Petition will ask that each party be assigned their non-marital/non-civil union debt.
   
@@ -2001,14 +2001,14 @@ fields:
     datatype: radio
     choices:
       - I will pay for all of it (100%).: Me
-      - ${other_parties[0].name.full(middle="full")} will pay for all of it (100%).: them
+      - ${other_parties[0].name_full()} will pay for all of it (100%).: them
       - Each of us will pay some of it. (Enter % below): split
       - I don't know. I will decide later.: idk
   - What percent of the debt will you pay?: debts[i].pet_percent
     help: |
-      Enter the percent you want to pay from 1-99%. ${other_parties[0].name.full(middle="full")} will pay the other %.
+      Enter the percent you want to pay from 1-99%. ${other_parties[0].name_full()} will pay the other %.
       
-      For example, if you want to pay half, enter 50%. ${other_parties[0].name.full(middle="full")} will pay the other half.
+      For example, if you want to pay half, enter 50%. ${other_parties[0].name_full()} will pay the other half.
     datatype: integer
     min: 1
     max: 99
@@ -2038,7 +2038,7 @@ fields:
     choices:
       - Each of us will be responsible for 50% of each joint debt.: joint
         help: |
-          Joint debts are debts that are in both your and ${other_parties[0].name.full(middle="full")}'s name.
+          Joint debts are debts that are in both your and ${other_parties[0].name_full()}'s name.
       - Each of us will pay all of the debts in their own name.: name
     none of the above: |
       I don't know. I will decide later.
@@ -2071,23 +2071,23 @@ fields:
 ---
 id: respondent non-marital debts
 question: |
-  Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?
+  Do you want to list ${other_parties[0].name_full()}'s non-marital debts?
 subquestion: |
-  "Non-marital debts" are debts that ${other_parties[0].name.full(middle="full")} acquired outside the marriage. These can include:
+  "Non-marital debts" are debts that ${other_parties[0].name_full()} acquired outside the marriage. These can include:
 
-  * Debts ${other_parties[0].name.full(middle="full")} owned or acquired before marriage,
-  * Debts that ${other_parties[0].name.full(middle="full")} got after a legal separation, or
+  * Debts ${other_parties[0].name_full()} owned or acquired before marriage,
+  * Debts that ${other_parties[0].name_full()} got after a legal separation, or
   * Debts specifically excluded in an agreement between the spouses (for example, a pre-nuptial agreement).
 
     Your divorce Petition will ask that each party be assigned their non-marital/non-civil union debt.
   
-  **Note:** You do not have to enter the details of ${other_parties[0].name.full(middle="full")}'s non-marital debts now. The information will be listed on the divorce judgment, which is used at the end of the case.
+  **Note:** You do not have to enter the details of ${other_parties[0].name_full()}'s non-marital debts now. The information will be listed on the divorce judgment, which is used at the end of the case.
 
   To learn more, read ILAO's article about [**dividing property and debt in a divorce**](https://www.illinoislegalaid.org/node/30326).
 fields:
-  - Include ${other_parties[0].name.full(middle="full")}'s non-marital debts?: resp_has_nonmarital_debts
+  - Include ${other_parties[0].name_full()}'s non-marital debts?: resp_has_nonmarital_debts
     datatype: yesnoradio
-  - List ${other_parties[0].name.full(middle="full")}'s non-marital debts: resp_nonmarital_debts
+  - List ${other_parties[0].name_full()}'s non-marital debts: resp_nonmarital_debts
     input type: area
     rows: 3
     maxlength: 100
@@ -2103,10 +2103,10 @@ question: |
 subquestion: |
   "Marital property" is any property or money that either spouse got during the marriage. It includes real estate, personal property, bank accounts, and pets.
 
-  * Marital property will be divided in the divorce. If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * Marital property will be divided in the divorce. If you and ${other_parties[0].name_full()} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
   * Your divorce Petition will ask for a fair division of the marital/civil union property.
   
-  "Non-marital property" is property that you or ${other_parties[0].name.full(middle="full")} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital property includes:
+  "Non-marital property" is property that you or ${other_parties[0].name_full()} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital property includes:
   
   * Property owned or acquired before marriage,
   * Property received as a gift, or an inheritance, or left to the person in a will,
@@ -2177,7 +2177,7 @@ fields:
     datatype: radio
     choices:
       - Me: Me
-      - ${other_parties[0].name.full(middle="full")}: res
+      - ${other_parties[0].name_full()}: res
       - I don't know.: I don't know.                                                    
 ---
 code: |
@@ -2219,19 +2219,19 @@ fields:
 ---
 id: enter resp pensions
 question: |
-  Do you want to enter information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions now?
+  Do you want to enter information about ${other_parties[0].name_full()}'s retirement accounts and pensions now?
 subquestion: |
-  **Note:** These are retirement accounts and pensions that are in ${other_parties[0].name.full(middle="full")}'s name.
+  **Note:** These are retirement accounts and pensions that are in ${other_parties[0].name_full()}'s name.
   
   If you select **No**, you can add this to your divorce judgment later.
 fields:
-  - Enter info about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: enter_resp_pensions
+  - Enter info about ${other_parties[0].name_full()}'s retirement accounts and pensions?: enter_resp_pensions
     datatype: yesnoradio
 
 ---
 id: more respondent pensions
 question: |
-  Do you want to list any other of ${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions?
+  Do you want to list any other of ${other_parties[0].name_full()}'s retirement accounts or pensions?
 subquestion: |
   So far you have told us about:
 
@@ -2246,7 +2246,7 @@ fields:
 ---
 id: respondent pension information
 question: |
-  Details for ${other_parties[0].name.full(middle="full")}'s ${ordinal(i)} retirement account or pension 
+  Details for ${other_parties[0].name_full()}'s ${ordinal(i)} retirement account or pension 
 fields:
   - Account name: pensions_resp[i].name.text
     maxlength: 40
@@ -2258,9 +2258,9 @@ fields:
       - I don't know. I will decide later.: idk
   - What percent of the account do you want?: pensions_resp[i].pet_percent
     help: |
-      Enter the percent you want to receive from 1-100%. ${other_parties[0].name.full(middle="full")} will receive the other %.
+      Enter the percent you want to receive from 1-100%. ${other_parties[0].name_full()} will receive the other %.
       
-      For example, if you want three quarters, enter 75%. ${other_parties[0].name.full(middle="full")} will receive 25%.
+      For example, if you want three quarters, enter 75%. ${other_parties[0].name_full()} will receive 25%.
     datatype: integer
     min: 1
     max: 100
@@ -2279,17 +2279,17 @@ code: |
 ---
 id: qdro for resp pensions
 question: |
-  Who do you want to prepare the paperwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?
+  Who do you want to prepare the paperwork for ${other_parties[0].name_full()}'s retirement accounts and pensions?
 subquestion: |
   The person you select will have to prepare a Qualified Domestic Relations Order (QDRO) or Qualified Illinois Domestic Relations Order (QILDRO) after the divorce is final to make sure you receive your share.
   
   You can usually contact the retirement account or pension plan administrator to get the forms you need.
 fields:
-  - Who will prepare the QDROs to divide ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?: resp_pensions_qdro
+  - Who will prepare the QDROs to divide ${other_parties[0].name_full()}'s retirement accounts and pensions?: resp_pensions_qdro
     datatype: radio
     choices:
       - I will prepare the paperwork.: Me
-      - ${other_parties[0].name.full(middle="full")} will prepare the paperwork.: Them
+      - ${other_parties[0].name_full()} will prepare the paperwork.: Them
       - I don't know. I will decide later.: idk
 
 ---
@@ -2325,17 +2325,17 @@ question: |
 fields:
   - Account name: pensions_pet[i].name.text
     maxlength: 40
-  - Do you want ${other_parties[0].name.full(middle="full")} to receive part of this account?: pensions_pet[i].payment_division
+  - Do you want ${other_parties[0].name_full()} to receive part of this account?: pensions_pet[i].payment_division
     datatype: radio
     choices:
       - Yes: Yes
       - No: No
       - I don't know. I will decide later.: idk
-  - What percent of the account do you want ${other_parties[0].name.full(middle="full")} to receive?: pensions_pet[i].pet_percent
+  - What percent of the account do you want ${other_parties[0].name_full()} to receive?: pensions_pet[i].pet_percent
     help: |
-      Enter the percent you want ${other_parties[0].name.full(middle="full")} to receive from 1-100%. You will receive the other %.
+      Enter the percent you want ${other_parties[0].name_full()} to receive from 1-100%. You will receive the other %.
       
-      For example, if you want ${other_parties[0].name.full(middle="full")} to get a quarter, enter 25%. You will receive the other 75%.
+      For example, if you want ${other_parties[0].name_full()} to get a quarter, enter 25%. You will receive the other 75%.
     datatype: integer
     min: 1
     max: 100
@@ -2364,7 +2364,7 @@ fields:
     datatype: radio
     choices:
       - I will prepare the paperwork.: Me
-      - ${other_parties[0].name.full(middle="full")} will prepare the paperwork.: Them
+      - ${other_parties[0].name_full()} will prepare the paperwork.: Them
       - I don't know. I will decide later.: idk
 ---
 id: other pension orders 
@@ -2393,10 +2393,10 @@ subquestion: |
   "Marital real estate" is any real property that either spouse got during the marriage.
 
   * Marital real estate will be divided in the divorce. It can be sold, with each spouse receiving part of the proceeds, or kept by one of the people in the divorce. If one person keeps it, they will have to "buy out" the other person's share.
-  * If you and ${other_parties[0].name.full(middle="full")} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
+  * If you and ${other_parties[0].name_full()} can't agree how it will be divided, the judge will decide for you. You can also use a mediator to help you decide.
   * Your divorce Petition will ask for a fair division of the marital/civil union property.
   
-  "Non-marital real estate" is real property that you or ${other_parties[0].name.full(middle="full")} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital real estate includes:
+  "Non-marital real estate" is real property that you or ${other_parties[0].name_full()} got outside the marriage. Your divorce Petition will ask that each party gets to keep all of their non-marital/non-civil union property. Non-marital real estate includes:
   
   * Real property owned or acquired before marriage,
   * Real property received as a gift, or an inheritance, or left to the person in a will,
@@ -2411,7 +2411,7 @@ subquestion: |
 ---
 id: have real estate
 question: |
-  Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?
+  Do you and ${other_parties[0].name_full()} own any marital real estate?
 subquestion: |
   Real estate is property consisting of land or buildings like a house or an apartment.
 fields:
@@ -2464,7 +2464,7 @@ subquestion: |
   
   This will be listed on the draft form of the final divorce judgment. The judge may decide differently, or you may reach an different agreement on how to divide the property.
 
-  If ${other_parties[0].name.full(middle="full")} has any of this non-marital property, they will need to deliver it to you within 30 days after the divorce judgment is entered.
+  If ${other_parties[0].name_full()} has any of this non-marital property, they will need to deliver it to you within 30 days after the divorce judgment is entered.
   
   **Note:** Do not list account numbers.
 fields:
@@ -2480,7 +2480,7 @@ fields:
 ---
 id: respondent non-marital property
 question: |
-  Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?
+  Do you want to list ${other_parties[0].name_full()}'s non-marital property?
 subquestion: |
   Non-marital property includes real estate, personal property, retirement accounts, or bank or other financial accounts that you did not get during the marriage. Non-marital property includes:
   
@@ -2493,13 +2493,13 @@ subquestion: |
   
   This will be listed on the draft form of the final divorce judgment. The judge may decide differently, or you may reach an different agreement on how to divide the property.
 
-  If you have any of this non-marital property, you will need to deliver it to ${other_parties[0].name.full(middle="full")} within 30 days after the divorce judgment is entered.
+  If you have any of this non-marital property, you will need to deliver it to ${other_parties[0].name_full()} within 30 days after the divorce judgment is entered.
 
   **Note:** Do not list account numbers.
 fields:
-  - Include ${other_parties[0].name.full(middle="full")}'s non-marital property?: resp_has_nonmarital_property
+  - Include ${other_parties[0].name_full()}'s non-marital property?: resp_has_nonmarital_property
     datatype: yesnoradio
-  - List ${other_parties[0].name.full(middle="full")}'s non-marital property: resp_nonmarital_property
+  - List ${other_parties[0].name_full()}'s non-marital property: resp_nonmarital_property
     input type: area
     rows: 5
     maxlength: 210
@@ -2511,7 +2511,7 @@ id: property exchange in 30 days from judgment
 question: |
   Do you want any exchange of personal property to happen within 30 days after the divorce judgment is entered?
 subquestion: |
-  Adding this requirement can help motivate ${other_parties[0].name.full(middle="full")} to turn over your personal property or accounts after the divorce.
+  Adding this requirement can help motivate ${other_parties[0].name_full()} to turn over your personal property or accounts after the divorce.
 
   If you aren't sure, select **No**.
 fields:
@@ -2615,15 +2615,15 @@ content: |
 ---
 id: any previous cook cases
 question: |
-  Have you filed any divorce or parentage cases with ${other_parties[0].name.full(middle="full")} in Cook County before?
+  Have you filed any divorce or parentage cases with ${other_parties[0].name_full()} in Cook County before?
 subquestion: |
   This will help the court clerk in Cook County assign your case to the correct location. If you were involved in more than one, choose the most recent.
 fields:
   - no label: previous_cook_case_type
     datatype: radio
     choices:
-      - I was in an earlier **divorce** case with ${other_parties[0].name.full(middle="full")}.: divorce
-      - I was in an earlier **parentage** case with ${other_parties[0].name.full(middle="full")} involving children we had together.: parentage
+      - I was in an earlier **divorce** case with ${other_parties[0].name_full()}.: divorce
+      - I was in an earlier **parentage** case with ${other_parties[0].name_full()} involving children we had together.: parentage
       - No earlier divorce or parentage cases were filed in Cook County.: none
   - Date case was filed: previous_cook_case_date
     datatype: ThreePartsDate
@@ -2658,43 +2658,43 @@ fields:
 ---
 id: know respondent location
 question: |
-  Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?
+  Do you have an address where ${other_parties[0].name_full()} can be found?
 subquestion: |
-  The law requires that ${other_parties[0].name.full(middle="full")} be notified of your divorce case. This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name.full(middle="full")} by hand-delivering the court papers. This can done at ${other_parties[0].name.full(middle="full")}'s home, work, or another location.
+  The law requires that ${other_parties[0].name_full()} be notified of your divorce case. This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name_full()} by hand-delivering the court papers. This can done at ${other_parties[0].name_full()}'s home, work, or another location.
 
-  **Note:** This could be a different address from ${other_parties[0].name.full(middle="full")}'s current address.
+  **Note:** This could be a different address from ${other_parties[0].name_full()}'s current address.
   
-  If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name.full(middle="full")} is properly notified of the court case. You can ask the court to let you notify them by another method.
+  If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name_full()} is properly notified of the court case. You can ask the court to let you notify them by another method.
 
   To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
 fields:
-  - Have an address where ${other_parties[0].name.full(middle="full")} can be served?: know_resp_location
+  - Have an address where ${other_parties[0].name_full()} can be served?: know_resp_location
     datatype: yesnoradio
 ---
 id: optional appearance
 question: |
-  Do you want to make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?
+  Do you want to make an optional *Appearance* form for ${other_parties[0].name_full()}?
 subquestion: |
-  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name.full(middle="full")} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
+  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
 
   **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers. If you want to get this later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 
 fields:
-  - Make an optional *Appearance (Divorce)* form for ${other_parties[0].name.full(middle="full")}?: optional_appearance
+  - Make an optional *Appearance (Divorce)* form for ${other_parties[0].name_full()}?: optional_appearance
     datatype: yesnoradio    
 terms:
   - "Appearance": |
       The *Appearance (Divorce)* form can be filed by your spouse stating that they will participate in the case. It includes their contact information.
 
-      If ${other_parties[0].name.full(middle="full")} is on active duty with any branch of the US military service, they can state this on their *Appearance (Divorce)* form. 
+      If ${other_parties[0].name_full()} is on active duty with any branch of the US military service, they can state this on their *Appearance (Divorce)* form. 
 ---
 id: service address choice
 question: |
-  Where can ${other_parties[0].name.full(middle="full")} be found?
+  Where can ${other_parties[0].name_full()} be found?
 subquestion: |
   This is where they will be served with Divorce court papers.
 
-  **Note:** It is a good idea to answer these questions even if you think ${other_parties[0].name.full(middle="full")} will sign and file an *Appearance*.
+  **Note:** It is a good idea to answer these questions even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*.
 fields:
   - no label: service_address_choice
     datatype: radio
@@ -2704,17 +2704,17 @@ reconsider: True
 code: |
   service_list = []
   if knows_resp_address == True:
-    service_list.append( { "home": other_parties[0].name.full(middle="full") + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
+    service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "":
-    service_list.append({ "work": other_parties[0].name.full(middle="full")+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
+    service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes']:
     if other_parties[0].has_second_job and other_parties[0].employers[1].address.address != "":
-      service_list.append({ "their other work": other_parties[0].name.full(middle="full")+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
+      service_list.append({ "their other work": other_parties[0].name_full()+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
   service_list.append({ "other": "An address I will enter" })
 ---
 id: other service address
 question: |
-  Enter the address where ${other_parties[0].name.full(middle="full")} can be found
+  Enter the address where ${other_parties[0].name_full()} can be found
 fields:
   - Street address: service_address.address
     address autocomplete: True
@@ -2729,14 +2729,14 @@ fields:
 ---    
 id: have another service address
 question: |
-  Do you want to add another address where ${other_parties[0].name.full(middle="full")} can be found?
+  Do you want to add another address where ${other_parties[0].name_full()} can be found?
 fields:
   - no label: has_second_service_address
     datatype: yesnoradio
 ---
 id: second service address choice
 question: |
-  Where else can ${other_parties[0].name.full(middle="full")} be found?
+  Where else can ${other_parties[0].name_full()} be found?
 fields:
   - no label: second_service_address_choice
     datatype: radio
@@ -2746,12 +2746,12 @@ reconsider: True
 code: |
   alt_service_list = []
   if knows_resp_address == True and service_address_choice != "home":
-    alt_service_list.append( { "home": other_parties[0].name.full(middle="full") + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
+    alt_service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "" and service_address_choice != "work":
-    alt_service_list.append({ "work": other_parties[0].name.full(middle="full")+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
+    alt_service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes'] and service_address_choice != "their other work":
     if other_parties[0].has_second_job and other_parties[0].employers[1].address.address != "":
-      alt_service_list.append({ "their other work": other_parties[0].name.full(middle="full")+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
+      alt_service_list.append({ "their other work": other_parties[0].name_full()+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
   
   alt_service_list.append({ "other": "An address I will enter" })
 ---
@@ -2776,9 +2776,9 @@ depends on:
   - service_address_choice
 id: service county
 question: |
-  In which county can the sheriff find ${other_parties[0].name.full(middle="full")}?
+  In which county can the sheriff find ${other_parties[0].name_full()}?
 subquestion: |
-  You said the sheriff can serve court papers on ${other_parties[0].name.full(middle="full")} at:
+  You said the sheriff can serve court papers on ${other_parties[0].name_full()} at:
   
   % if service_address_choice == "other":
   * ${ service_address.on_one_line(bare=True) }
@@ -2790,16 +2790,16 @@ subquestion: |
   * ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
   % endif
   
-  Enter the county below. If this is a different county from where you are filing your case, we will make a letter that you can send to the sheriff to help serve ${other_parties[0].name.full(middle="full")}.
+  Enter the county below. If this is a different county from where you are filing your case, we will make a letter that you can send to the sheriff to help serve ${other_parties[0].name_full()}.
   
   ${ collapse_template(county_lookup_help) }
 fields:
-  - County where ${other_parties[0].name.full(middle="full")} can be served: service_county
+  - County where ${other_parties[0].name_full()} can be served: service_county
     maxlength: 40
     show if:
       code: |
         service_state != "IL"
-  - County where ${other_parties[0].name.full(middle="full")} can be served: service_county
+  - County where ${other_parties[0].name_full()} can be served: service_county
     code: |
       court_list._load_courts()["address_county"].unique()
     show if:
@@ -2814,7 +2814,7 @@ content: |
 ---
 id: second other service address
 question: |
-  Enter another address where ${other_parties[0].name.full(middle="full")} can be found
+  Enter another address where ${other_parties[0].name_full()} can be found
 fields:
   - Street address: second_service_address.address
     address autocomplete: True
@@ -2829,22 +2829,22 @@ fields:
 ---
 id: respondent alt contact info
 question: |
-  Do you know other ways ${other_parties[0].name.full(middle="full")} can be contacted?
+  Do you know other ways ${other_parties[0].name_full()} can be contacted?
 subquestion: |
   You alread told us:
   
   % if other_parties[0].phone_number != "":
-  * ${other_parties[0].name.full(middle="full")}'s phone: ${ phone_number_formatted(other_parties[0].phone_number) }
+  * ${other_parties[0].name_full()}'s phone: ${ phone_number_formatted(other_parties[0].phone_number) }
   % else:
-  * ${other_parties[0].name.full(middle="full")}'s phone: None entered
+  * ${other_parties[0].name_full()}'s phone: None entered
   % endif
   % if other_parties[0].email != "":
-  * ${other_parties[0].name.full(middle="full")}'s email: ${ other_parties[0].email }
+  * ${other_parties[0].name_full()}'s email: ${ other_parties[0].email }
   % else:
-  * ${other_parties[0].name.full(middle="full")}'s email: None entered
+  * ${other_parties[0].name_full()}'s email: None entered
   % endif
    
-  If you do not know other contact information for ${other_parties[0].name.full(middle="full")}, leave these blank.
+  If you do not know other contact information for ${other_parties[0].name_full()}, leave these blank.
 fields:
   - Phone: other_parties[0].phone_number_alt
     datatype: al_international_phone
@@ -2855,7 +2855,7 @@ fields:
 ---
 id: service method
 question: |
-  Who do you want to deliver court papers to ${other_parties[0].name.full(middle="full")}?
+  Who do you want to deliver court papers to ${other_parties[0].name_full()}?
 subquestion: |
   This is called service. In Illinois, **Sheriffs usually serve Divorce court papers.**
   
@@ -2873,7 +2873,7 @@ id: e-signature
 question: |
   Do you want to add your e-signature to your ${ form_name }?
 subquestion: |
-  This program can put “**/s/ ${users[0].name.full(middle='full')}**” where you would sign your name. The court will accept this as your signature.
+  This program can put “**/s/ ${users[0].name_full()}**” where you would sign your name. The court will accept this as your signature.
 
   If you do not add your **{e-signature}** now, you must sign your paper forms before you file and deliver them.
 
@@ -2901,7 +2901,7 @@ subquestion: |
   This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
 
   * *Petition for Divorce*, and
-  * *Summons*, unless ${other_parties[0].name.full(middle="full")} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
+  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The rest of the forms can be used later. This includes the Illinois Department of Public Health (IDPH) **Certificate of Dissolution**. To finalize your divorce, you need a file-stamped copy of this form.
   
@@ -2916,7 +2916,7 @@ content: |
   Use these forms to start the divorce case:
 
   * *Petition for Divorce*, and
-  * *Summons*, unless ${other_parties[0].name.full(middle="full")} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
+  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
 
   The other forms are used later. This includes the Illinois Department of Public Health (IDPH) **Certificate of Dissolution**. To finalize your divorce, you need a file-stamped copy of this form.
   
@@ -3136,8 +3136,8 @@ attachment:
   editable: False
   pdf template file: cook_cover_sheet.pdf
   fields:
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent": ${ other_parties[0].name_full() }
     - "marriage_checkbox": ${ case_type_marriage }
     - "civil_union_checkbox": ${ not case_type_marriage }
     - "div_checkbox": ${ True }
@@ -3153,7 +3153,7 @@ attachment:
     - "previous_cook_case_judge": ${ previous_cook_case_judge if previous_cook_case_type == "divorce" or previous_cook_case_type == "parentage" else '' }
 
     - "pro_se_cb": ${ True }
-    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "petitioner__2": ${ users[0].name_full() }
     - "preparer_address_line_1": ${ users[0].address.line_one(bare=True) }
     - "preparer_address_line_2": ${ users[0].address.line_two() }
     - "preparer_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -3171,8 +3171,8 @@ attachment:
   pdf template file: petition_no_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "user_is_resident": ${ users[0].is_resident }
     - "user_is_not_resident": ${ not users[0].is_resident }
     - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
@@ -3233,8 +3233,8 @@ attachment:
     - "current_maintenance_yes": ${ current_maintenance }
     - "current_maintenance_no": ${ not current_maintenance }
 
-    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_signature": ${ users[0].name_full() if e_signature else '' }
+    - "user__2": ${ users[0].name_full() }
     - "user_address": ${ users[0].address.on_one_line(bare=True) }
     - "user_hide_address_cb": ${ True if hide_address else '' }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -3252,8 +3252,8 @@ attachment:
   pdf template file: petition_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "user_is_resident": ${ users[0].is_resident }
     - "user_is_not_resident": ${ not users[0].is_resident }
     - "user_resident_90": ${ True if users[0].is_resident and users[0].meets_90_day_requirement else "" }
@@ -3314,7 +3314,7 @@ attachment:
     - "resp_preg_pet_parent_yes": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "Yes" else "" } 
     - "resp_preg_pet_parent_no": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "No" else "" }
     - "resp_preg_pet_parent_idk": ${ True if resp_is_pregnant == "Yes" and resp_pregnant_pet_parent == "I don't know." else "" }
-    - "child_name_0": ${ children[0].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_0": ${ children[0].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_0": |
         % if children_status['minors'] or children_status['support']:
         % if children[0].age_in_years() > 1:
@@ -3340,7 +3340,7 @@ attachment:
     - "child_past_address_2_0": ${ children[0].former_addresses[2].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
     - "child_past_address_3_0": ${ children[0].former_addresses[3].on_one_line(bare=True) if children[0].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
-    - "child_name_1": ${ children[1].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_1": ${ children[1].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_1": |
         % if children_status['minors'] or children_status['support']:
         % if children[1].age_in_years() > 1:
@@ -3366,7 +3366,7 @@ attachment:
     - "child_past_address_2_1": ${ children[1].former_addresses[2].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
     - "child_past_address_3_1": ${ children[1].former_addresses[3].on_one_line(bare=True) if children[1].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
-    - "child_name_2": ${ children[2].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_2": ${ children[2].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_2": |
         % if children_status['minors'] or children_status['support']:
         % if children[2].age_in_years() > 1:
@@ -3411,8 +3411,8 @@ attachment:
     - "current_pt_schedule_yes": ${ current_pt_schedule if children_status['minors'] or children_status['support'] else "" }
     - "current_pt_schedule_no": ${ not current_pt_schedule if children_status['minors'] or children_status['support'] else "" }
 
-    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_signature": ${ users[0].name_full() if e_signature else '' }
+    - "user__2": ${ users[0].name_full() }
     - "user_address": ${ users[0].address.on_one_line(bare=True) }
     - "user_hide_address_cb": ${ True if hide_address else '' }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -3429,10 +3429,10 @@ attachment:
   pdf template file: additional_kids_petition.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 
-    - "child_name_3": ${ children[3].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_3": ${ children[3].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_3": |
         % if children_status['minors'] or children_status['support']:
         % if children[3].age_in_years() > 1:
@@ -3458,7 +3458,7 @@ attachment:
     - "child_past_address_2_3": ${ children[3].former_addresses[2].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
     - "child_past_address_3_3": ${ children[3].former_addresses[3].on_one_line(bare=True) if children[3].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
-    - "child_name_4": ${ children[4].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_4": ${ children[4].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_4": |
         % if children_status['minors'] or children_status['support']:
         % if children[4].age_in_years() > 1:
@@ -3484,7 +3484,7 @@ attachment:
     - "child_past_address_2_4": ${ children[4].former_addresses[2].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
     - "child_past_address_3_4": ${ children[4].former_addresses[3].on_one_line(bare=True) if children[4].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
-    - "child_name_5": ${ children[5].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_5": ${ children[5].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_5": |
         % if children_status['minors'] or children_status['support']:
         % if children[5].age_in_years() > 1:
@@ -3510,7 +3510,7 @@ attachment:
     - "child_past_address_2_5": ${ children[5].former_addresses[2].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
     - "child_past_address_3_5": ${ children[5].former_addresses[3].on_one_line(bare=True) if children[5].has_former_address and (children_status['minors'] or children_status['support']) else "" }
 
-    - "child_name_6": ${ children[6].name.full(middle="full") if children_status['minors'] or children_status['support'] else "" }
+    - "child_name_6": ${ children[6].name_full() if children_status['minors'] or children_status['support'] else "" }
     - "child_age_6": |
         % if children_status['minors'] or children_status['support']:
         % if children[6].age_in_years() > 1:
@@ -3546,21 +3546,21 @@ attachment:
   pdf template file: other_children_info.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 
     - "has_other_kids_during_marriage_no": ${ not has_other_kids_during_marriage }
     - "has_other_kids_during_marriage_yes": ${ has_other_kids_during_marriage }
-    - "outside_child_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_0": ${ outside_children[0].name_full() if has_other_kids_during_marriage else "" }
     - "outside_child_pet_0": ${ True if outside_children[0].parent == "My child" and has_other_kids_during_marriage else "" }
     - "outside_child_resp_0": ${ True if outside_children[0].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
-    - "outside_child_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_1": ${ outside_children[1].name_full() if has_other_kids_during_marriage else "" }
     - "outside_child_pet_1": ${ True if outside_children[1].parent == "My child" and has_other_kids_during_marriage else "" }
     - "outside_child_resp_1": ${ True if outside_children[1].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
-    - "outside_child_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_2": ${ outside_children[2].name_full() if has_other_kids_during_marriage else "" }
     - "outside_child_pet_2": ${ True if outside_children[2].parent == "My child" and has_other_kids_during_marriage else "" }
     - "outside_child_resp_2": ${ True if outside_children[2].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
-    - "outside_child_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage else "" }
+    - "outside_child_3": ${ outside_children[3].name_full() if has_other_kids_during_marriage else "" }
     - "outside_child_pet_3": ${ True if outside_children[3].parent == "My child" and has_other_kids_during_marriage else "" }
     - "outside_child_resp_3": ${ True if outside_children[3].parent == "My spouse's child" and has_other_kids_during_marriage else "" }
     
@@ -3623,27 +3623,27 @@ attachment:
     
     - "other_custodian_no": ${ not other_custodian if children_status['minors'] or children_status['support'] else "" }
     - "other_custodian_yes": ${ other_custodian if children_status['minors'] or children_status['support'] else "" }
-    - "custodian_name_0": ${ custodians[0].name.full(middle="full") if other_custodian else "" }
+    - "custodian_name_0": ${ custodians[0].name_full() if other_custodian else "" }
     - "custodian_address_0": ${ custodians[0].address.on_one_line(bare=True) if other_custodian else "" }
     - "custodian_kids_0": ${ custodians[0].kids_involved if other_custodian else "" }
-    - "custodian_name_1": ${ custodians[1].name.full(middle="full") if other_custodian else "" }
+    - "custodian_name_1": ${ custodians[1].name_full() if other_custodian else "" }
     - "custodian_address_1": ${ custodians[1].address.on_one_line(bare=True) if other_custodian else "" }
     - "custodian_kids_1": ${ custodians[1].kids_involved if other_custodian else "" }
-    - "custodian_name_2": ${ custodians[2].name.full(middle="full") if other_custodian else "" }
+    - "custodian_name_2": ${ custodians[2].name_full() if other_custodian else "" }
     - "custodian_address_2": ${ custodians[2].address.on_one_line(bare=True) if other_custodian else "" }
     - "custodian_kids_2": ${ custodians[2].kids_involved if other_custodian else "" }
     
     - "kids_lived_with_other_adult_no": ${ not kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
     - "kids_lived_with_other_adult_yes": ${ kids_lived_with_other_adult if children_status['minors'] or children_status['support'] else "" }
-    - "other_adult_name_0": ${ other_adults[0].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_name_0": ${ other_adults[0].name_full() if kids_lived_with_other_adult else "" }
     - "other_adult_kids_0": ${ other_adults[0].kids_involved if kids_lived_with_other_adult else "" }
     - "other_adult_relationship_0": ${ other_adults[0].relationship if kids_lived_with_other_adult else "" }
     - "other_adult_address_0": ${ other_adults[0].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
-    - "other_adult_name_1": ${ other_adults[1].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_name_1": ${ other_adults[1].name_full() if kids_lived_with_other_adult else "" }
     - "other_adult_kids_1": ${ other_adults[1].kids_involved if kids_lived_with_other_adult else "" }
     - "other_adult_relationship_1": ${ other_adults[1].relationship if kids_lived_with_other_adult else "" }
     - "other_adult_address_1": ${ other_adults[1].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
-    - "other_adult_name_2": ${ other_adults[2].name.full(middle="full") if kids_lived_with_other_adult else "" }
+    - "other_adult_name_2": ${ other_adults[2].name_full() if kids_lived_with_other_adult else "" }
     - "other_adult_kids_2": ${ other_adults[2].kids_involved if kids_lived_with_other_adult else "" }
     - "other_adult_relationship_2": ${ other_adults[2].relationship if kids_lived_with_other_adult else "" }
     - "other_adult_address_2": ${ other_adults[2].address.on_one_line(bare=True) if kids_lived_with_other_adult else "" }
@@ -3658,8 +3658,8 @@ attachment:
   pdf template file: judgment_no_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "marriage_date": ${ marriage_date }
     - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
     - "no_children_cb": ${ not any_children_together }
@@ -3857,8 +3857,8 @@ attachment:
   pdf template file: judgment_kids.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "marriage_date": ${ marriage_date }
     - "marriage_location": ${ marriage_county + ", " + marriage_state if marriage_in_america else marriage_intl_text + ", " + marriage_country }
     - "no_minor_children_cb": ${ True if any_minor_children == False else "" }
@@ -3866,7 +3866,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_minor_children:
         % if minor_children_list.number() > 0:
-        ${ minor_children_list[0].name.full(middle="full") }
+        ${ minor_children_list[0].name_full() }
         % endif
         % endif
         % endif
@@ -3888,7 +3888,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_minor_children:
         % if minor_children_list.number() > 1:
-        ${ minor_children_list[1].name.full(middle="full") }
+        ${ minor_children_list[1].name_full() }
         % endif
         % endif
         % endif
@@ -3910,7 +3910,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_minor_children:
         % if minor_children_list.number() > 2:
-        ${ minor_children_list[2].name.full(middle="full") }
+        ${ minor_children_list[2].name_full() }
         % endif
         % endif
         % endif
@@ -3941,7 +3941,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
         % if support_children_list.number() > 0:
-        ${ support_children_list[0].name.full(middle="full") }
+        ${ support_children_list[0].name_full() }
         % endif
         % endif
         % endif
@@ -3963,7 +3963,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
         % if support_children_list.number() > 1:
-        ${ support_children_list[1].name.full(middle="full") }
+        ${ support_children_list[1].name_full() }
         % endif
         % endif
         % endif
@@ -3985,7 +3985,7 @@ attachment:
         % if children_status['minors'] or children_status['support']:
         % if any_support_children:
         % if support_children_list.number() > 2:
-        ${ support_children_list[2].name.full(middle="full") }
+        ${ support_children_list[2].name_full() }
         % endif
         % endif
         % endif
@@ -4012,9 +4012,9 @@ attachment:
         % endif
         % endif
     - "no_outside_children_cb": ${ True if not has_other_kids_during_marriage else "" }
-    - "outside_child_name_0": ${ outside_children[0].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 0 else "" }
-    - "outside_child_name_1": ${ outside_children[1].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 1 else "" }
-    - "outside_child_name_2": ${ outside_children[2].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 2 else "" }
+    - "outside_child_name_0": ${ outside_children[0].name_full() if has_other_kids_during_marriage and outside_children.number() > 0 else "" }
+    - "outside_child_name_1": ${ outside_children[1].name_full() if has_other_kids_during_marriage and outside_children.number() > 1 else "" }
+    - "outside_child_name_2": ${ outside_children[2].name_full() if has_other_kids_during_marriage and outside_children.number() > 2 else "" }
     - "additional_outside_children_cb": ${ True if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
 
     - "has_real_estate_yes": ${ has_real_estate }
@@ -4222,8 +4222,8 @@ attachment:
   pdf template file: additional_kids_judgment.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "no_additional_minor_children_cb": |
         % if any_minor_children:
         % if minor_children_list.number() > 3:
@@ -4237,7 +4237,7 @@ attachment:
     - "minor_child_name_3": |
         % if any_minor_children:
         % if minor_children_list.number() > 3:
-        ${ minor_children_list[3].name.full(middle="full") }
+        ${ minor_children_list[3].name_full() }
         % endif
         % endif
     - "minor_child_age_3": |
@@ -4255,7 +4255,7 @@ attachment:
     - "minor_child_name_4": |
         % if any_minor_children:
         % if minor_children_list.number() > 4:
-        ${ minor_children_list[4].name.full(middle="full") }
+        ${ minor_children_list[4].name_full() }
         % endif
         % endif
     - "minor_child_age_4": |
@@ -4273,7 +4273,7 @@ attachment:
     - "minor_child_name_5": |
         % if any_minor_children:
         % if minor_children_list.number() > 5:
-        ${ minor_children_list[5].name.full(middle="full") }
+        ${ minor_children_list[5].name_full() }
         % endif
         % endif
     - "minor_child_age_5": |
@@ -4291,7 +4291,7 @@ attachment:
     - "minor_child_name_6": |
         % if any_minor_children:
         % if minor_children_list.number() > 6:
-        ${ minor_children_list[6].name.full(middle="full") }
+        ${ minor_children_list[6].name_full() }
         % endif
         % endif
     - "minor_child_age_6": |
@@ -4319,7 +4319,7 @@ attachment:
     - "support_child_name_3": |
         % if any_support_children:
         % if support_children_list.number() > 3:
-        ${ support_children_list[3].name.full(middle="full") }
+        ${ support_children_list[3].name_full() }
         % endif
         % endif
     - "support_child_age_3": |
@@ -4337,7 +4337,7 @@ attachment:
     - "support_child_name_4": |
         % if any_support_children:
         % if support_children_list.number() > 4:
-        ${ support_children_list[4].name.full(middle="full") }
+        ${ support_children_list[4].name_full() }
         % endif
         % endif
     - "support_child_age_4": |
@@ -4367,7 +4367,7 @@ attachment:
     - "support_child_name_5": |
         % if any_support_children:
         % if support_children_list.number() > 5:
-        ${ support_children_list[5].name.full(middle="full") }
+        ${ support_children_list[5].name_full() }
         % endif
         % endif
     - "support_child_age_5": |
@@ -4385,7 +4385,7 @@ attachment:
     - "support_child_name_6": |
         % if any_support_children:
         % if support_children_list.number() > 6:
-        ${ support_children_list[6].name.full(middle="full") }
+        ${ support_children_list[6].name_full() }
         % endif
         % endif
     - "support_child_age_6": |
@@ -4410,10 +4410,10 @@ attachment:
         % else:
         True
         % endif
-    - "outside_child_name_3": ${ outside_children[3].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
-    - "outside_child_name_4": ${ outside_children[4].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 4 else "" }
-    - "outside_child_name_5": ${ outside_children[5].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 5 else "" }
-    - "outside_child_name_6": ${ outside_children[6].name.full(middle="full") if has_other_kids_during_marriage and outside_children.number() > 6 else "" }
+    - "outside_child_name_3": ${ outside_children[3].name_full() if has_other_kids_during_marriage and outside_children.number() > 3 else "" }
+    - "outside_child_name_4": ${ outside_children[4].name_full() if has_other_kids_during_marriage and outside_children.number() > 4 else "" }
+    - "outside_child_name_5": ${ outside_children[5].name_full() if has_other_kids_during_marriage and outside_children.number() > 5 else "" }
+    - "outside_child_name_6": ${ outside_children[6].name_full() if has_other_kids_during_marriage and outside_children.number() > 6 else "" }
 
 ---
 attachment:
@@ -4425,8 +4425,8 @@ attachment:
   pdf template file: additional_debts.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 
     - "debt_creditor_5": ${ debts[5].name.text if include_debts else "" }
     - "debt_amount_5": ${ thousands(debts[5].amount, show_decimals=True) if include_debts else "" }
@@ -4619,8 +4619,8 @@ attachment:
   pdf template file: additional_property.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
     - "property_name_5": ${ property_list[5].name.text if property_list.number() > 5 else "" }
     - "property_to_pet_5": ${ property_list[5].party == "Me" if property_list.number() > 5 else "" }
     - "property_to_res_5": ${ property_list[5].party == "res" if property_list.number() > 5 else "" }
@@ -4658,8 +4658,8 @@ attachment:
   pdf template file: certification_agreement.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 ---
 attachment:
   variable name: IDPH_certificate_instructions[i]
@@ -4694,8 +4694,8 @@ attachment:
   pdf template file: child_support_order.pdf
   fields:
     - "county": ${ trial_court.address.county.upper() }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 ---
 attachment:
   variable name: support_information_sheet[i]
@@ -4706,9 +4706,9 @@ attachment:
   pdf template file: support_information_sheet.pdf
   fields:
     - "county": ${ trial_court.address.county.upper() }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
-    - "petitioner__2": ${ users[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
+    - "petitioner__2": ${ users[0].name_full() }
     - "user_address__2": ${ users[0].address.on_one_line(bare=True) if hide_address else "" }
     - "user_dob": ${ users[0].birthdate }
     - "user_phone__2": ${ phone_number_formatted(users[0].phone_number) }
@@ -4719,7 +4719,7 @@ attachment:
     - "user_employer_address_2": ${ users[0].employers[1].address.on_one_line(bare=True) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
     - "user_employer_phone_2": ${ phone_number_formatted(users[0].employers[1].phone_number) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
 
-    - "respondent__2": ${ other_parties[0].name.full(middle="full") }
+    - "respondent__2": ${ other_parties[0].name_full() }
     - "resp_address": ${ other_parties[0].address.on_one_line(bare=True) if knows_resp_address else "" }
     - "resp_dob": ${ other_parties[0].birthdate }
     - "resp_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
@@ -4730,23 +4730,23 @@ attachment:
     - "resp_employer_address_2": ${ other_parties[0].employers[1].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
     - "resp_employer_phone_2": ${ phone_number_formatted(other_parties[0].employers[1].phone_number) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
 
-    - "child_name_0": ${ children[0].name.full(middle="full") }
+    - "child_name_0": ${ children[0].name_full() }
     - "child_dob_0": ${ children[0].birthdate }
-    - "child_name_1": ${ children[1].name.full(middle="full") }
+    - "child_name_1": ${ children[1].name_full() }
     - "child_dob_1": ${ children[1].birthdate }
-    - "child_name_2": ${ children[2].name.full(middle="full") }
+    - "child_name_2": ${ children[2].name_full() }
     - "child_dob_2": ${ children[2].birthdate }
-    - "child_name_3": ${ children[3].name.full(middle="full") }
+    - "child_name_3": ${ children[3].name_full() }
     - "child_dob_3": ${ children[3].birthdate }
-    - "child_name_4": ${ children[4].name.full(middle="full") }
+    - "child_name_4": ${ children[4].name_full() }
     - "child_dob_4": ${ children[4].birthdate }
-    - "child_name_5": ${ children[5].name.full(middle="full") }
+    - "child_name_5": ${ children[5].name_full() }
     - "child_dob_5": ${ children[5].birthdate }
-    - "child_name_6": ${ children[6].name.full(middle="full") }
+    - "child_name_6": ${ children[6].name_full() }
     - "child_dob_6": ${ children[6].birthdate }
 
-    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_signature": ${ users[0].name_full() if e_signature else '' }
+    - "user__2": ${ users[0].name_full() }
     - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
     - "user_address_line_2": ${ users[0].address.line_two() }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -4793,11 +4793,11 @@ attachment:
   fields:
     - "county": ${ trial_court.address.county }
     - "county__2": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "petitioner__2": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${other_parties[0].name.full(middle="full")}
-    - "respondent__2": ${other_parties[0].name.full(middle="full")}
-    - "respondent__3": ${other_parties[0].name.full(middle="full")}
+    - "petitioner__1": ${ users[0].name_full() }
+    - "petitioner__2": ${ users[0].name_full() }
+    - "respondent__1": ${other_parties[0].name_full()}
+    - "respondent__2": ${other_parties[0].name_full()}
+    - "respondent__3": ${other_parties[0].name_full()}
     - "courthouse_address": ${ courthouse_info }
     - "clerk_phone": ${ trial_court.phone }
     - "clerk_website": ${ trial_court.website }
@@ -4861,7 +4861,7 @@ attachment:
         % endif
     - "service_method_sps": ${ True if service_method == "sps" else "" }
     - "service_method_detective": ${ True if service_method == "detective" else "" }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user__2": ${ users[0].name_full() }
     - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
     - "user_address_line_2": ${ users[0].address.line_two() }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -4877,15 +4877,15 @@ attachment:
   fields:
     - "county": ${ trial_court.address.county }
     - "county__2": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "petitioner__2": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${other_parties[0].name.full(middle="full")}
-    - "respondent__2": ${other_parties[0].name.full(middle="full")}
-    - "respondent__3": ${other_parties[0].name.full(middle="full")}
+    - "petitioner__1": ${ users[0].name_full() }
+    - "petitioner__2": ${ users[0].name_full() }
+    - "respondent__1": ${other_parties[0].name_full()}
+    - "respondent__2": ${other_parties[0].name_full()}
+    - "respondent__3": ${other_parties[0].name_full()}
     - "courthouse_address": ${ courthouse_info }
     - "clerk_phone": ${ trial_court.phone }
     - "clerk_website": ${ trial_court.website }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user__2": ${ users[0].name_full() }
     - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
     - "user_address_line_2": ${ users[0].address.line_two() }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
@@ -4903,13 +4903,13 @@ attachment:
   fields: 
     - "service_county": ${ service_county }
     - "service_state": ${ state_name(service_state) }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${other_parties[0].name.full(middle="full")}
-    - "respondent__2": ${other_parties[0].name.full(middle="full")}
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${other_parties[0].name_full()}
+    - "respondent__2": ${other_parties[0].name_full()}
     - "county": ${ trial_court.address.county }
     - "county__2": ${ trial_court.address.county }
-    - "user_signature": ${ users[0].name.full(middle="full") if e_signature else '' }
-    - "user__2": ${ users[0].name.full(middle="full") }
+    - "user_signature": ${ users[0].name_full() if e_signature else '' }
+    - "user__2": ${ users[0].name_full() }
     - "user_address": ${ users[0].address.on_one_line(bare=True) }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "user_email": ${ users[0].email if users[0].has_email_address else "" }
@@ -4924,7 +4924,7 @@ attachment:
   pdf template file: divorce_appearance.pdf
   fields:
     - "county": ${ trial_court.address.county }
-    - "petitioner__1": ${ users[0].name.full(middle="full") }
-    - "respondent__1": ${ other_parties[0].name.full(middle="full") }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 
 ---
