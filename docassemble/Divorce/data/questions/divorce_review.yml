@@ -56,7 +56,7 @@ review:
   - Edit: users[0].name.first
     button: |
       **Your name:**
-      ${users[0].name.full(middle="full")}
+      ${users[0].name_full()}
   - Edit: users[0].is_resident
     button: |
       **Do you live in Illinois?**
@@ -190,32 +190,32 @@ review:
   - Edit: other_parties[0].name.first
     button: |
       **Your spouse's name:**
-      ${other_parties[0].name.full(middle="full")}
+      ${other_parties[0].name_full()}
   - Edit: other_parties[0].birthdate
     button: |
-      **When was ${other_parties[0].name.full(middle="full")} spouse born?**
+      **When was ${other_parties[0].name_full()} spouse born?**
       ${ other_parties[0].birthdate }
   - Edit: other_parties[0].is_resident
     button: |
-      **Does ${other_parties[0].name.full(middle="full")} live in Illinois?**
+      **Does ${other_parties[0].name_full()} live in Illinois?**
       ${ word(yesno(other_parties[0].is_resident)) }
   - Edit: other_parties[0].meets_90_day_requirement
     button: |
-      **Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?**
+      **Has ${other_parties[0].name_full()} lived in Illinois for longer than 90 days?**
       ${ word(yesno(other_parties[0].meets_90_day_requirement)) }
     show if: other_parties[0].is_resident
   - Edit: knows_resp_address
     button: |
-      **Do you know ${other_parties[0].name.full(middle="full")}'s current address?**
+      **Do you know ${other_parties[0].name_full()}'s current address?**
       ${ word(yesno(knows_resp_address)) }
   - Edit: other_parties[0].address.address
     button: |
-      **${other_parties[0].name.full(middle="full")}'s current address:**
+      **${other_parties[0].name_full()}'s current address:**
       ${ other_parties[0].address.on_one_line(bare=True) }
     show if: knows_resp_address
   - Edit: other_parties[0].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s phone number:**
+      **${other_parties[0].name_full()}'s phone number:**
       % if other_parties[0].phone_number != "":
       ${ phone_number_formatted(other_parties[0].phone_number) }      
       % else:
@@ -223,7 +223,7 @@ review:
       % endif
   - Edit: other_parties[0].email
     button: |
-      **${other_parties[0].name.full(middle="full")}'s email:**
+      **${other_parties[0].name_full()}'s email:**
       % if other_parties[0].email != "":
       ${ other_parties[0].email }
       % else:
@@ -232,7 +232,7 @@ review:
     
   - Edit: other_parties[0].emp_status
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} employed?**
+      **Is ${other_parties[0].name_full()} employed?**
 
       % if other_parties[0].emp_status['Yes']:
       * Yes
@@ -248,22 +248,22 @@ review:
       % endif
   - Edit: other_parties[0].employers[0].job_title
     button: |
-     **${other_parties[0].name.full(middle="full")}'s job title:**
+     **${other_parties[0].name_full()}'s job title:**
       ${ other_parties[0].employers[0].job_title }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].name.text
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer name:**
+      **${other_parties[0].name_full()}'s employer name:**
       ${ other_parties[0].employers[0].name.text }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].address.address
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer address:**
+      **${other_parties[0].name_full()}'s employer address:**
       ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer phone:**
+      **${other_parties[0].name_full()}'s employer phone:**
       % if other_parties[0].employers[0].phone_number != "":
       ${ phone_number_formatted(other_parties[0].employers[0].phone_number) }
       % else:
@@ -272,17 +272,17 @@ review:
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].has_second_job
     button: |
-      **Does ${other_parties[0].name.full(middle="full")} have a second job?**
+      **Does ${other_parties[0].name_full()} have a second job?**
       ${word(yesno(other_parties[0].has_second_job))}
     show if: other_parties[0].emp_status["Yes"] == True
   - Edit: other_parties[0].employers[1].job_title
     button: |
-     **${other_parties[0].name.full(middle="full")}'s second job title:**
+     **${other_parties[0].name_full()}'s second job title:**
       ${ other_parties[0].employers[1].job_title }
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].name.text
     button: |
-      **${other_parties[0].name.full(middle="full")}'s second employer name:**
+      **${other_parties[0].name_full()}'s second employer name:**
       ${ other_parties[0].employers[1].name.text }
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].address.address
@@ -292,7 +292,7 @@ review:
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s second employer phone:**
+      **${other_parties[0].name_full()}'s second employer phone:**
       % if other_parties[0].employers[1].phone_number != "":
       ${ phone_number_formatted(other_parties[0].employers[1].phone_number) }
       % else:
@@ -301,7 +301,7 @@ review:
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].is_active_duty
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} currently on active duty?**
+      **Is ${other_parties[0].name_full()} currently on active duty?**
       % if other_parties[0].is_active_duty == 'Yes':
       Yes
       % elif other_parties[0].is_active_duty == 'No':
@@ -318,12 +318,12 @@ review:
       ${ word(yesno(pet_is_pregnant)) }      
   - Edit: pet_pregnant_resp_parent
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} the other parent of the unborn child?**
+      **Is ${other_parties[0].name_full()} the other parent of the unborn child?**
       ${ pet_pregnant_resp_parent }
     show if: pet_is_pregnant
   - Edit: resp_is_pregnant
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} pregnant?**
+      **Is ${other_parties[0].name_full()} pregnant?**
       ${ resp_is_pregnant }
   - Edit: resp_pregnant_pet_parent
     button: |
@@ -332,7 +332,7 @@ review:
     show if: resp_is_pregnant == "Yes"
   - Edit: any_children_together
     button: |
-      **Do you and ${other_parties[0].name.full(middle="full")} have any children together?**
+      **Do you and ${other_parties[0].name_full()} have any children together?**
       ${ word(yesno(any_children_together)) }      
   - Edit: children_status
     button: |
@@ -349,18 +349,18 @@ review:
       % endif
   - Edit: children.revisit
     button: |
-      **Your children with ${other_parties[0].name.full(middle="full")}: (Edit to change names and details)**
+      **Your children with ${other_parties[0].name_full()}: (Edit to change names and details)**
 
       % for my_var in children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: children_status['minors'] or children_status['support']
   - Edit: adult_children.revisit
     button: |
-      **Your adult children with ${other_parties[0].name.full(middle="full")}: (Edit to change names and details)**
+      **Your adult children with ${other_parties[0].name_full()}: (Edit to change names and details)**
 
       % for my_var in adult_children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: children_status['adults'] and children_status['minors'] == False and children_status['support'] == False
 
@@ -376,7 +376,7 @@ review:
     show if: children_status['minors'] or children_status['support']
   - Edit: current_pt_schedule
     button: |
-      **Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?**
+      **Is there currently a schedule for when the children are with you or ${other_parties[0].name_full()}?**
       ${ word(yesno(current_pt_schedule)) }        
     show if: children_status['minors'] or children_status['support']
   - Edit: taxes_choice
@@ -397,7 +397,7 @@ review:
   
   - Edit: other_custody_case
     button: |
-      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_custody_case)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custody_cases.revisit
@@ -411,7 +411,7 @@ review:
 
   - Edit: other_case_involving_kids
     button: |
-      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_case_involving_kids)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_cases.revisit
@@ -424,7 +424,7 @@ review:
     show if: any_children_together and other_case_involving_kids and (children_status['minors'] or children_status['support'])
   - Edit: other_custodian
     button: |
-      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_custodian)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custodians.revisit
@@ -432,12 +432,12 @@ review:
       **Other people with custody or rights involving your children: (Edit to change details)**
 
       % for my_var in custodians:
-      * ${my_var.name.full(middle="full")}
+      * ${my_var.name_full()}
       % endfor
     show if: any_children_together and other_custodian and (children_status['minors'] or children_status['support'])
   - Edit: kids_lived_with_other_adult
     button: |
-      **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
+      **Have any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last 5 years?**
       ${ word(yesno(kids_lived_with_other_adult)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_adults.revisit
@@ -445,12 +445,12 @@ review:
       **Other adults your children lived with in the last five years: (Edit to change details)**
 
       % for my_var in other_adults:
-      * ${my_var.name.full(middle="full")}
+      * ${my_var.name_full()}
       % endfor
     show if: any_children_together and kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
   - Edit: has_other_kids_during_marriage
     button: |
-      **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
+      **Did you or ${other_parties[0].name_full()} have a child by birth or adoption with someone else since the date of marriage?**
       ${ word(yesno(has_other_kids_during_marriage)) }
     show if: any_children_together
   - Edit: outside_children.revisit
@@ -458,7 +458,7 @@ review:
       **Children born or adopted outside the marriage: (Edit to change names and details)**
 
       % for my_var in outside_children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: has_other_kids_during_marriage and any_children_together
 
@@ -468,7 +468,7 @@ review:
       ${ word(yesno(current_maintenance)) }
   - Edit: want_maintenance
     button: |
-      **Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?**
+      **Do you want ${other_parties[0].name_full()} to pay you maintenance (alimony)?**
       ${ word(yesno(want_maintenance)) }
 
 
@@ -509,12 +509,12 @@ review:
     show if: include_property and pet_has_nonmarital_property    
   - Edit: resp_has_nonmarital_property
     button: |
-      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?**
+      **Do you want to list ${other_parties[0].name_full()}'s non-marital property?**
       ${ word(yesno(resp_has_nonmarital_property)) }
     show if: include_property    
   - Edit: resp_nonmarital_property
     button: |
-      **${other_parties[0].name.full(middle="full")}'s non-marital property:**
+      **${other_parties[0].name_full()}'s non-marital property:**
       ${resp_nonmarital_property}
     show if: include_property and resp_has_nonmarital_property    
   - Edit: property_other
@@ -530,7 +530,7 @@ review:
 
   - Edit: has_real_estate
     button: |
-      **Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?**
+      **Do you and ${other_parties[0].name_full()} own any marital real estate?**
       ${ word(yesno(has_real_estate)) }
   - Edit: real_estate.address
     button: |
@@ -556,12 +556,12 @@ review:
       % endif
   - Edit: enter_resp_pensions
     button: |
-      **Do you want to include information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      **Do you want to include information about ${other_parties[0].name_full()}'s retirement accounts and pensions?**
       ${ word(yesno(enter_resp_pensions)) }      
     show if: retirement_options == "split"    
   - Edit: pensions_resp.revisit
     button: |
-      **${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions: (Edit to change details)**
+      **${other_parties[0].name_full()}'s retirement accounts or pensions: (Edit to change details)**
 
       % for my_var in pensions_resp:
       * ${ my_var.name.text}
@@ -569,12 +569,12 @@ review:
     show if: retirement_options == "split" and enter_resp_pensions
   - Edit: resp_pensions_qdro
     button: |
-      **Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      **Who do you want to prepare the papwerwork for ${other_parties[0].name_full()}'s retirement accounts and pensions?**
       
       % if resp_pensions_qdro == "Me":
       * I will prepare the paperwork.
       % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
       % endif
@@ -599,7 +599,7 @@ review:
       % if resp_pensions_qdro == "Me":
       * I will prepare the paperwork.
       % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
       % endif
@@ -655,12 +655,12 @@ review:
     show if: include_debts and pet_has_nonmarital_debts    
   - Edit: resp_has_nonmarital_debts
     button: |
-      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?**
+      **Do you want to list ${other_parties[0].name_full()}'s non-marital debts?**
       ${ word(yesno(resp_has_nonmarital_debts)) }
     show if: include_debts    
   - Edit: resp_nonmarital_debts
     button: |
-      **${other_parties[0].name.full(middle="full")}'s non-marital debts:**
+      **${other_parties[0].name_full()}'s non-marital debts:**
       ${resp_nonmarital_debts}
     show if: include_debts and resp_has_nonmarital_debts    
 
@@ -694,7 +694,7 @@ review:
     show if: trial_court_index == -1
   - Edit: previous_cook_case_type
     button: |
-      **Previous Cook County case involving ${other_parties[0].name.full(middle="full")}:**
+      **Previous Cook County case involving ${other_parties[0].name_full()}:**
       ${ previous_cook_case_type.capitalize() }
     show if: trial_court_index == -1
   - Edit: previous_cook_case_date
@@ -728,17 +728,17 @@ review:
     show if: trial_court_index == -1
   - Edit: optional_appearance
     button: |
-      **Make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?**
+      **Make an optional *Appearance* form for ${other_parties[0].name_full()}?**
       ${ word(yesno(optional_appearance)) }
   
   - Edit: know_resp_location
     button: |
-      **Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?**
+      **Do you have an address where ${other_parties[0].name_full()} can be found?**
       ${ word(yesno(know_resp_location))}
   
   - Edit: service_address_choice
     button: |
-      **Where can ${other_parties[0].name.full(middle="full")} be found for service?**
+      **Where can ${other_parties[0].name_full()} be found for service?**
       
       % if service_address_choice == "other":
       * At an address I will enter
@@ -758,19 +758,19 @@ review:
     show if: service_address_choice == "other" and know_resp_location
   - Edit: service_county
     button: |
-      **County where ${other_parties[0].name.full(middle="full")} can be served:**
+      **County where ${other_parties[0].name_full()} can be served:**
       ${ service_county }
       
-      **Note:** Be sure this county is correct if you change the address where ${other_parties[0].name.full(middle="full")} can be served.
+      **Note:** Be sure this county is correct if you change the address where ${other_parties[0].name_full()} can be served.
     show if: know_resp_location
   - Edit: has_second_service_address
     button: |
-      **Do you know another location where ${other_parties[0].name.full(middle="full")} can be found for service?**
+      **Do you know another location where ${other_parties[0].name_full()} can be found for service?**
       ${ word(yesno(has_second_service_address)) }
     show if: know_resp_location
   - Edit: second_service_address_choice
     button: |
-      **Where else can ${other_parties[0].name.full(middle="full")} be found for service?**
+      **Where else can ${other_parties[0].name_full()} be found for service?**
       % if second_service_address_choice == "other":
       At another address
       % else:
@@ -784,22 +784,22 @@ review:
     show if: has_second_service_address and second_service_address_choice == "other" and know_resp_location
   - Edit: other_parties[0].phone_number_alt
     button: |
-      **${other_parties[0].name.full(middle="full")}'s other contact info:**
+      **${other_parties[0].name_full()}'s other contact info:**
   
       % if other_parties[0].phone_number_alt != "":
-      * ${other_parties[0].name.full(middle="full")}'s alternate phone: ${ phone_number_formatted(other_parties[0].phone_number_alt) }
+      * ${other_parties[0].name_full()}'s alternate phone: ${ phone_number_formatted(other_parties[0].phone_number_alt) }
       % else:
-      * ${other_parties[0].name.full(middle="full")}'s alternate phone: None entered
+      * ${other_parties[0].name_full()}'s alternate phone: None entered
       % endif
       % if other_parties[0].email_alt != "":
-      * ${other_parties[0].name.full(middle="full")}'s alternate email: ${ other_parties[0].email_alt }
+      * ${other_parties[0].name_full()}'s alternate email: ${ other_parties[0].email_alt }
       % else:
-      * ${other_parties[0].name.full(middle="full")}'s alternate email: None entered
+      * ${other_parties[0].name_full()}'s alternate email: None entered
       % endif
     show if: has_second_service_address and know_resp_location
   - Edit: service_method
     button: |
-      **How do you want ${other_parties[0].name.full(middle="full")} to be served?**
+      **How do you want ${other_parties[0].name_full()} to be served?**
       % if service_method == "sheriff":
       By the sheriff
       % elif service_method == "sps":
@@ -823,7 +823,7 @@ review:
 id: children revisit
 continue button field: children.revisit
 question: |
-  Edit the children you have with ${other_parties[0].name.full(middle="full")}
+  Edit the children you have with ${other_parties[0].name_full()}
 subquestion: |
   ${ children.table }
 
@@ -836,7 +836,7 @@ table: children.table
 rows: children
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Details (including birth date, school status, and residence history): |
       action_button_html(url_action(row_item.attr_name("review_child_details")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -847,12 +847,12 @@ id: child details
 continue button field: x.review_child_details
 generic object: ALIndividual
 question: |
-  Edit ${ x.name.full(middle="full") }'s information
+  Edit ${ x.name_full() }'s information
 review: 
   - Edit: x.name.first
     button: |
       **Name:**
-      ${ x.name.full(middle="full")  }
+      ${ x.name_full()  }
   - Edit: x.birthdate
     button: |
       **Birth date:**
@@ -871,7 +871,7 @@ review:
       ${ word(yesno(x.is_in_school)) }
   - Edit: x.is_resident
     button: |
-      **Has ${ x.name.full(middle="full") } lived in Illinois for the last 6 months or more?**
+      **Has ${ x.name_full() } lived in Illinois for the last 6 months or more?**
       % if x.is_resident == 'Yes':
       Yes
       % elif x.is_resident == 'No':
@@ -885,7 +885,7 @@ review:
       ${ x.address.on_one_line(bare=True) }      
   - Edit: x.has_former_address
     button: |
-      **Has ${x.name.full(middle="full")} lived at any other addresses in the last five years?**
+      **Has ${x.name_full()} lived at any other addresses in the last five years?**
       ${ word(yesno(x.has_former_address)) }
   - Edit: x.former_addresses.revisit
     button: |
@@ -900,7 +900,7 @@ continue button label: Next
 id: former addresses revisit
 continue button field: children[i].former_addresses.revisit
 question: |
-  Edit ${children[i].name.full(middle="full")}'s former addresses
+  Edit ${children[i].name_full()}'s former addresses
 subquestion: |
   ${ children[i].former_addresses.table }
 
@@ -923,7 +923,7 @@ confirm: True
 id: adult children revisit
 continue button field: adult_children.revisit
 question: |
-  Edit the adult children you have with ${other_parties[0].name.full(middle="full")}
+  Edit the adult children you have with ${other_parties[0].name_full()}
 subquestion: |
   ${ adult_children.table }
 
@@ -933,7 +933,7 @@ table: adult_children.table
 rows: adult_children
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Details (including name and birth date): |
       action_button_html(url_action(row_item.attr_name("review_adult_child_details")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -944,12 +944,12 @@ id: adult child details
 continue button field: x.review_adult_child_details
 generic object: ALIndividual
 question: |
-  Edit ${ x.name.full(middle="full") }'s information
+  Edit ${ x.name_full() }'s information
 review: 
   - Edit: x.name.first
     button: |
       **Name:**
-      ${ x.name.full(middle="full")  }
+      ${ x.name_full()  }
   - Edit: x.birthdate
     button: |
       **Birth date:**
@@ -960,7 +960,7 @@ continue button label: Next
 id: outside children revisit
 continue button field: outside_children.revisit
 question: |
-  Edit the children you or ${other_parties[0].name.full(middle="full")} had outside the marriage
+  Edit the children you or ${other_parties[0].name_full()} had outside the marriage
 subquestion: |
   ${ outside_children.table }
 
@@ -972,7 +972,7 @@ table: outside_children.table
 rows: outside_children
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Who's child: |
       row_item.parent if defined("row_item.parent") else ""
   - Edit: |
@@ -1047,7 +1047,7 @@ table: custodians.table
 rows: custodians
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Details (including address and children involved): |
       action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1068,7 +1068,7 @@ table: other_adults.table
 rows: other_adults
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Details (including address, children involved and relationship): |
       action_button_html(url_action(row_item.attr_name("name.first")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1116,7 +1116,7 @@ columns:
   - Description: |
       row_item.name.text if defined("row_item.name.text") else ""
   - Will go to: |
-      other_parties[0].name.full(middle="full") if row_item.party == "res" else row_item.party       
+      other_parties[0].name_full() if row_item.party == "res" else row_item.party       
   - Edit: |
       action_button_html(url_action(row_item.attr_name("name.text")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1126,7 +1126,7 @@ confirm: True
 id: resp pensions revisit
 continue button field: pensions_resp.revisit
 question: |
-  Edit information about ${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions
+  Edit information about ${other_parties[0].name_full()}'s retirement accounts or pensions
 subquestion: |
   ${ pensions_resp.table }
 
@@ -1236,7 +1236,7 @@ review:
   - Edit: users[0].name.first
     button: |
       **Your name:**
-      ${users[0].name.full(middle="full")}
+      ${users[0].name_full()}
   - Edit: users[0].is_resident
     button: |
       **Do you live in Illinois?**
@@ -1377,32 +1377,32 @@ review:
   - Edit: other_parties[0].name.first
     button: |
       **Your spouse's name:**
-      ${other_parties[0].name.full(middle="full")}
+      ${other_parties[0].name_full()}
   - Edit: other_parties[0].birthdate
     button: |
-      **When was ${other_parties[0].name.full(middle="full")} spouse born?**
+      **When was ${other_parties[0].name_full()} spouse born?**
       ${ other_parties[0].birthdate }
   - Edit: other_parties[0].is_resident
     button: |
-      **Does ${other_parties[0].name.full(middle="full")} live in Illinois?**
+      **Does ${other_parties[0].name_full()} live in Illinois?**
       ${ word(yesno(other_parties[0].is_resident)) }
   - Edit: other_parties[0].meets_90_day_requirement
     button: |
-      **Has ${other_parties[0].name.full(middle="full")} lived in Illinois for longer than 90 days?**
+      **Has ${other_parties[0].name_full()} lived in Illinois for longer than 90 days?**
       ${ word(yesno(other_parties[0].meets_90_day_requirement)) }
     show if: other_parties[0].is_resident
   - Edit: knows_resp_address
     button: |
-      **Do you know ${other_parties[0].name.full(middle="full")}'s current address?**
+      **Do you know ${other_parties[0].name_full()}'s current address?**
       ${ word(yesno(knows_resp_address)) }
   - Edit: other_parties[0].address.address
     button: |
-      **${other_parties[0].name.full(middle="full")}'s current address:**
+      **${other_parties[0].name_full()}'s current address:**
       ${ other_parties[0].address.on_one_line(bare=True) }
     show if: knows_resp_address
   - Edit: other_parties[0].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s phone number:**
+      **${other_parties[0].name_full()}'s phone number:**
       % if other_parties[0].phone_number != "":
       ${ phone_number_formatted(other_parties[0].phone_number) }      
       % else:
@@ -1410,7 +1410,7 @@ review:
       % endif
   - Edit: other_parties[0].email
     button: |
-      **${other_parties[0].name.full(middle="full")}'s email:**
+      **${other_parties[0].name_full()}'s email:**
       % if other_parties[0].email != "":
       ${ other_parties[0].email }
       % else:
@@ -1419,7 +1419,7 @@ review:
     
   - Edit: other_parties[0].emp_status
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} employed?**
+      **Is ${other_parties[0].name_full()} employed?**
 
       % if other_parties[0].emp_status['Yes']:
       * Yes
@@ -1435,22 +1435,22 @@ review:
       % endif
   - Edit: other_parties[0].employers[0].job_title
     button: |
-     **${other_parties[0].name.full(middle="full")}'s job title:**
+     **${other_parties[0].name_full()}'s job title:**
       ${ other_parties[0].employers[0].job_title }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].name.text
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer name:**
+      **${other_parties[0].name_full()}'s employer name:**
       ${ other_parties[0].employers[0].name.text }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].address.address
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer address:**
+      **${other_parties[0].name_full()}'s employer address:**
       ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].employers[0].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s employer phone:**
+      **${other_parties[0].name_full()}'s employer phone:**
       % if other_parties[0].employers[0].phone_number != "":
       ${ phone_number_formatted(other_parties[0].employers[0].phone_number) }
       % else:
@@ -1459,17 +1459,17 @@ review:
     show if: other_parties[0].emp_status["Yes"]
   - Edit: other_parties[0].has_second_job
     button: |
-      **Does ${other_parties[0].name.full(middle="full")} have a second job?**
+      **Does ${other_parties[0].name_full()} have a second job?**
       ${word(yesno(other_parties[0].has_second_job))}
     show if: other_parties[0].emp_status["Yes"] == True
   - Edit: other_parties[0].employers[1].job_title
     button: |
-     **${other_parties[0].name.full(middle="full")}'s second job title:**
+     **${other_parties[0].name_full()}'s second job title:**
       ${ other_parties[0].employers[1].job_title }
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].name.text
     button: |
-      **${other_parties[0].name.full(middle="full")}'s second employer name:**
+      **${other_parties[0].name_full()}'s second employer name:**
       ${ other_parties[0].employers[1].name.text }
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].address.address
@@ -1479,7 +1479,7 @@ review:
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].employers[1].phone_number
     button: |
-      **${other_parties[0].name.full(middle="full")}'s second employer phone:**
+      **${other_parties[0].name_full()}'s second employer phone:**
       % if other_parties[0].employers[1].phone_number != "":
       ${ phone_number_formatted(other_parties[0].employers[1].phone_number) }
       % else:
@@ -1488,7 +1488,7 @@ review:
     show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].is_active_duty
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} currently on active duty?**
+      **Is ${other_parties[0].name_full()} currently on active duty?**
       % if other_parties[0].is_active_duty == 'Yes':
       Yes
       % elif other_parties[0].is_active_duty == 'No':
@@ -1513,12 +1513,12 @@ review:
       ${ word(yesno(pet_is_pregnant)) }      
   - Edit: pet_pregnant_resp_parent
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} the other parent of the unborn child?**
+      **Is ${other_parties[0].name_full()} the other parent of the unborn child?**
       ${ pet_pregnant_resp_parent }
     show if: pet_is_pregnant
   - Edit: resp_is_pregnant
     button: |
-      **Is ${other_parties[0].name.full(middle="full")} pregnant?**
+      **Is ${other_parties[0].name_full()} pregnant?**
       ${ resp_is_pregnant }
   - Edit: resp_pregnant_pet_parent
     button: |
@@ -1527,7 +1527,7 @@ review:
     show if: resp_is_pregnant == "Yes"
   - Edit: any_children_together
     button: |
-      **Do you and ${other_parties[0].name.full(middle="full")} have any children together?**
+      **Do you and ${other_parties[0].name_full()} have any children together?**
       ${ word(yesno(any_children_together)) }      
   - Edit: children_status
     button: |
@@ -1544,18 +1544,18 @@ review:
       % endif
   - Edit: children.revisit
     button: |
-      **Your children with ${other_parties[0].name.full(middle="full")}: (Edit to change names and details)**
+      **Your children with ${other_parties[0].name_full()}: (Edit to change names and details)**
 
       % for my_var in children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: children_status['minors'] or children_status['support']
   - Edit: adult_children.revisit
     button: |
-      **Your adult children with ${other_parties[0].name.full(middle="full")}: (Edit to change names and details)**
+      **Your adult children with ${other_parties[0].name_full()}: (Edit to change names and details)**
 
       % for my_var in adult_children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: children_status['adults'] and children_status['minors'] == False and children_status['support'] == False
 
@@ -1571,7 +1571,7 @@ review:
     show if: children_status['minors'] or children_status['support']
   - Edit: current_pt_schedule
     button: |
-      **Is there currently a schedule for when the children are with you or ${other_parties[0].name.full(middle="full")}?**
+      **Is there currently a schedule for when the children are with you or ${other_parties[0].name_full()}?**
       ${ word(yesno(current_pt_schedule)) }        
     show if: children_status['minors'] or children_status['support']
   - Edit: taxes_choice
@@ -1591,7 +1591,7 @@ review:
   
   - Edit: other_custody_case
     button: |
-      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Have you been involved in another court case about custody or visitation with any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_custody_case)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custody_cases.revisit
@@ -1605,7 +1605,7 @@ review:
 
   - Edit: other_case_involving_kids
     button: |
-      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Do you know of another court case, not custody or visitation, that might affect any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_case_involving_kids)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_cases.revisit
@@ -1618,7 +1618,7 @@ review:
     show if: any_children_together and other_case_involving_kids and (children_status['minors'] or children_status['support'])
   - Edit: other_custodian
     button: |
-      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name.full(middle="full")}?**
+      **Do you know of another person who has custody or rights to any of the children you have with ${other_parties[0].name_full()}?**
       ${ word(yesno(other_custodian)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: custodians.revisit
@@ -1626,12 +1626,12 @@ review:
       **Other people with custody or rights involving your children: (Edit to change details)**
 
       % for my_var in custodians:
-      * ${my_var.name.full(middle="full")}
+      * ${my_var.name_full()}
       % endfor
     show if: any_children_together and other_custodian and (children_status['minors'] or children_status['support'])
   - Edit: kids_lived_with_other_adult
     button: |
-      **Have any of your children with ${other_parties[0].name.full(middle="full")} lived with another adult without either parent in the last 5 years?**
+      **Have any of your children with ${other_parties[0].name_full()} lived with another adult without either parent in the last 5 years?**
       ${ word(yesno(kids_lived_with_other_adult)) }
     show if: any_children_together and (children_status['minors'] or children_status['support'])
   - Edit: other_adults.revisit
@@ -1639,12 +1639,12 @@ review:
       **Other adults your children lived with in the last five years: (Edit to change details)**
 
       % for my_var in other_adults:
-      * ${my_var.name.full(middle="full")}
+      * ${my_var.name_full()}
       % endfor
     show if: any_children_together and kids_lived_with_other_adult and (children_status['minors'] or children_status['support'])
   - Edit: has_other_kids_during_marriage
     button: |
-      **Did you or ${other_parties[0].name.full(middle="full")} have a child by birth or adoption with someone else since the date of marriage?**
+      **Did you or ${other_parties[0].name_full()} have a child by birth or adoption with someone else since the date of marriage?**
       ${ word(yesno(has_other_kids_during_marriage)) }
     show if: any_children_together
   - Edit: outside_children.revisit
@@ -1652,7 +1652,7 @@ review:
       **Children born or adopted outside the marriage: (Edit to change names and details)**
 
       % for my_var in outside_children:
-        * ${ my_var.name.full(middle="full") }
+        * ${ my_var.name_full() }
       % endfor
     show if: has_other_kids_during_marriage and any_children_together
 
@@ -1662,7 +1662,7 @@ review:
       ${ word(yesno(current_maintenance)) }
   - Edit: want_maintenance
     button: |
-      **Do you want ${other_parties[0].name.full(middle="full")} to pay you maintenance (alimony)?**
+      **Do you want ${other_parties[0].name_full()} to pay you maintenance (alimony)?**
       ${ word(yesno(want_maintenance)) }
 
 
@@ -1710,12 +1710,12 @@ review:
     show if: include_property and pet_has_nonmarital_property    
   - Edit: resp_has_nonmarital_property
     button: |
-      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital property?**
+      **Do you want to list ${other_parties[0].name_full()}'s non-marital property?**
       ${ word(yesno(resp_has_nonmarital_property)) }
     show if: include_property    
   - Edit: resp_nonmarital_property
     button: |
-      **${other_parties[0].name.full(middle="full")}'s non-marital property:**
+      **${other_parties[0].name_full()}'s non-marital property:**
       ${resp_nonmarital_property}
     show if: include_property and resp_has_nonmarital_property    
   - Edit: property_other
@@ -1731,7 +1731,7 @@ review:
 
   - Edit: has_real_estate
     button: |
-      **Do you and ${other_parties[0].name.full(middle="full")} own any marital real estate?**
+      **Do you and ${other_parties[0].name_full()} own any marital real estate?**
       ${ word(yesno(has_real_estate)) }
   - Edit: real_estate.address
     button: |
@@ -1757,12 +1757,12 @@ review:
       % endif
   - Edit: enter_resp_pensions
     button: |
-      **Do you want to include information about ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      **Do you want to include information about ${other_parties[0].name_full()}'s retirement accounts and pensions?**
       ${ word(yesno(enter_resp_pensions)) }      
     show if: retirement_options == "split"    
   - Edit: pensions_resp.revisit
     button: |
-      **${other_parties[0].name.full(middle="full")}'s retirement accounts or pensions: (Edit to change details)**
+      **${other_parties[0].name_full()}'s retirement accounts or pensions: (Edit to change details)**
 
       % for my_var in pensions_resp:
       * ${ my_var.name.text}
@@ -1770,12 +1770,12 @@ review:
     show if: retirement_options == "split" and enter_resp_pensions
   - Edit: resp_pensions_qdro
     button: |
-      **Who do you want to prepare the papwerwork for ${other_parties[0].name.full(middle="full")}'s retirement accounts and pensions?**
+      **Who do you want to prepare the papwerwork for ${other_parties[0].name_full()}'s retirement accounts and pensions?**
       
       % if resp_pensions_qdro == "Me":
       * I will prepare the paperwork.
       % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
       % endif
@@ -1800,7 +1800,7 @@ review:
       % if resp_pensions_qdro == "Me":
       * I will prepare the paperwork.
       % elif resp_pensions_qdro == "Them":
-      * ${other_parties[0].name.full(middle="full")} will prepare the paperwork.
+      * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
       % endif
@@ -1864,12 +1864,12 @@ review:
     show if: include_debts and pet_has_nonmarital_debts    
   - Edit: resp_has_nonmarital_debts
     button: |
-      **Do you want to list ${other_parties[0].name.full(middle="full")}'s non-marital debts?**
+      **Do you want to list ${other_parties[0].name_full()}'s non-marital debts?**
       ${ word(yesno(resp_has_nonmarital_debts)) }
     show if: include_debts    
   - Edit: resp_nonmarital_debts
     button: |
-      **${other_parties[0].name.full(middle="full")}'s non-marital debts:**
+      **${other_parties[0].name_full()}'s non-marital debts:**
       ${resp_nonmarital_debts}
     show if: include_debts and resp_has_nonmarital_debts    
 
@@ -1909,7 +1909,7 @@ review:
     show if: trial_court_index == -1
   - Edit: previous_cook_case_type
     button: |
-      **Previous Cook County case involving ${other_parties[0].name.full(middle="full")}:**
+      **Previous Cook County case involving ${other_parties[0].name_full()}:**
       ${ previous_cook_case_type.capitalize() }
     show if: trial_court_index == -1
   - Edit: previous_cook_case_date
@@ -1943,17 +1943,17 @@ review:
     show if: trial_court_index == -1
   - Edit: optional_appearance
     button: |
-      **Make an optional *Appearance* form for ${other_parties[0].name.full(middle="full")}?**
+      **Make an optional *Appearance* form for ${other_parties[0].name_full()}?**
       ${ word(yesno(optional_appearance)) }
   
   - Edit: know_resp_location
     button: |
-      **Do you have an address where ${other_parties[0].name.full(middle="full")} can be found?**
+      **Do you have an address where ${other_parties[0].name_full()} can be found?**
       ${ word(yesno(know_resp_location))}
   
   - Edit: service_address_choice
     button: |
-      **Where can ${other_parties[0].name.full(middle="full")} be found for service?**
+      **Where can ${other_parties[0].name_full()} be found for service?**
       
       % if service_address_choice == "other":
       * At an address I will enter
@@ -1973,19 +1973,19 @@ review:
     show if: service_address_choice == "other" and know_resp_location
   - Edit: service_county
     button: |
-      **County where ${other_parties[0].name.full(middle="full")} can be served:**
+      **County where ${other_parties[0].name_full()} can be served:**
       ${ service_county }
       
-      **Note:** Be sure this county is correct if you change the address where ${other_parties[0].name.full(middle="full")} can be served.
+      **Note:** Be sure this county is correct if you change the address where ${other_parties[0].name_full()} can be served.
     show if: know_resp_location
   - Edit: has_second_service_address
     button: |
-      **Do you know another location where ${other_parties[0].name.full(middle="full")} can be found for service?**
+      **Do you know another location where ${other_parties[0].name_full()} can be found for service?**
       ${ word(yesno(has_second_service_address)) }
     show if: know_resp_location
   - Edit: second_service_address_choice
     button: |
-      **Where else can ${other_parties[0].name.full(middle="full")} be found for service?**
+      **Where else can ${other_parties[0].name_full()} be found for service?**
       % if second_service_address_choice == "other":
       At another address
       % else:
@@ -1999,22 +1999,22 @@ review:
     show if: has_second_service_address and second_service_address_choice == "other" and know_resp_location
   - Edit: other_parties[0].phone_number_alt
     button: |
-      **${other_parties[0].name.full(middle="full")}'s other contact info:**
+      **${other_parties[0].name_full()}'s other contact info:**
   
       % if other_parties[0].phone_number_alt != "":
-      * ${other_parties[0].name.full(middle="full")}'s alternate phone: ${ phone_number_formatted(other_parties[0].phone_number_alt) }
+      * ${other_parties[0].name_full()}'s alternate phone: ${ phone_number_formatted(other_parties[0].phone_number_alt) }
       % else:
-      * ${other_parties[0].name.full(middle="full")}'s alternate phone: None entered
+      * ${other_parties[0].name_full()}'s alternate phone: None entered
       % endif
       % if other_parties[0].email_alt != "":
-      * ${other_parties[0].name.full(middle="full")}'s alternate email: ${ other_parties[0].email_alt }
+      * ${other_parties[0].name_full()}'s alternate email: ${ other_parties[0].email_alt }
       % else:
-      * ${other_parties[0].name.full(middle="full")}'s alternate email: None entered
+      * ${other_parties[0].name_full()}'s alternate email: None entered
       % endif
     show if: has_second_service_address and know_resp_location
   - Edit: service_method
     button: |
-      **How do you want ${other_parties[0].name.full(middle="full")} to be served?**
+      **How do you want ${other_parties[0].name_full()} to be served?**
       % if service_method == "sheriff":
       By the sheriff
       % elif service_method == "sps":
