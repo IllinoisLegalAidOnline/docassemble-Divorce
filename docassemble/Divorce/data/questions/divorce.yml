@@ -1282,7 +1282,7 @@ fields:
 ---
 reconsider: True
 code: |
-  formatted_adult_child_list = [f"{child.name.full(middle='full')} (age {child.age_in_years()})" for child in adult_children]
+  formatted_adult_child_list = [f"{child.name_full()} (age {child.age_in_years()})" for child in adult_children]
 
 ---
 id: adult child age
