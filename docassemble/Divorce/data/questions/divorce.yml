@@ -785,7 +785,7 @@ id: user former name
 question: |
   Do you want to go back to a former or maiden name?
 subquestion: |
-  **Note:** If your spouse wants to return to a former or maiden name, they will have to ask for this separately. This can be done in their own *Petition for Divorce*. It is called a "counter-petition" if it is filed after you file.
+  **Note:** If your spouse wants to return to a former or maiden name, they will have to ask for this separately. This can be done in their own *Petition for Divorce*. It is called a "counter-petition" if they file it after you file yours.
 fields:
   - no label: users[0].use_former_name
     datatype: yesnoradio
