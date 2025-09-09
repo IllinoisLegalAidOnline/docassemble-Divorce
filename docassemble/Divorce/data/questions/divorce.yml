@@ -204,6 +204,7 @@ code: |
     case_type_marriage
   courthouse_info
 
+  service_intro
   optional_appearance
   if know_resp_location:
     if service_address_choice == "other":
@@ -648,9 +649,9 @@ fields:
 ---
 id: user residence county
 question: |
-  In which county do you currently live?
+  In which state and county do you currently live?
 subquestion: |
-  **This county will appear on your court papers.** If you want to keep this hidden because it would put you or your household at risk, **Edit** your answers and say you want to hide your address and county.
+  **This information will appear on your court papers.** If you want to keep this hidden because it would put you or your household at risk, **Edit** your answers and say you want to hide your address and county.
 
   ${ collapse_template(county_lookup_help) }
 fields:
@@ -662,8 +663,8 @@ fields:
   - County where you currently live: users[0].residence_county
     code: |
       court_list._load_courts()["address_county"].unique()      
-    js show if: |
-      val('users[0].residence_state') === "IL"
+    js hide if: |
+      val('users[0].residence_state') != "IL"
   - County where you currently live: users[0].residence_county
     maxlength: 25
     js show if: |
@@ -783,6 +784,8 @@ sets:
 id: user former name
 question: |
   Do you want to go back to a former or maiden name?
+subquestion: |
+  **Note:** If your spouse wants to return to a former or maiden name, they will have to ask for this separately. This can be done in their own *Petition for Divorce*. It is called a "counter-petition" if they file it after you file yours.
 fields:
   - no label: users[0].use_former_name
     datatype: yesnoradio
@@ -1126,15 +1129,15 @@ fields:
 ---
 id: is child of marriage
 question: |
-  Was ${children[i].name_full()} born or adopted after the marriage?
+  Was ${children[i].name_full()} born or adopted during the marriage?
 subquestion: |
-  **Note:** If the child was born before the marriage, but adoped after the marriage, select **Born or adopted after the marriage**.
+  **Note:** If the child was born before the marriage, but adoped during the marriage, select **Born or adopted during or after the marriage**.
 fields: 
   - ${children[i].name_full()} was: children[i].is_of_marriage
     datatype: radio
     choices:
       - Born or adopted **before** the marriage.: False
-      - Born or adopted **after** the marriage.: True
+      - Born or adopted **during** or **after** the marriage.: True
 ---
 id: does child have a disability
 question: |
@@ -1153,6 +1156,8 @@ fields:
 id: child address
 question: |
   Has ${children[i].name_full()} lived in Illinois for the last 6 months or more?
+subquestion: |
+  **Note:** For Illinois courts to be able to make decisions about your children, they must have lived in Illinois for the last 6 months. If they are not currently living in Illinois, you may want to talk with a lawyer about your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
 fields:
   - Illinois resident for 6 months or more?: children[i].is_resident
     datatype: radio
@@ -1169,6 +1174,11 @@ subquestion: |
 
   **Note:** If ${children[i].name_full()} lives at more than one location, you can enter other addresses on the next screens that ask about former addresses.
 fields:
+  - Is the address in the United States?: children[i].address.in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. Enter the international address using the English alphabet.
   - Street address: children[i].address.address
     address autocomplete: True
   - Address line 2: children[i].address.unit
@@ -1177,8 +1187,24 @@ fields:
   - State: children[i].address.state
     code: |
       states_list()
-    default: IL      
-  - ZIP code: children[i].address.zip
+    default: IL
+    js hide if: |
+      val('children[i].address.in_america') == false      
+  - State or province: children[i].address.state
+    js show if: |
+      val('children[i].addresses.in_america') == false      
+    required: False
+  - ZIP or postal code: children[i].address.zip
+    required: False
+  - Country: children[i].address.country
+    code: countries_list()
+    required: True
+    js show if: |
+      val('children[i].address.in_america') == false
+  - note: |
+      **Reminder:** For Illinois courts to be able to make decisions about your children, they must have lived in Illinois for the last 6 months. If they are not currently living in Illinois, you may want to talk with a lawyer about your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
+    js show if: |
+      val('children[i].address.in_america') == false || val('children[i].address.state') != "IL"
 ---
 id: does child have former address
 question: |
@@ -1203,6 +1229,11 @@ subquestion: |
 
     **This address will appear on your court papers.** 
 fields:
+  - Was the former address in the United States?: children[i].former_addresses[j].in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. Enter the international address using the English alphabet.
   - Street address: children[i].former_addresses[j].address
     address autocomplete: True
   - Address line 2: children[i].former_addresses[j].unit
@@ -1211,8 +1242,20 @@ fields:
   - State: children[i].former_addresses[j].state
     code: |
       states_list()
-    default: IL      
-  - ZIP code: children[i].former_addresses[j].zip
+    default: IL
+    js hide if: |
+      val('children[i].former_addresses[j].in_america') == false      
+  - State or province: children[i].former_addresses[j].state
+    js show if: |
+      val('children[i].former_addresses[j].in_america') == false      
+    required: False
+  - ZIP or postal code: children[i].former_addresses[j].zip
+    required: False
+  - Country: children[i].former_addresses[j].country
+    code: countries_list()
+    required: True
+    js show if: |
+      val('children[i].former_addresses[j].in_america') == false      
 ---
 id: more former addresses
 question: |
@@ -1995,8 +2038,9 @@ fields:
       The creditor is the company, institution, or person you owe money to.
   - Total amount owed: debts[i].amount
     datatype: currency
-    min: 0
-    required: False
+    min: 0.01
+    help: |
+      If you don't know the exact amount, take your best guess using the most recent statement you can find. The amount can be updated later.
   - How will this be divided?: debts[i].payment_division
     datatype: radio
     choices:
@@ -2129,7 +2173,7 @@ subquestion: |
   
   Select **Yes** if you want to add details now about how you want property to be divided. If you do not enter it now, you can add it to your divorce judgment later.
 
-  **Note:** This section does not include retirement accounts. Those will be asked about later.
+  **Note:** This section does not include real estate or retirement accounts. Those will be asked about later.
 fields:
   - no label: include_property
     datatype: yesnoradio
@@ -2167,7 +2211,7 @@ question: |
 subquestion: |
   If you want this to be split, or if you do not know how it should be divided at this time, select **I don't know.** You will have a chance to explain in your final divorce judgment.
   
-  **Note:** Do not list any account numbers. Also, you can list pets on another screen.
+  **Note:** Do not list any account numbers or account balances. Also, you can enter information about real estate, retirement accounts, and pets on other screens.
 fields:
   - Description of the property or account: property_list[i].name.text
     maxlength: 45
@@ -2414,6 +2458,8 @@ question: |
   Do you and ${other_parties[0].name_full()} own any marital real estate?
 subquestion: |
   Real estate is property consisting of land or buildings like a house or an apartment.
+
+  **Note:** Even if there is a mortgage, the homeowner is usually the legal owner listed on the deed to the real estate. The lender (bank or mortgage company) has a financial interest in the home as collateral for the mortgage loan, but they do not own the property itself. Check the deed or other property documents to be sure.
 fields:
   - no label: has_real_estate
     datatype: yesnoradio
@@ -2466,7 +2512,7 @@ subquestion: |
 
   If ${other_parties[0].name_full()} has any of this non-marital property, they will need to deliver it to you within 30 days after the divorce judgment is entered.
   
-  **Note:** Do not list account numbers.
+  **Note:** Do not list account numbers or account balances.
 fields:
   - Include your non-marital property?: pet_has_nonmarital_property
     datatype: yesnoradio
@@ -2495,7 +2541,7 @@ subquestion: |
 
   If you have any of this non-marital property, you will need to deliver it to ${other_parties[0].name_full()} within 30 days after the divorce judgment is entered.
 
-  **Note:** Do not list account numbers.
+  **Note:** Do not list account numbers or account balances.
 fields:
   - Include ${other_parties[0].name_full()}'s non-marital property?: resp_has_nonmarital_property
     datatype: yesnoradio
@@ -2660,16 +2706,33 @@ id: know respondent location
 question: |
   Do you have an address where ${other_parties[0].name_full()} can be found?
 subquestion: |
-  The law requires that ${other_parties[0].name_full()} be notified of your divorce case. This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name_full()} by hand-delivering the court papers. This can done at ${other_parties[0].name_full()}'s home, work, or another location.
-
-  **Note:** This could be a different address from ${other_parties[0].name_full()}'s current address.
+  ${other_parties[0].name_full()} can be served with the *Summons* and *Petition for Divorce* at their home, work, or another location.
   
   If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name_full()} is properly notified of the court case. You can ask the court to let you notify them by another method.
 
   To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
+  % if optional_appearance:
+  
+  **Note:** It is a good idea to enter information to make a *Summons* even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*. You don't have to use it if they sign and file an *Appearance*.
+  % endif  
 fields:
   - Have an address where ${other_parties[0].name_full()} can be served?: know_resp_location
-    datatype: yesnoradio
+    datatype: radio
+    choices:
+      - Yes: True
+      - "No. I understand I will have to add this to the *Summons* form later.": False
+---
+id: note about service
+continue button field: service_intro
+question: |
+  Notify ${other_parties[0].name_full()} about the divorce
+subquestion: |
+  Your spouse must be notified that you have filed for divorce so that they can participate in the case if they want to. The judge cannot give you a divorce unless ${other_parties[0].name_full()} gets the type of notice the law requires.
+
+  This is usually done by having the sheriff or an authorized person "serve" Sally Supra Spousey by hand-delivering the court papers. This is done with a **{Summons}** form. It is delivered with a copy of the *Petition for Divorce*.
+terms:
+  - "Summons": |
+      The *Summons* tells your spouse that you are asking the judge for a divorce and tells them what they have to do to participate in the case.
 ---
 id: optional appearance
 question: |
@@ -2681,7 +2744,7 @@ subquestion: |
 
 fields:
   - Make an optional *Appearance (Divorce)* form for ${other_parties[0].name_full()}?: optional_appearance
-    datatype: yesnoradio    
+    datatype: yesnoradio 
 terms:
   - "Appearance": |
       The *Appearance (Divorce)* form can be filed by your spouse stating that they will participate in the case. It includes their contact information.
@@ -2693,8 +2756,10 @@ question: |
   Where can ${other_parties[0].name_full()} be found?
 subquestion: |
   This is where they will be served with Divorce court papers.
-
+  % if optional_appearance:
+  
   **Note:** It is a good idea to answer these questions even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*.
+  % endif
 fields:
   - no label: service_address_choice
     datatype: radio

@@ -85,7 +85,7 @@ review:
     show if: hide_address
   - Edit: users[0].residence_county
     button: |
-      **County where you currently live:**
+      **County and state where you currently live:**
       % if users[0].residence_county == "IL":
       ${ users[0].residence_county }
       % else:
@@ -859,7 +859,7 @@ review:
       ${ x.birthdate } 
   - Edit: x.is_of_marriage
     button: |
-      **Was born or adopted after the marriage:**
+      **Was born or adopted during or after the marriage:**
       ${ word(yesno(x.is_of_marriage)) }
   - Edit: x.has_a_disability
     button: |
@@ -1265,7 +1265,7 @@ review:
     show if: hide_address
   - Edit: users[0].residence_county
     button: |
-      **County where you currently live:**
+      **County and state where you currently live:**
       % if users[0].residence_county == "IL":
       ${ users[0].residence_county }
       % else:
