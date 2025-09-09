@@ -649,9 +649,9 @@ fields:
 ---
 id: user residence county
 question: |
-  In which county do you currently live?
+  In which state and county do you currently live?
 subquestion: |
-  **This county will appear on your court papers.** If you want to keep this hidden because it would put you or your household at risk, **Edit** your answers and say you want to hide your address and county.
+  **This information will appear on your court papers.** If you want to keep this hidden because it would put you or your household at risk, **Edit** your answers and say you want to hide your address and county.
 
   ${ collapse_template(county_lookup_help) }
 fields:
@@ -1129,15 +1129,15 @@ fields:
 ---
 id: is child of marriage
 question: |
-  Was ${children[i].name_full()} born or adopted after the marriage?
+  Was ${children[i].name_full()} born or adopted during the marriage?
 subquestion: |
-  **Note:** If the child was born before the marriage, but adoped after the marriage, select **Born or adopted after the marriage**.
+  **Note:** If the child was born before the marriage, but adoped during the marriage, select **Born or adopted during or after the marriage**.
 fields: 
   - ${children[i].name_full()} was: children[i].is_of_marriage
     datatype: radio
     choices:
       - Born or adopted **before** the marriage.: False
-      - Born or adopted **after** the marriage.: True
+      - Born or adopted **during** or **after** the marriage.: True
 ---
 id: does child have a disability
 question: |
@@ -1157,7 +1157,7 @@ id: child address
 question: |
   Has ${children[i].name_full()} lived in Illinois for the last 6 months or more?
 subquestion: |
-  *Note:** For Illinois courts to be able to make decisions about your children, they must have lived in Illinois for the last 6 months. If they are not currently living in Illinois, you may want to talk with a lawyer about your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
+  **Note:** For Illinois courts to be able to make decisions about your children, they must have lived in Illinois for the last 6 months. If they are not currently living in Illinois, you may want to talk with a lawyer about your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
 fields:
   - Illinois resident for 6 months or more?: children[i].is_resident
     datatype: radio
@@ -1204,7 +1204,7 @@ fields:
   - note: |
       **Reminder:** For Illinois courts to be able to make decisions about your children, they must have lived in Illinois for the last 6 months. If they are not currently living in Illinois, you may want to talk with a lawyer about your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
     js show if: |
-      val('children[i].address.in_america') == false      
+      val('children[i].address.in_america') == false || val('children[i].address.state') != "IL"
 ---
 id: does child have former address
 question: |
@@ -2038,8 +2038,9 @@ fields:
       The creditor is the company, institution, or person you owe money to.
   - Total amount owed: debts[i].amount
     datatype: currency
-    min: 0
-    required: False
+    min: 0.01
+    help: |
+      If you don't know the exact amount, take your best guess using the most recent statement you can find. The amount can be updated later.
   - How will this be divided?: debts[i].payment_division
     datatype: radio
     choices:
