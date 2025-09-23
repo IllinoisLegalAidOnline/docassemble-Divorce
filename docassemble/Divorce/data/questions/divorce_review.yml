@@ -146,35 +146,6 @@ review:
       None entered
       % endif
     show if: users[0].emp_status["Yes"]
-  - Edit: users[0].has_second_job
-    button: |
-      **Do you have a second job?**
-      ${word(yesno(users[0].has_second_job))}
-    show if: users[0].emp_status["Yes"] == True
-  - Edit: users[0].employers[1].job_title
-    button: |
-     **Second job title:**
-      ${ users[0].employers[1].job_title }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].name.text
-    button: |
-      **Second employer name:**
-      ${ users[0].employers[1].name.text }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].address.address
-    button: |
-      **Second employer address:**
-      ${ users[0].employers[1].address.on_one_line(bare=True) }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].phone_number
-    button: |
-      **Second employer phone:**
-      % if users[0].employers[1].phone_number != "":
-      ${ phone_number_formatted(users[0].employers[1].phone_number) }
-      % else:
-      None entered
-      % endif
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
   - Edit: users[0].use_former_name
     button: |
       **Do you want to go back to a former or maiden name?**
@@ -270,35 +241,6 @@ review:
       None entered
       % endif
     show if: other_parties[0].emp_status["Yes"]
-  - Edit: other_parties[0].has_second_job
-    button: |
-      **Does ${other_parties[0].name_full()} have a second job?**
-      ${word(yesno(other_parties[0].has_second_job))}
-    show if: other_parties[0].emp_status["Yes"] == True
-  - Edit: other_parties[0].employers[1].job_title
-    button: |
-     **${other_parties[0].name_full()}'s second job title:**
-      ${ other_parties[0].employers[1].job_title }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].name.text
-    button: |
-      **${other_parties[0].name_full()}'s second employer name:**
-      ${ other_parties[0].employers[1].name.text }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].address.address
-    button: |
-      **Second employer address:**
-      ${ other_parties[0].employers[1].address.on_one_line(bare=True) }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].phone_number
-    button: |
-      **${other_parties[0].name_full()}'s second employer phone:**
-      % if other_parties[0].employers[1].phone_number != "":
-      ${ phone_number_formatted(other_parties[0].employers[1].phone_number) }
-      % else:
-      None entered
-      % endif
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].is_active_duty
     button: |
       **Is ${other_parties[0].name_full()} currently on active duty?**
@@ -744,10 +686,8 @@ review:
       * At an address I will enter
       % elif service_address_choice == "home":
       * At home: ${ other_parties[0].address.on_one_line(bare=True) }        
-      % elif service_address_choice == "work":
-      * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % else:
-      * At work: ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
+      * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % endif
     show if: know_resp_location
   - Edit: service_address.address
@@ -1326,35 +1266,6 @@ review:
       None entered
       % endif
     show if: users[0].emp_status["Yes"]
-  - Edit: users[0].has_second_job
-    button: |
-      **Do you have a second job?**
-      ${word(yesno(users[0].has_second_job))}
-    show if: users[0].emp_status["Yes"] == True
-  - Edit: users[0].employers[1].job_title
-    button: |
-     **Second job title:**
-      ${ users[0].employers[1].job_title }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].name.text
-    button: |
-      **Second employer name:**
-      ${ users[0].employers[1].name.text }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].address.address
-    button: |
-      **Second employer address:**
-      ${ users[0].employers[1].address.on_one_line(bare=True) }
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
-  - Edit: users[0].employers[1].phone_number
-    button: |
-      **Second employer phone:**
-      % if users[0].employers[1].phone_number != "":
-      ${ phone_number_formatted(users[0].employers[1].phone_number) }
-      % else:
-      None entered
-      % endif
-    show if: users[0].emp_status["Yes"] == True and users[0].has_second_job
   - Edit: users[0].use_former_name
     button: |
       **Do you want to go back to a former or maiden name?**
@@ -1457,35 +1368,6 @@ review:
       None entered
       % endif
     show if: other_parties[0].emp_status["Yes"]
-  - Edit: other_parties[0].has_second_job
-    button: |
-      **Does ${other_parties[0].name_full()} have a second job?**
-      ${word(yesno(other_parties[0].has_second_job))}
-    show if: other_parties[0].emp_status["Yes"] == True
-  - Edit: other_parties[0].employers[1].job_title
-    button: |
-     **${other_parties[0].name_full()}'s second job title:**
-      ${ other_parties[0].employers[1].job_title }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].name.text
-    button: |
-      **${other_parties[0].name_full()}'s second employer name:**
-      ${ other_parties[0].employers[1].name.text }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].address.address
-    button: |
-      **Second employer address:**
-      ${ other_parties[0].employers[1].address.on_one_line(bare=True) }
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
-  - Edit: other_parties[0].employers[1].phone_number
-    button: |
-      **${other_parties[0].name_full()}'s second employer phone:**
-      % if other_parties[0].employers[1].phone_number != "":
-      ${ phone_number_formatted(other_parties[0].employers[1].phone_number) }
-      % else:
-      None entered
-      % endif
-    show if: other_parties[0].emp_status["Yes"] == True and other_parties[0].has_second_job
   - Edit: other_parties[0].is_active_duty
     button: |
       **Is ${other_parties[0].name_full()} currently on active duty?**
@@ -1496,7 +1378,6 @@ review:
       % else:
       I don't know.
       % endif
-
 
 ---
 id: children and support review screen
@@ -1959,10 +1840,8 @@ review:
       * At an address I will enter
       % elif service_address_choice == "home":
       * At home: ${ other_parties[0].address.on_one_line(bare=True) }        
-      % elif service_address_choice == "work":
-      * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % else:
-      * At work: ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
+      * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % endif
     show if: know_resp_location
   - Edit: service_address.address
