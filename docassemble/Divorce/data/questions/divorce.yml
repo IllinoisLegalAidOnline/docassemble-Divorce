@@ -102,8 +102,6 @@ code: |
   users[0].birthdate
   if users[0].emp_status["Yes"]:
     users[0].employers[0].job_title
-    if users[0].has_second_job:
-      users[0].employers[1].job_title
   
   users[0].use_former_name
   
@@ -118,8 +116,6 @@ code: |
   other_parties[0].birthdate
   if other_parties[0].emp_status["Yes"]:
     other_parties[0].employers[0].job_title
-    if other_parties[0].has_second_job:
-      other_parties[0].employers[1].job_title
   other_parties[0].is_active_duty
   
   set_progress(40)
@@ -743,11 +739,9 @@ validation code: |
 ---
 id: employer info
 question: |
-  % if j == 0:
   Tell us about your job
-  % else:
-  Tell us about your second job
-  % endif
+subquestion: |
+  If you have more than one job, list the "main" one. This would be the one where you usually work more hours, make more money, and receive more employee benefits. 
 fields:
   - Job title: users[i].employers[j].job_title
     maxlength: 40    
@@ -766,15 +760,7 @@ fields:
   - Phone number: users[i].employers[j].phone_number
     datatype: al_international_phone
     required: False
----
-id: second job question
-question: |
-  Do you have another job?
-subquestion: |
-  So far you told us about your job as ${ users[0].employers[0].job_title } for this employer: ${users[0].employers[0].name.text }.
-fields: 
-  no label: users[0].has_second_job
-  datatype: yesnoradio
+
 ---
 sets:
   - users[0].aliases[0].first
@@ -894,11 +880,9 @@ validation code: |
 ---
 id: spouse employer info
 question: |
-  % if j == 0:
   Tell us about ${other_parties[0].name_full()}'s job
-  % else:
-  Tell us about ${other_parties[0].name_full()}'s second job
-  % endif
+subquestion: |
+  If they have more than one job, list the "main" one. This would be the one where they usually work more hours, make more money, and receive more employee benefits.   
 fields:
   - Job title: other_parties[i].employers[j].job_title
     maxlength: 40
@@ -917,15 +901,6 @@ fields:
   - Phone number: other_parties[i].employers[j].phone_number
     datatype: al_international_phone
     required: False
----
-id: spouse second job question
-question: |
-  Does ${other_parties[0].name_full()} have another job?
-subquestion: |
-  So far you told us about ${other_parties[0].name_full()}'s job as ${ other_parties[0].employers[0].job_title } for this employer: ${other_parties[0].employers[0].name.text }.
-fields: 
-  no label: other_parties[0].has_second_job
-  datatype: yesnoradio
 ---
 id: spouse active duty
 question: |
@@ -2772,9 +2747,6 @@ code: |
     service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "":
     service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
-  if other_parties[0].emp_status['Yes']:
-    if other_parties[0].has_second_job and other_parties[0].employers[1].address.address != "":
-      service_list.append({ "their other work": other_parties[0].name_full()+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
   service_list.append({ "other": "An address I will enter" })
 ---
 id: other service address
@@ -2814,9 +2786,6 @@ code: |
     alt_service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
   if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "" and service_address_choice != "work":
     alt_service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
-  if other_parties[0].emp_status['Yes'] and service_address_choice != "their other work":
-    if other_parties[0].has_second_job and other_parties[0].employers[1].address.address != "":
-      alt_service_list.append({ "their other work": other_parties[0].name_full()+ "'s other work address (" + other_parties[0].employers[1].address.on_one_line(bare=True) + ")" })
   
   alt_service_list.append({ "other": "An address I will enter" })
 ---
@@ -2826,16 +2795,13 @@ depends on:
   - service_address.state
   - other_parties[0].address.state
   - other_parties[0].employers[0].address.state
-  - other_parties[0].employers[1].address.state
 code: |  
   if service_address_choice == "other":
     service_state = service_address.state
   elif service_address_choice == "home":
     service_state = other_parties[0].address.state        
-  elif service_address_choice == "work":
-    service_state = other_parties[0].employers[0].address.state
   else:
-    service_state = other_parties[0].employers[1].address.state
+    service_state = other_parties[0].employers[0].address.state
 ---
 depends on:
   - service_address_choice
@@ -2849,10 +2815,8 @@ subquestion: |
   * ${ service_address.on_one_line(bare=True) }
   % elif service_address_choice == "home":
   * ${ other_parties[0].address.on_one_line(bare=True) }        
-  % elif service_address_choice == "work":
-  * ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
   % else:
-  * ${ other_parties[0].employers[1].address.on_one_line(bare=True) } 
+  * ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
   % endif
   
   Enter the county below. If this is a different county from where you are filing your case, we will make a letter that you can send to the sheriff to help serve ${other_parties[0].name_full()}.
@@ -3004,7 +2968,7 @@ question: |
   Download
 subquestion: |
   
-  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  Your forms are ready. View and download your forms below. Click **:edit: Make changes** to fix any mistakes.
 
   This program **does not file** your divorce forms. You will need to do this yourself. Learn about [**e-filing in Illinois**](https://www.illinoiscourts.gov/eservices/information-for-filers-without-lawyers).
 
@@ -4758,7 +4722,7 @@ attachment:
   editable: True
   pdf template file: child_support_order.pdf
   fields:
-    - "county": ${ trial_court.address.county.upper() }
+    - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name_full() }
     - "respondent__1": ${ other_parties[0].name_full() }
 ---
@@ -4770,7 +4734,7 @@ attachment:
   editable: True
   pdf template file: support_information_sheet.pdf
   fields:
-    - "county": ${ trial_court.address.county.upper() }
+    - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name_full() }
     - "respondent__1": ${ other_parties[0].name_full() }
     - "petitioner__2": ${ users[0].name_full() }
@@ -4780,9 +4744,6 @@ attachment:
     - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status["Yes"] else "" }
     - "user_employer_address": ${ users[0].employers[0].address.on_one_line(bare=True) if users[0].emp_status["Yes"] else "" }
     - "user_employer_phone": ${ phone_number_formatted(users[0].employers[0].phone_number) if users[0].emp_status["Yes"] else "" }
-    - "user_employer_2": ${ users[0].employers[1].name.text if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
-    - "user_employer_address_2": ${ users[0].employers[1].address.on_one_line(bare=True) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
-    - "user_employer_phone_2": ${ phone_number_formatted(users[0].employers[1].phone_number) if users[0].emp_status["Yes"] and users[0].has_second_job else "" }
 
     - "respondent__2": ${ other_parties[0].name_full() }
     - "resp_address": ${ other_parties[0].address.on_one_line(bare=True) if knows_resp_address else "" }
@@ -4791,9 +4752,6 @@ attachment:
     - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status["Yes"] else "" }
     - "resp_employer_address": ${ other_parties[0].employers[0].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] else "" }
     - "resp_employer_phone": ${ phone_number_formatted(other_parties[0].employers[0].phone_number) if other_parties[0].emp_status["Yes"] else "" }
-    - "resp_employer_2": ${ other_parties[0].employers[1].name.text if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
-    - "resp_employer_address_2": ${ other_parties[0].employers[1].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
-    - "resp_employer_phone_2": ${ phone_number_formatted(other_parties[0].employers[1].phone_number) if other_parties[0].emp_status["Yes"] and other_parties[0].has_second_job else "" }
 
     - "child_name_0": ${ children[0].name_full() }
     - "child_dob_0": ${ children[0].birthdate }
@@ -4812,8 +4770,7 @@ attachment:
 
     - "user_signature": ${ users[0].name_full() if e_signature else '' }
     - "user__2": ${ users[0].name_full() }
-    - "user_address_line_1": ${ users[0].address.line_one(bare=True) }
-    - "user_address_line_2": ${ users[0].address.line_two() }
+    - "user_address": ${ users[0].address.on_one_line(bare=True) }
     - "user_phone": ${ phone_number_formatted(users[0].phone_number) }
     - "user_atty_number": ${ '' }
     - "user_email": ${ users[0].email if users[0].has_email_address else "" }
@@ -4845,8 +4802,10 @@ attachment:
   filename: income_withholding_letter_to_employer
   skip undefined: True
   editable: True  
-  pdf template file: income_withholding_letter_to_employer.pdf  
-
+  pdf template file: income_withholding_letter_to_employer.pdf
+  fields:
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
 ---
 attachment:
   variable name: divorce_summons[i]
@@ -4872,20 +4831,16 @@ attachment:
         ${ service_address.line_one(bare=True) }
         % elif service_address_choice == "home":
         ${ other_parties[0].address.line_one(bare=True) }        
-        % elif service_address_choice == "work":
-        ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % else:
-        ${ other_parties[0].employers[1].address.line_one(bare=True) }
+        ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % endif
     - "service_address_csz": |
         % if service_address_choice == "other":
         ${ service_address.line_two() }
         % elif service_address_choice == "home":
         ${ other_parties[0].address.line_two() }        
-        % elif service_address_choice == "work":
-        ${ other_parties[0].employers[0].address.line_two() }        
         % else:
-        ${ other_parties[0].employers[1].address.line_two() }        
+        ${ other_parties[0].employers[0].address.line_two() }        
         % endif
     - "respondent_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
     - "respondent_email": ${ other_parties[0].email }
@@ -4897,10 +4852,8 @@ attachment:
         ${ second_service_address.line_one(bare=True) }
         % elif second_service_address_choice == "home":
         ${ other_parties[0].address.line_one(bare=True) }        
-        % elif service_address_choice == "work":
-        ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % else:
-        ${ other_parties[0].employers[1].address.line_one(bare=True) }
+        ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % endif
         % endif
     - "service_alt_address_csz": |
@@ -4909,10 +4862,8 @@ attachment:
         ${ second_service_address.line_two() }
         % elif second_service_address_choice == "home":
         ${ other_parties[0].address.line_two() }        
-        % elif service_address_choice == "work":
-        ${ other_parties[0].employers[0].address.line_two() }        
         % else:
-        ${ other_parties[0].employers[1].address.line_two() }        
+        ${ other_parties[0].employers[0].address.line_two() }        
         % endif
         % endif
     - "respondent_alt_phone": ${ phone_number_formatted(other_parties[0].phone_number_alt) if has_second_service_address == True else "" }
