@@ -741,7 +741,7 @@ id: employer info
 question: |
   Tell us about your job
 subquestion: |
-  If you have more than one job, list the "main" one. This would be the one where you usually work more hours, make more money, and receive more employee benefits. 
+  If you have more than one job, list the "main" one. This would be the job where you usually work more hours, make more money, and receive more employee benefits. 
 fields:
   - Job title: users[i].employers[j].job_title
     maxlength: 40    
@@ -882,7 +882,7 @@ id: spouse employer info
 question: |
   Tell us about ${other_parties[0].name_full()}'s job
 subquestion: |
-  If they have more than one job, list the "main" one. This would be the one where they usually work more hours, make more money, and receive more employee benefits.   
+  If they have more than one job, list the "main" one. This would be the job where they usually work more hours, make more money, and receive more employee benefits.   
 fields:
   - Job title: other_parties[i].employers[j].job_title
     maxlength: 40
