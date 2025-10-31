@@ -164,7 +164,7 @@ review:
       ${other_parties[0].name_full()}
   - Edit: other_parties[0].birthdate
     button: |
-      **When was ${other_parties[0].name_full()} spouse born?**
+      **When was ${other_parties[0].name_full()} born?**
       ${ other_parties[0].birthdate }
   - Edit: other_parties[0].is_resident
     button: |
@@ -461,12 +461,12 @@ review:
     show if: include_property and resp_has_nonmarital_property    
   - Edit: property_other
     button: |
-      **Do you want the final divorce judgment to say anything else about property?**
+      **Do you want the final divorce judgment to say anything about pets or anything else about property?**
       ${ word(yesno(property_other)) }      
     show if: include_property    
   - Edit: property_other_text
     button: |
-      **Other information about property to include in the divorce judgment:**
+      **Other information about pets or property to include in the divorce judgment:**
       ${ property_other_text }      
     show if: include_property and property_other
 
@@ -1291,7 +1291,7 @@ review:
       ${other_parties[0].name_full()}
   - Edit: other_parties[0].birthdate
     button: |
-      **When was ${other_parties[0].name_full()} spouse born?**
+      **When was ${other_parties[0].name_full()} born?**
       ${ other_parties[0].birthdate }
   - Edit: other_parties[0].is_resident
     button: |
@@ -1601,12 +1601,12 @@ review:
     show if: include_property and resp_has_nonmarital_property    
   - Edit: property_other
     button: |
-      **Do you want the final divorce judgment to say anything else about property?**
+      **Do you want the final divorce judgment to say anything about pets or anything else about property?**
       ${ word(yesno(property_other)) }      
     show if: include_property    
   - Edit: property_other_text
     button: |
-      **Other information about property to include in the divorce judgment:**
+      **Other information about pets or property to include in the divorce judgment:**
       ${ property_other_text }      
     show if: include_property and property_other
 

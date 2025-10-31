@@ -834,6 +834,11 @@ id: get spouse address
 question: |
   What is ${other_parties[0].name_full()}'s current address?
 fields:
+  - Is the address in the United States?: other_parties[0].address.in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. Enter the international address using the English alphabet.
   - Street address: other_parties[0].address.address
     address autocomplete: True
   - Address line 2: other_parties[0].address.unit
@@ -842,8 +847,21 @@ fields:
   - State: other_parties[0].address.state
     code: |
       states_list()
-    default: IL      
-  - ZIP code: other_parties[0].address.zip
+    default: IL
+    js hide if: |
+      val('other_parties[0].address.in_america') == false      
+  - State or Province: other_parties[0].address.state
+    js show if: |
+      val('other_parties[0].address.in_america') == false      
+    required: False
+  - ZIP or postal code: other_parties[0].address.zip
+    required: False
+  - Country: other_parties[0].address.country
+    code: countries_list()
+    required: True
+    js show if: |
+      val('other_parties[0].address.in_america') == false
+
 ---
 id: spouse contact information
 question: |
@@ -991,7 +1009,7 @@ id: children information
 question: |
   Information about your children
 subquestion: |
-  The court needs information about your children with ${other_parties[0].name_full()} to make sure they will be supported.
+  The court needs information about your children with ${other_parties[0].name_full()} to allocate parental responsibilities (formerly called "custody") and make sure they will be supported.
 
   **Note:** Illinois law has additional protections for children under 18 in a divorce. There will be more questions about them than older children.
  
@@ -1827,7 +1845,7 @@ continue button field: parenting_plan_info
 question: |
   About Parenting Plans
 subquestion: |
-  A Parenting Plan lists who is responsible for decision-making for the children and includes a schedule for when the children are with you and when they are with ${other_parties[0].name_full()}.
+  A Parenting Plan lists who is responsible for decision-making for the children and includes a schedule for when the children are with you and when they are with ${other_parties[0].name_full()}. This used to be called "custody" in Illinois.
 
   The law requires that you file a suggested Parenting Plan **within 120 days** of the date your petition is filed or the date your spouse was notified. You and ${other_parties[0].name_full()} can each file your own Parenting Plan, or you can file an agreed Parenting Plan.
 
@@ -2163,7 +2181,6 @@ subquestion: |
 fields:
   - no label: property_keep
     datatype: yesnoradio
-
 ---
 id: more property
 question: |
@@ -2206,8 +2223,6 @@ code: |
 code: |
   if property_list.number_gathered() == 14:
     property_list.there_is_another = False
-
-
 ---
 id: retirement intro
 continue button field: retirement_intro
@@ -2401,9 +2416,6 @@ fields:
       variable: pensions_other
       is: True
 ---
-
-
----
 id: real estate intro
 continue button field: real_estate_intro
 question: |
@@ -2541,15 +2553,15 @@ fields:
 ---
 id: other property orders 
 question: |
-  Do you want the final divorce judgment to say anything else about property?
+  Do you want the final divorce judgment to say anything about pets or anything else about property?
 subquestion: |
-  This includes **pets**.
+  This is where you can enter information about **pets**.
   
   **Note:** It **does not include** your house or retirement accounts. We will ask about those on another screen.
 fields:
-  - Anything else about property or pets?: property_other
+  - Anything about pets or anything else about property?: property_other
     datatype: yesnoradio
-  - Describe the things and who you want to get them. Use each person's name to be clear.: property_other_text
+  - "Describe the pets and other property, and list who you want to get them. Use each person's name to be clear.": property_other_text
     input type: area
     rows: 5
     maxlength: 300    
@@ -2913,7 +2925,7 @@ subquestion: |
       <li>Everything on the form is true and correct, or you have been informed or you believe it is true and correct, and</li>
       <li>You understand that making a false statement on the form is perjury and has penalties provided by law.</li>
     </ul></p>
-  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
+  <p>See the <a href="https://www.ilga.gov/legislation/ilcs/documents/073500050k1-109.htm"><b>Illinois Code of Civil Procedure, 735 ILCS 5/1-109</b></a> for more information.</p>
   </div>
 fields:
   - "Add e-signature?": e_signature
@@ -4738,7 +4750,7 @@ attachment:
     - "petitioner__1": ${ users[0].name_full() }
     - "respondent__1": ${ other_parties[0].name_full() }
     - "petitioner__2": ${ users[0].name_full() }
-    - "user_address__2": ${ users[0].address.on_one_line(bare=True) if hide_address else "" }
+    - "user_address__2": ${ users[0].address.on_one_line(bare=True) }
     - "user_dob": ${ users[0].birthdate }
     - "user_phone__2": ${ phone_number_formatted(users[0].phone_number) }
     - "user_employer": ${ users[0].employers[0].name.text if users[0].emp_status["Yes"] else "" }
