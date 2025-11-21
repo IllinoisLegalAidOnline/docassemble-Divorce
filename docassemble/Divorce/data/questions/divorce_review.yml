@@ -538,9 +538,9 @@ review:
     button: |
       **Who do you want to prepare the papwerwork for your retirement accounts and pensions?**
       
-      % if resp_pensions_qdro == "Me":
+      % if pet_pensions_qdro == "Me":
       * I will prepare the paperwork.
-      % elif resp_pensions_qdro == "Them":
+      % elif pet_pensions_qdro == "Them":
       * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
@@ -1678,9 +1678,9 @@ review:
     button: |
       **Who do you want to prepare the papwerwork for your retirement accounts and pensions?**
       
-      % if resp_pensions_qdro == "Me":
+      % if pet_pensions_qdro == "Me":
       * I will prepare the paperwork.
-      % elif resp_pensions_qdro == "Them":
+      % elif pet_pensions_qdro == "Them":
       * ${other_parties[0].name_full()} will prepare the paperwork.
       % else:
       * I don't know. I will decide later.
