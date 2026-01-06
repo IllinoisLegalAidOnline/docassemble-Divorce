@@ -3042,6 +3042,7 @@ objects:
   - additional_debts: ALDocument.using(title="Additional Debts", filename="additional_debts.pdf", has_addendum=False)
   - additional_property: ALDocument.using(title="Additional Personal Property and Bank Accounts", filename="additional_property.pdf", has_addendum=False)
   - certification_agreement: ALDocument.using(title="Certification Agreement (optional)", filename="certification_agreement.pdf", has_addendum=False)
+  - certification_agreement_no_kids: ALDocument.using(title="Certification Agreement (optional)", filename="certification_agreement.pdf", has_addendum=False)
   - IDPH_certificate_instructions: ALDocument.using(title="IDPH Certificate instructions", filename="IDPH_certificate_instructions.pdf", has_addendum=False)
   - IDPH_certificate_of_dissolution: ALDocument.using(title="IDPH Certificate of Dissolution", filename="IDPH_certificate_of_dissolution.pdf", has_addendum=False)
   - child_support_instructions: ALDocument.using(title="Child support instructions", filename="child_support_instructions.pdf", has_addendum=False)
@@ -3081,7 +3082,8 @@ code: |
   divorce_summons_blank.enabled = False
   letter_to_sheriff.enabled = False
   divorce_appearance.enabled = False
-  certification_agreement.enabled = True
+  certification_agreement.enabled = False
+  certification_agreement_no_kids.enabled = False
   IDPH_certificate_instructions.enabled = True
   IDPH_certificate_of_dissolution.enabled = True
   cook_cover_sheet.enabled = False
@@ -3089,6 +3091,7 @@ code: |
   if file_with_kids:
     instructions_kids.enabled = True
     petition_kids.enabled = True
+    certification_agreement.enabled = True
     if any_children_together:
       if children.number() > 3:
         additional_kids_petition.enabled = True
@@ -3120,6 +3123,7 @@ code: |
   else:
     instructions_no_kids.enabled = True
     petition_no_kids.enabled = True
+    certification_agreement_no_kids.enabled = True
     judgment_no_kids.enabled = True
     
   if include_debts and debts.number() > 5:
@@ -3141,7 +3145,7 @@ code: |
     cook_cover_sheet.enabled = True  
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, divorce_summons, letter_to_sheriff, divorce_summons_blank,  divorce_appearance, child_support_instructions, child_support_order, support_information_sheet, income_withholding_instructions, income_withholding_for_support, income_withholding_letter_to_employer, judgment_bundle, certification_agreement, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions_no_kids, instructions_kids, cook_cover_sheet, petition_bundle, divorce_summons, letter_to_sheriff, divorce_summons_blank,  divorce_appearance, child_support_instructions, child_support_order, support_information_sheet, income_withholding_instructions, income_withholding_for_support, income_withholding_letter_to_employer, judgment_bundle, certification_agreement, certification_agreement_no_kids, IDPH_certificate_instructions, IDPH_certificate_of_dissolution], filename="divorce_forms.pdf", title="All forms")
   #- al_court_bundle: ALDocumentBundle.using(elements=[instructions_kids, cook_cover_sheet], filename="divorce_forms.pdf", title="All forms")
 ---
 objects:
@@ -4701,6 +4705,20 @@ attachment:
     - "county": ${ trial_court.address.county }
     - "petitioner__1": ${ users[0].name_full() }
     - "respondent__1": ${ other_parties[0].name_full() }
+---
+attachment:
+  variable name: certification_agreement_no_kids[i]
+  name: certification_agreement_no_kids
+  filename: certification_agreement_no_kids
+  skip undefined: True
+  editable: False
+  pdf template file: certification_agreement_no_kids.pdf
+  fields:
+    - "county": ${ trial_court.address.county }
+    - "petitioner__1": ${ users[0].name_full() }
+    - "respondent__1": ${ other_parties[0].name_full() }
+    - "petitioner__2": ${ users[0].name_full() }
+
 ---
 attachment:
   variable name: IDPH_certificate_instructions[i]
