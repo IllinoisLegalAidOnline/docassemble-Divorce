@@ -2475,6 +2475,8 @@ subquestion: |
   You can find the legal description on the deed or other property documents. These can be found at the office of the Recorder of Deeds in the county where the property is located.
 
   **Note:** You do not need to attach the legal description to the Petition.
+
+  If you have more than one piece of marital real estate, you can attach a legal description of the other property to the final divorce judgment. 
 fields:
   - no label: attach_legal_desc
     datatype: radio
