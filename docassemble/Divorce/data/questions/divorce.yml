@@ -2454,6 +2454,8 @@ fields:
 id: real estate address
 question: |
   What is the address of the marital real estate?
+subquestion: |
+  **Note:** If you have more than one piece of marital real estate, you will be able to add details about other property later in the case and in the divorce judgment. 
 fields:
   - Street address: real_estate.address
     address autocomplete: True
