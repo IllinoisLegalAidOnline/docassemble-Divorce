@@ -674,7 +674,7 @@ subquestion: |
 
   **This information will appear on your court forms.**
   
-  If you do not want to list a phone number on your forms, leave it .
+  If you do not want to list a phone number on your forms, leave it blank.
 
   If you have an email address, you must list it. Be sure to check your email daily, otherwise you may miss important court documents or information about your case.
 
@@ -2702,7 +2702,7 @@ subquestion: |
 
   This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name_full()} by hand-delivering the court papers. This is done with a **{Summons}** form. It is delivered with a copy of the *Petition for Divorce*.
 
-  **Note:** If you and your spouse agree on all terms of the divorce, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
+  **Note:** If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff or other authorized person.
 terms:
   - "Summons": |
       The *Summons* tells your spouse that you are asking the judge for a divorce and tells them what they have to do to participate in the case.
@@ -2711,7 +2711,7 @@ id: optional appearance
 question: |
   Do you want to make an optional *Appearance* form for ${other_parties[0].name_full()}?
 subquestion: |
-  If you and your spouse agree on all terms of the divorce, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
+  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff or other authorized person.
 
   **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers. If you want to get an *Appearance* form later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 
