@@ -2693,26 +2693,6 @@ fields:
       - "Marriage": True
       - "Civil union": False
 ---
-id: know respondent location
-question: |
-  Do you have an address where ${other_parties[0].name_full()} can be found?
-subquestion: |
-  ${other_parties[0].name_full()} can be served with the *Summons* and *Petition for Divorce* at their home, work, or another location.
-  
-  If you don't know where they can be found, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name_full()} is properly notified of the court case. You can ask the court to let you notify them by another method.
-
-  To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
-  % if optional_appearance:
-  
-  **Note:** It is a good idea to enter information to make a *Summons* even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*. You don't have to use it if they sign and file an *Appearance*.
-  % endif  
-fields:
-  - Have an address where ${other_parties[0].name_full()} can be served?: know_resp_location
-    datatype: radio
-    choices:
-      - Yes: True
-      - "No. I understand I will have to add this to the *Summons* form later.": False
----
 id: note about service
 continue button field: service_intro
 question: |
@@ -2720,7 +2700,9 @@ question: |
 subquestion: |
   Your spouse must be notified that you have filed for divorce so that they can participate in the case if they want to. The judge cannot give you a divorce unless ${other_parties[0].name_full()} gets the type of notice the law requires.
 
-  This is usually done by having the sheriff or an authorized person "serve" Sally Supra Spousey by hand-delivering the court papers. This is done with a **{Summons}** form. It is delivered with a copy of the *Petition for Divorce*.
+  This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name_full()} by hand-delivering the court papers. This is done with a **{Summons}** form. It is delivered with a copy of the *Petition for Divorce*.
+
+  **Note:** If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff or other authorized person.
 terms:
   - "Summons": |
       The *Summons* tells your spouse that you are asking the judge for a divorce and tells them what they have to do to participate in the case.
@@ -2729,18 +2711,45 @@ id: optional appearance
 question: |
   Do you want to make an optional *Appearance* form for ${other_parties[0].name_full()}?
 subquestion: |
-  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff.
+  If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff or other authorized person.
 
-  **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers. If you want to get this later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
+  **Note:** This is optional. You do not have to use this form. Most people use the sheriff to serve court papers. If you want to get an *Appearance* form later, blank forms are available on the [**Illinois Courts website**](https://www.illinoiscourts.gov/forms/approved-forms/forms-circuit-court/divorce-child-support-maintenance/).
 
 fields:
-  - Make an optional *Appearance (Divorce)* form for ${other_parties[0].name_full()}?: optional_appearance
-    datatype: yesnoradio 
+  - Make an *Appearance* form for ${other_parties[0].name_full()}?: optional_appearance
+    datatype: radio
+    choices:
+      - "Yes. I want to make an *Appearance* for ${other_parties[0].name_full()} to sign and file.": True
+      - "No. I do not need an *Appearance* at this time.": False
 terms:
   - "Appearance": |
       The *Appearance (Divorce)* form can be filed by your spouse stating that they will participate in the case. It includes their contact information.
 
       If ${other_parties[0].name_full()} is on active duty with any branch of the US military service, they can state this on their *Appearance (Divorce)* form. 
+---
+id: know respondent location
+question: |
+  Do you have an address where ${other_parties[0].name_full()} can be found for service?
+subquestion: |
+  ${other_parties[0].name_full()} can be served with the *Summons* and *Petition for Divorce* at their home, work, or another location.
+  
+  If you don't know where they can be served, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name_full()} is properly notified of the court case. You can ask the court to let you notify them by another method.
+
+  To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
+  % if optional_appearance:
+  
+  **Note:** It is a good idea to enter address information to make a *Summons* even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*. You don't have to use it if they sign and file an *Appearance*.
+  % endif  
+fields:
+  - "Have an address where ${other_parties[0].name_full()} can be served?": know_resp_location
+    datatype: radio
+    choices:
+      - Yes: True
+      - "No. I understand I will have to add address information to the *Summons* form later.": False
+  - note: |
+      % if optional_appearance:
+      Select **No** if ${other_parties[0].name_full()} will sign and file an *Appearance* instead of being served by the sheriff. We will still make an optional *Summons* for you to download in case ${other_parties[0].name_full()} does not sign and file their *Appearance*.
+      % endif
 ---
 id: service address choice
 question: |
