@@ -675,7 +675,7 @@ review:
   
   - Edit: know_resp_location
     button: |
-      **Do you have an address where ${other_parties[0].name_full()} can be found?**
+      **Do you have an address where ${other_parties[0].name_full()} can be found for service?**
       ${ word(yesno(know_resp_location))}
   
   - Edit: service_address_choice
@@ -1829,7 +1829,7 @@ review:
   
   - Edit: know_resp_location
     button: |
-      **Do you have an address where ${other_parties[0].name_full()} can be found?**
+      **Do you have an address where ${other_parties[0].name_full()} can be found for service?**
       ${ word(yesno(know_resp_location))}
   
   - Edit: service_address_choice
