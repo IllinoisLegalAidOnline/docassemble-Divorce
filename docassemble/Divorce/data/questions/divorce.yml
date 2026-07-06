@@ -2703,6 +2703,8 @@ subquestion: |
   This is usually done by having the sheriff or an authorized person "serve" ${other_parties[0].name_full()} by hand-delivering the court papers. This is done with a **{Summons}** form. It is delivered with a copy of the *Petition for Divorce*.
 
   **Note:** If you and your spouse are on good terms, you may be able to give them proper notice of the divorce case without being served court papers. If ${other_parties[0].name_full()} signs and files an **{Appearance}**, you do not need to have them served by the sheriff or other authorized person.
+
+  To learn more, read ILAO's [**Notifying the other party when starting a family law case FAQ**](https://www.illinoislegalaid.org/node/190201).
 terms:
   - "Summons": |
       The *Summons* tells your spouse that you are asking the judge for a divorce and tells them what they have to do to participate in the case.
@@ -2735,7 +2737,7 @@ subquestion: |
   
   If you don't know where they can be served, you can still get divorced. However, some of the terms of the divorce can't be decided until ${other_parties[0].name_full()} is properly notified of the court case. You can ask the court to let you notify them by another method.
 
-  To learn more, read ILAO's article about [**divorcing someone who cannot be found**](https://www.illinoislegalaid.org/node/30371).
+  To learn more, read ILAO's [**Notifying the other party when starting a family law case FAQ**](https://www.illinoislegalaid.org/node/190201).
   % if optional_appearance:
   
   **Note:** It is a good idea to enter address information to make a *Summons* even if you think ${other_parties[0].name_full()} will sign and file an *Appearance*. You don't have to use it if they sign and file an *Appearance*.
