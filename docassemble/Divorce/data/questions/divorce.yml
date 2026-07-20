@@ -2956,10 +2956,13 @@ question: |
 subquestion: |
   This Easy Form will make several forms. You don't need to use them all at once. The forms you use to start the divorce case are:
 
-  * *Petition for Divorce*, and
-  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
-
-  The rest of the forms can be used later. This includes the Illinois Department of Public Health (IDPH) **Certificate of Dissolution**. To finalize your divorce, you need a file-stamped copy of this form.
+  * *Petition for Divorce*,
+  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead, and
+  * IDPH Certificate of Dissolution (in some counties, see below).
+  
+  In some counties, you will also need to give the clerk the Illinois Department of Public Health (IDPH) Certificate of Dissolution when you file. **This form is blank.** Read the "IDPH Certificate instructions" you can download to see how to complete the form. To finalize your divorce, you need a file-stamped copy of this form.
+  
+  The rest of the forms can be used later.
   
   **Note:** The forms that you use later are not complete. This is on purpose. You probably won't use them for months or longer. Things can change between now and then. Also, how your property and debts are divided might change. You can update these forms before they are used in your divorce case.
   
@@ -2971,10 +2974,13 @@ subject: |
 content: |  
   Use these forms to start the divorce case:
 
-  * *Petition for Divorce*, and
-  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead.
-
-  The other forms are used later. This includes the Illinois Department of Public Health (IDPH) **Certificate of Dissolution**. To finalize your divorce, you need a file-stamped copy of this form.
+  * *Petition for Divorce*,
+  * *Summons*, unless ${other_parties[0].name_full()} agrees that they don't need to be served with court papers. They will have to file an *Appearance (Divorce)* instead, and
+  * IDPH Certificate of Dissolution (in some counties, see below).
+  
+  In some counties, you will also need to give the clerk the Illinois Department of Public Health (IDPH) Certificate of Dissolution when you file. Ask your circuit clerk what they require. **This form is blank.** Read the "IDPH Certificate instructions" you can download to see how to complete the form.
+  
+  The other forms are used later.
   
   **Note:** Forms that are used later are not complete. Be sure to review and complete them before using. Read the instructions for details.
 ---
@@ -3034,7 +3040,10 @@ content: |
 
   * *Petition for Divorce*
   * *Summons*
+  * IDPH Certificate of Dissolution (in some counties, see below)
 
+  In some counties, you will also need to give the clerk the Illinois Department of Public Health (IDPH) Certificate of Dissolution when you file. Ask your circuit clerk what they require. **This form is blank**. Read the "IDPH Certificate instructions" to see how to complete the form.
+  
   Remember to review and update the other forms before using them later in your case.
   
   Thanks for using ILAO Easy Forms!
