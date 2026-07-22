@@ -110,7 +110,7 @@ code: |
   if other_parties[0].is_resident:
     other_parties[0].meets_90_day_requirement
 
-  if not ( (users[0].is_resident and users.meets_90_day_requirement) or (other_parties[0].is_resident and other_parties[0].meets_90_day_requirement) ):
+  if not ( (users[0].is_resident and users[0].meets_90_day_requirement) or (other_parties[0].is_resident and other_parties[0].meets_90_day_requirement) ):
     one_party_must_live_in_illinois_90_days
   
   if knows_resp_address:
