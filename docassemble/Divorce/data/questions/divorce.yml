@@ -109,7 +109,10 @@ code: |
   nav.set_section('section_about_spouse')
   if other_parties[0].is_resident:
     other_parties[0].meets_90_day_requirement
-      
+
+  if not ( (users[0].is_resident and users.meets_90_day_requirement) or (other_parties[0].is_resident and other_parties[0].meets_90_day_requirement) ):
+    one_party_must_live_in_illinois_90_days
+  
   if knows_resp_address:
     other_parties[0].address.address
   other_parties[0].phone_number  
@@ -392,6 +395,17 @@ subquestion: |
   
   If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
 ---
+id: 90 day residency not met by either party
+continue button field: one_party_must_live_in_illinois_90_days
+question: |
+  Illinois residency requirement for divorce
+subquestion: |
+  You or your spouse must live in Illinois for longer than 90 days to get a divorce in Illinois.
+
+  **Note:** You can file the divorce case before you or your spouse has lived in Illinois for 90 days. However, you or your spouse must have lived in Illinois for at least 90 days before the final divorce judgment can be entered.
+  
+  If you want to file for divorce outside Illinois, you can use the [**Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization in another state.
+---
 id: user name
 sets:
     - users[0].name.first
@@ -594,9 +608,7 @@ subquestion: |
    Click **Back** if you made a mistake. Or you can talk with a lawyer to discuss your options. Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
 buttons:
   - Exit: exit
-  - Restart: restart  
-
-
+  - Restart: restart
 ---
 id: hide address
 question: |
@@ -812,13 +824,17 @@ fields:
 id: spouse lives in IL
 question: |
   Does ${other_parties[0].name_full()} live in Illinois?
+subquestion: |
+  If you do not know, select **No**. The statewide form requires a "Yes" or "No" answer. You can still file for divorce if you do not know.
 fields:
   - no label: other_parties[0].is_resident
-    datatype: yesnoradio  
+    datatype: yesnoradio
 ---
 id: spouse lives in IL for 90 days
 question: |
   Has ${other_parties[0].name_full()} lived in Illinois for longer than 90 days?
+subquestion: |
+  If you do not know, select **No**. The statewide form requires a "Yes" or "No" answer. You can still file for divorce if you do not know.
 fields:
   - no label: other_parties[0].meets_90_day_requirement
     datatype: yesnoradio
