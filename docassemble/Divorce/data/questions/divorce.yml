@@ -477,7 +477,7 @@ fields:
       states_list()
   - County: marriage_county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('marriage_state') === "IL" && val('marriage_in_america')
   - County: marriage_county
@@ -519,7 +519,7 @@ fields:
       states_list()
   - County: previous_divorce_county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('previous_divorce_state') === "IL" && val('previous_divorce_in_us')
   - County: previous_divorce_county
@@ -670,7 +670,7 @@ fields:
       Choose a state first then enter the county.
   - County where you currently live: users[0].residence_county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list      
     js hide if: |
       val('users[0].residence_state') != "IL"
   - County where you currently live: users[0].residence_county
@@ -922,19 +922,47 @@ fields:
     maxlength: 40
   - Employer's name: other_parties[i].employers[j].name.text
     maxlength: 40
+  - Does the employer have a United States address?: other_parties[i].employers[j].in_us
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. You should enter the international address using the English alphabet.
   - Street address: other_parties[i].employers[j].address.address
     address autocomplete: True
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: True
   - Address line 2: other_parties[i].employers[j].address.unit
     required: False
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: True
   - City: other_parties[i].employers[j].address.city
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: True
   - State: other_parties[i].employers[j].address.state
     code: |
       states_list()
     default: IL
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: True
   - ZIP code: other_parties[i].employers[j].address.zip
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: True
+  - "Non-US address line 1 (street address, suite, floor)": other_parties[i].employers[j].intl_address_1
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: False
+  - "Non-US address line 2 (city, province or state, postal code, country)": other_parties[i].employers[j].intl_address_2
+    show if: 
+      variable: other_parties[i].employers[j].in_us
+      is: False
   - Phone number: other_parties[i].employers[j].phone_number
     datatype: al_international_phone
-    required: False
+    required: False    
 ---
 id: spouse active duty
 question: |
@@ -1442,7 +1470,7 @@ fields:
       states_list() 
   - County where case filed: custody_cases[0].county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('custody_cases[0].state') === "IL"
   - County where case filed: custody_cases[0].county
@@ -1477,7 +1505,7 @@ fields:
       states_list() 
   - County where case filed: custody_cases[i].county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('custody_cases[i].state') === "IL"
   - County where case filed: custody_cases[i].county
@@ -1549,7 +1577,7 @@ fields:
       states_list() 
   - County where case filed: other_cases[0].county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('other_cases[0].state') === "IL"
   - County where case filed: other_cases[0].county
@@ -1596,7 +1624,7 @@ fields:
       states_list() 
   - County where case filed: other_cases[i].county
     code: |
-      court_list._load_courts()["address_county"].unique()      
+      il_county_list       
     js show if: |
       val('other_cases[i].state') === "IL"
   - County where case filed: other_cases[i].county
@@ -2788,8 +2816,9 @@ code: |
   service_list = []
   if knows_resp_address == True:
     service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
-  if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "":
-    service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
+  if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].in_us:
+    if other_parties[0].employers[0].address.address != "":
+      service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
   service_list.append({ "other": "An address I will enter" })
 ---
 id: other service address
@@ -2827,8 +2856,10 @@ code: |
   alt_service_list = []
   if knows_resp_address == True and service_address_choice != "home":
     alt_service_list.append( { "home": other_parties[0].name_full() + "'s home address (" + other_parties[0].address.on_one_line(bare=True) + ")" })
-  if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].address.address != "" and service_address_choice != "work":
-    alt_service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
+
+  if other_parties[0].emp_status['Yes'] and other_parties[0].employers[0].in_us:
+    if other_parties[0].employers[0].address.address != "" and service_address_choice != "work":
+      alt_service_list.append({ "work": other_parties[0].name_full()+ "'s work address (" + other_parties[0].employers[0].address.on_one_line(bare=True) + ")" })
   
   alt_service_list.append({ "other": "An address I will enter" })
 ---
@@ -2873,7 +2904,7 @@ fields:
         service_state != "IL"
   - County where ${other_parties[0].name_full()} can be served: service_county
     code: |
-      court_list._load_courts()["address_county"].unique()
+      il_county_list 
     show if:
       code: |
         service_state == "IL"
@@ -4820,7 +4851,16 @@ attachment:
     - "resp_dob": ${ other_parties[0].birthdate }
     - "resp_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
     - "resp_employer": ${ other_parties[0].employers[0].name.text if other_parties[0].emp_status["Yes"] else "" }
-    - "resp_employer_address": ${ other_parties[0].employers[0].address.on_one_line(bare=True) if other_parties[0].emp_status["Yes"] else "" }
+    - "resp_employer_address": |
+        % if other_parties[0].emp_status["Yes"]:
+        % if other_parties[0].employers[0].in_us:
+        ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
+        % else:
+        ${ other_parties[0].employers[0].intl_address_1 }, ${ other_parties[0].employers[0].intl_address_2 }
+        % endif
+        % else:
+        ""
+        % endif
     - "resp_employer_phone": ${ phone_number_formatted(other_parties[0].employers[0].phone_number) if other_parties[0].emp_status["Yes"] else "" }
 
     - "child_name_0": ${ children[0].name_full() }
@@ -4901,7 +4941,7 @@ attachment:
         ${ service_address.line_one(bare=True) }
         % elif service_address_choice == "home":
         ${ other_parties[0].address.line_one(bare=True) }        
-        % else:
+        % elif service_address_choice == "work":
         ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % endif
     - "service_address_csz": |
@@ -4909,7 +4949,7 @@ attachment:
         ${ service_address.line_two() }
         % elif service_address_choice == "home":
         ${ other_parties[0].address.line_two() }        
-        % else:
+        % elif service_address_choice == "work":
         ${ other_parties[0].employers[0].address.line_two() }        
         % endif
     - "respondent_phone": ${ phone_number_formatted(other_parties[0].phone_number) }
@@ -4922,7 +4962,7 @@ attachment:
         ${ second_service_address.line_one(bare=True) }
         % elif second_service_address_choice == "home":
         ${ other_parties[0].address.line_one(bare=True) }        
-        % else:
+        % elif second_service_address_choice == "work":
         ${ other_parties[0].employers[0].address.line_one(bare=True) }
         % endif
         % endif
@@ -4932,7 +4972,7 @@ attachment:
         ${ second_service_address.line_two() }
         % elif second_service_address_choice == "home":
         ${ other_parties[0].address.line_two() }        
-        % else:
+        % elif second_service_address_choice == "work":
         ${ other_parties[0].employers[0].address.line_two() }        
         % endif
         % endif

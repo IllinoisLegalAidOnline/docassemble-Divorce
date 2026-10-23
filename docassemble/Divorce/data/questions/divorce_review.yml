@@ -686,7 +686,7 @@ review:
       * At an address I will enter
       % elif service_address_choice == "home":
       * At home: ${ other_parties[0].address.on_one_line(bare=True) }        
-      % else:
+      % elif service_address_choice == "work":
       * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % endif
     show if: know_resp_location
@@ -1840,7 +1840,7 @@ review:
       * At an address I will enter
       % elif service_address_choice == "home":
       * At home: ${ other_parties[0].address.on_one_line(bare=True) }        
-      % else:
+      % elif service_address_choice == "work":
       * At work: ${ other_parties[0].employers[0].address.on_one_line(bare=True) }
       % endif
     show if: know_resp_location
